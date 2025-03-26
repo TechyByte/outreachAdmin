@@ -91,13 +91,13 @@ def initialize_database():
         db.session.add_all([pupil1, pupil2, pupil3])
         db.session.commit()
 
-        # Enroll Pupils in Courses (Many-to-Many Relationship)
-        print("🎓 Enrolling pupils into courses...")
-        pupil1.courses.append(course1)  # Alice in Math
-        pupil1.courses.append(course2)  # Alice in Physics
-        pupil2.courses.append(course1)  # Bob in Math
-        pupil3.courses.append(course3)  # Charlie in Finance
-        db.session.commit()
+        # # Enroll Pupils in Courses (Many-to-Many Relationship)
+        # print("🎓 Enrolling pupils into courses...")
+        # pupil1.courses.append(course1)  # Alice in Math
+        # pupil1.courses.append(course2)  # Alice in Physics
+        # pupil2.courses.append(course1)  # Bob in Math
+        # pupil3.courses.append(course3)  # Charlie in Finance
+        # db.session.commit()
 
 
         # Add Example Template Events
