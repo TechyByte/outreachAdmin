@@ -1,8 +1,7 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
+from flask import Blueprint, render_template, redirect, url_for, request, current_app
 from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
-from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, School, Program, Course, Event, AgendaItem, TemplateCourse, TemplateEvent, TemplateAgendaItem
+from models import db, School
 
 bp = Blueprint('school_mgmt', __name__)
 

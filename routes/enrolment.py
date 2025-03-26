@@ -1,14 +1,14 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
-from flask_login import login_user, logout_user, login_required, current_user
+from flask_login import login_required, current_user
 from sqlalchemy.orm import selectinload
-from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, School, Program, Course, Event, AgendaItem, TemplateCourse, TemplateEvent, \
+from models import db, School, Program, Course, Event, AgendaItem, TemplateCourse, TemplateEvent, \
     TemplateAgendaItem, program_template_course
 
 bp = Blueprint('enrolment', __name__)
 
 
 @bp.route('/enroll', methods=['GET', 'POST'])
+@login_required
 def enroll():
     """Handles school enrollment and copies templates into independent records."""
     if request.method == 'POST':
@@ -27,9 +27,9 @@ def enroll():
                 school.programs.append(program)
 
                 # Copy courses from template
-                template_courses = TemplateCourse.query\
-                    .join(program_template_course)\
-                    .join(Program)\
+                template_courses = TemplateCourse.query \
+                    .join(program_template_course) \
+                    .join(Program) \
                     .filter_by(id=Program.id).all()
                 for template_course in template_courses:
                     new_course = Course(name=template_course.name, program_id=program.id, school_id=school.id)
@@ -61,10 +61,13 @@ def enroll():
 
 
 @bp.route('/unenroll', methods=['POST'])
+@login_required
 def unenroll():
     """Handles school unenrollment and removes independent records."""
     school_id = request.form.get('school_id')
     program_id = request.form.get('program_id')
+
+    # TODO: check user is admin
 
     with current_app.app_context():
         school = School.query.get(school_id)
@@ -92,6 +95,7 @@ def unenroll():
 
 
 @bp.route('/manage-enrollment')
+@login_required
 def manage_enrollment():
     """Displays schools and their enrolled programs."""
     with current_app.app_context():

@@ -1,13 +1,13 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
-from flask_login import login_user, logout_user, login_required, current_user
+from flask import Blueprint, render_template, redirect, url_for, request, current_app
+from flask_login import login_required
 from sqlalchemy.orm import selectinload
-from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, School, Program, Course, Event, AgendaItem, TemplateCourse, TemplateEvent, TemplateAgendaItem
+from models import db, Program
 
 bp = Blueprint('programme_mgmt', __name__)
 
 # Programs
 @bp.route('/programs', methods=['GET', 'POST'])
+@login_required
 def manage_programs():
     """Handles displaying and adding programs."""
     if request.method == 'POST':  # Handle form submission
