@@ -85,7 +85,7 @@ def enroll():
                 db.session.commit()
 
                 # (Optional) Logic to associate pupils to program or course can be added here
-
+        flash('School enrolled successfully!', 'success')
         return redirect(url_for('enrolment.manage_enrollment'))
 
     # GET method
@@ -135,7 +135,7 @@ def unenroll():
                 db.session.delete(course)
 
             db.session.commit()
-
+    flash('School unenrolled successfully.', 'info')
     return redirect(url_for('enrolment.manage_enrollment'))
 
 
