@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">School Dashboard</h2>
+    <p class="text-center">Manage your school's enrollments.</p>
+
+    <!-- Display School Information -->
+    {% if school %}
+    <h4>School: {{ school.name }}</h4>
+    <p>Contact: {{ school.contact_name }} ({{ school.contact_email }})</p>
+
+    <!-- Display Enrolled Programs -->
+    <h3>Enrolled Programs</h3>
+    <ul class="list-group">
+        {% for program in school.programs %}
+            <li class="list-group-item d-flex justify-content-between">
+                {{ program.name }}
+                <form method="POST" action="{{ url_for('unenroll') }}" class="d-inline">
+                    <input type="hidden" name="school_id" value="{{ school.id }}">
+                    <input type="hidden" name="program_id" value="{{ program.id }}">
+                    <button type="submit" class="btn btn-danger btn-sm">Unenroll</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% else %}
+        <p class="text-muted">No school assigned to this account.</p>
+    {% endif %}
+
+    <a href="{{ url_for('logout') }}" class="btn btn-secondary mt-3">Logout</a>
+</div>
+{% endblock %}
