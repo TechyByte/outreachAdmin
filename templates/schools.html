@@ -13,6 +13,7 @@
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Enrolled Programs</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -23,9 +24,18 @@
                 <td>{{ school.contact_email }}</td>
                 <td>{{ school.contact_phone }}</td>
                 <td>
-                    {% for program in school.programs %}
+                    {%
+                            for program in school.programs %}
                         <span class="badge bg-primary">{{ program.name }}</span>
                     {% endfor %}
+                </td>
+                <td>
+                    <a href="{{ url_for('school_mgmt.school_pupils', school_id=school.id) }}" class="btn btn-sm btn-secondary">
+                        Manage Pupils
+                    </a>
+                    <a href="{{ url_for('enrolment.enroll', school_id=school.id) }}" class="btn btn-sm btn-secondary">
+                        Manage Enrolments
+                    </a>
                 </td>
             </tr>
             {% endfor %}

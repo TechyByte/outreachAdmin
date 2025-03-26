@@ -40,6 +40,7 @@ class School(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # School Contact
     user = db.relationship('User', backref='school')
     programs = db.relationship('Program', secondary=school_program, back_populates='schools') # backref=db.backref('schools', lazy='dynamic'))
+    pupils = db.relationship('Pupil', backref='school', cascade='all, delete-orphan')
 
 class Program(db.Model):
     id = db.Column(db.Integer, primary_key=True)
