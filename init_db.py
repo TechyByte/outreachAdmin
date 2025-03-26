@@ -75,6 +75,16 @@ def initialize_database():
         program2.template_courses.append(template_course3)  # Business gets Finance
         db.session.commit()
 
+
+        # Add Example Template Events
+        print("📅 Adding example template events...")
+        template_event1 = TemplateEvent(name="Mathematics Quiz", template_course_id=template_course1.id)
+        template_event2 = TemplateEvent(name="Physics Lab", template_course_id=template_course2.id)
+        template_event3 = TemplateEvent(name="Finance Workshop", template_course_id=template_course3.id)
+        db.session.add_all([template_event1, template_event2, template_event3])
+        db.session.commit()
+
+
         # # Create Live Courses (Based on Templates)
         # print("🎓 Creating live courses from templates...")
         # course1 = Course(name="Mathematics", program_id=program1.id, school_id=school1.id)
@@ -98,15 +108,6 @@ def initialize_database():
         # pupil2.courses.append(course1)  # Bob in Math
         # pupil3.courses.append(course3)  # Charlie in Finance
         # db.session.commit()
-
-
-        # Add Example Template Events
-        print("📅 Adding example template events...")
-        template_event1 = TemplateEvent(name="Mathematics Quiz", template_course_id=template_course1.id)
-        template_event2 = TemplateEvent(name="Physics Lab", template_course_id=template_course2.id)
-        template_event3 = TemplateEvent(name="Finance Workshop", template_course_id=template_course3.id)
-        db.session.add_all([template_event1, template_event2, template_event3])
-        db.session.commit()
 
         #
         # # Assign Template Events to Template Courses (Many-to-Many)

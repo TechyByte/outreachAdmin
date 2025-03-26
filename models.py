@@ -17,11 +17,15 @@ school_program = db.Table('school_program',
     db.Column('program_id', db.Integer, db.ForeignKey('program.id'), primary_key=True)
 )
 
+
 # Association table: Pupils in Courses
-pupil_course = db.Table('pupil_course',
-    db.Column('pupil_id', db.Integer, db.ForeignKey('pupil.id'), primary_key=True),
-    db.Column('course_id', db.Integer, db.ForeignKey('course.id'), primary_key=True)
-)
+class PupilCourse(db.Model):
+    __tablename__ = 'pupil_course'
+    pupil_id = db.Column(db.Integer, db.ForeignKey('pupil.id'), primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id', ondelete='CASCADE'), primary_key=True)
+
+    pupil = db.relationship('Pupil', back_populates='pupil_courses')
+    course = db.relationship('Course', back_populates='pupil_courses')
 
 class User(db.Model, UserMixin):
     """Lecturers who can manage templates."""
@@ -81,6 +85,9 @@ class Course(db.Model):
     name = db.Column(db.String(100), nullable=False)
     program_id = db.Column(db.Integer, db.ForeignKey('program.id'), nullable=False)
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
+    pupil_courses = db.relationship('PupilCourse', back_populates='course', cascade='all, delete-orphan', passive_deletes=True)
+    program = db.relationship('Program', backref='courses')
+    school = db.relationship('School', backref='courses')
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -94,7 +101,7 @@ class Pupil(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
-    courses = db.relationship('Course', secondary=pupil_course, backref=db.backref('pupils', lazy='dynamic'))
+    pupil_courses = db.relationship('PupilCourse', back_populates='pupil')
 
 class AgendaItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
