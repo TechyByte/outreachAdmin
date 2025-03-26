@@ -29,7 +29,6 @@ class PupilCourse(db.Model):
     course = db.relationship('Course', back_populates='pupil_courses')
 
 class User(db.Model, UserMixin):
-    """Lecturers who can manage templates."""
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)  # Store hashed password
@@ -46,7 +45,8 @@ class School(db.Model):
     contact_phone = db.Column(db.String(20), nullable=False)
     users = db.relationship('User', back_populates='school')
     programs = db.relationship('Program', secondary=school_program, back_populates='schools') # backref=db.backref('schools', lazy='dynamic'))
-    pupils = db.relationship('Pupil', backref='school', cascade='all, delete-orphan')
+    pupils = db.relationship('Pupil', backref='school', cascade="all, delete-orphan")
+
 
 class Program(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -71,7 +71,7 @@ class TemplateEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     template_course_id = db.Column(db.Integer, db.ForeignKey('template_course.id'), nullable=False)
-    template_agenda_items = db.relationship('TemplateAgendaItem', backref='template_event')
+    template_agenda_items = db.relationship('TemplateAgendaItem', backref='template_event', order_by='TemplateAgendaItem.time.asc()')
 
 class TemplateAgendaItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -80,8 +80,8 @@ class TemplateAgendaItem(db.Model):
     lecturer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Allow null if no lecturer assigned
     description = db.Column(db.Text, nullable=True)
     lecturer = db.relationship('User', backref='template_agenda_items')
-    duration = db.Column(db.Interval, nullable=False)
-    time = db.Column(db.Time, nullable=False)  # Time of day
+    duration = db.Column(db.Interval, nullable=True)
+    time = db.Column(db.Time, nullable=True)  # Time of day
 
 
 class Course(db.Model):
@@ -107,6 +107,7 @@ class Pupil(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
+    #school = db.relationship('School', back_populates='pupils')
     pupil_courses = db.relationship('PupilCourse', back_populates='pupil')
 
 class AgendaItem(db.Model):
