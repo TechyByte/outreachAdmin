@@ -10,7 +10,7 @@ bp = Blueprint('dashboard', __name__)
 def admin_dashboard():
     if current_user.role != 'admin':
         flash("Unauthorized access!", "danger")
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     users = User.query.all()
     return render_template('admin_dashboard.html', users=users)
@@ -18,19 +18,22 @@ def admin_dashboard():
 @bp.route('/school-dashboard')
 @login_required
 def school_dashboard():
-    if current_user.role != 'school_contact' and current_user.role != 'admin':
+    if current_user.role not in ['school_contact', 'admin']:
         flash("Unauthorized access!", "danger")
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
-    school = School.query.filter_by(user_id=current_user.id).first()
-    return render_template('school_dashboard.html', school=school)
+    if current_user.school_id is None:
+        schools = School.query.all()
+    else:
+        schools = School.query.filter_by(id=current_user.school_id).all()
+    return render_template('school_dashboard.html', schools=schools)
 
 @bp.route('/lecturer-dashboard')
 @login_required
 def lecturer_dashboard():
     if current_user.role != 'lecturer' and current_user.role != 'admin':
         flash("Unauthorized access!", "danger")
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     agenda_items = AgendaItem.query.filter_by(lecturer_id=current_user.id)  # Assigned agenda items
     return render_template('lecturer_dashboard.html', agenda_items=agenda_items)

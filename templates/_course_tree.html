@@ -1,0 +1,10 @@
+
+<li class="list-group-item">
+    <strong>{{ course.name }}</strong>
+    <ul class="list-group mt-2">
+        {% for event in course.events %}
+            {%  include '_event_tree.html' with context %}
+        {% endfor %}
+    </ul>
+</li>
+
