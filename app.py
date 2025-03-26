@@ -2,10 +2,11 @@ import os
 from flask import Flask, render_template, redirect, url_for, request, flash
 
 
-from models import db, School, Program, Course, Event, AgendaItem, TemplateCourse, TemplateEvent, TemplateAgendaItem, User  # Import db from models.py
+from models import db, School, Program, TemplateCourse, TemplateEvent, TemplateAgendaItem, User, \
+    Event, AgendaItem, Course  # Import db from models.py
 from init_db import initialize_database  # Import initialization function
 from sqlalchemy.orm import joinedload, selectinload
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -218,6 +219,7 @@ def manage_programs():
 
     return render_template('programs.html', programs=programs)
 
+
 @app.route('/enroll', methods=['GET', 'POST'])
 def enroll():
     """Handles school enrollment and copies templates into independent records."""
@@ -237,7 +239,7 @@ def enroll():
                 school.programs.append(program)
 
                 # Copy courses from template
-                template_courses = TemplateCourse.query.filter_by(program_id=program.id).all()
+                template_courses = TemplateCourse.query.filter_by(program=Program.id).all()
                 for template_course in template_courses:
                     new_course = Course(name=template_course.name, program_id=program.id, school_id=school.id)
                     db.session.add(new_course)
@@ -265,6 +267,7 @@ def enroll():
         programs = Program.query.all()
 
     return render_template('enroll.html', schools=schools, programs=programs)
+
 
 @app.route('/unenroll', methods=['POST'])
 def unenroll():
