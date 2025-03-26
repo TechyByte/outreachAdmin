@@ -9,6 +9,20 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
+
+def check_database():
+    """Ensures the database is created and initialized before running the app."""
+    if not os.path.exists("instance/database.db"):
+        print("📦 No database found. Initializing...")
+        with app.app_context():
+            initialize_database()
+    else:
+        with app.app_context():
+            inspector = db.engine.inspect(db.engine)
+            if not inspector.has_table("school"):
+                print("⚠️ Table 'school' not found. Recreating database...")
+                initialize_database()
+
 def initialize_database():
     """Drops existing tables, recreates them, and adds example template and live data."""
     with app.app_context():
