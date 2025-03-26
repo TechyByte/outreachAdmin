@@ -11,7 +11,7 @@ def manage_templates():
     """Allows admins to manage template courses and agenda items."""
     if current_user.role != 'admin':
         flash("Unauthorized access!", "danger")
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     program_id = request.args.get('program_id')
     course_id = request.args.get('course_id')
@@ -116,7 +116,7 @@ def edit_template_course(course_id):
     """Displays the template course and allows editing of events & agenda items."""
     if current_user.role != 'admin':
         flash("Unauthorized access!", "danger")
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     with current_app.app_context():
         selected_course = TemplateCourse.query.get(course_id)

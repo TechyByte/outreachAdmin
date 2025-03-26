@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from sqlalchemy import DateTime, Date
 
 db = SQLAlchemy()
 
@@ -33,6 +34,8 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)  # Store hashed password
     role = db.Column(db.String(20), nullable=False)  # 'admin', 'lecturer', or 'school_contact'
+    school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=True)
+    school = db.relationship('School', back_populates='users')
 
 
 class School(db.Model):
@@ -41,8 +44,7 @@ class School(db.Model):
     contact_name = db.Column(db.String(100), nullable=False)
     contact_email = db.Column(db.String(100), nullable=False)
     contact_phone = db.Column(db.String(20), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # School Contact
-    user = db.relationship('User', backref='school')
+    users = db.relationship('User', back_populates='school')
     programs = db.relationship('Program', secondary=school_program, back_populates='schools') # backref=db.backref('schools', lazy='dynamic'))
     pupils = db.relationship('Pupil', backref='school', cascade='all, delete-orphan')
 
@@ -76,8 +78,10 @@ class TemplateAgendaItem(db.Model):
     title = db.Column(db.String(200), nullable=False)
     template_event_id = db.Column(db.Integer, db.ForeignKey('template_event.id', ondelete='cascade'), nullable=False)
     lecturer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Allow null if no lecturer assigned
-
+    description = db.Column(db.Text, nullable=True)
     lecturer = db.relationship('User', backref='template_agenda_items')
+    duration = db.Column(db.Interval, nullable=False)
+    time = db.Column(db.Time, nullable=False)  # Time of day
 
 
 class Course(db.Model):
@@ -88,6 +92,7 @@ class Course(db.Model):
     pupil_courses = db.relationship('PupilCourse', back_populates='course', cascade='all, delete-orphan', passive_deletes=True)
     program = db.relationship('Program', backref='courses')
     school = db.relationship('School', backref='courses')
+    events = db.relationship('Event', backref='course', order_by='Event.date.asc()', cascade='all, delete-orphan')
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -95,7 +100,8 @@ class Event(db.Model):
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
     location = db.Column(db.String(100), nullable=True)
-    date = db.Column(db.String(50), nullable=True)
+    date = db.Column(Date, nullable=True)
+    agenda_items = db.relationship('AgendaItem', backref='event', order_by='AgendaItem.time.asc()', cascade='all, delete-orphan')
 
 class Pupil(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -108,3 +114,8 @@ class AgendaItem(db.Model):
     title = db.Column(db.String(200), nullable=False)
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
     lecturer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Allow null if no lecturer assigned
+    lecturer_confirmed = db.Column(db.Boolean, nullable=False, default=False)
+    lecturer = db.relationship('User', backref='agenda_items')
+    time = db.Column(db.Time, nullable=True)
+    duration = db.Column(db.Interval, nullable=True)
+    description = db.Column(db.Text, nullable=True)

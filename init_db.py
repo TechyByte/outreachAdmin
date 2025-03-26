@@ -37,20 +37,25 @@ def initialize_database():
         print("📦 Creating new tables...")
         db.create_all()
 
-        # Add Example Users
-        print("👤 Adding example users...")
-        admin = User(username="admin", password=generate_password_hash("admin123"), role="admin")
-        school_contact1 = User(username="john_doe", password=generate_password_hash("password"), role="school_contact")
-        school_contact2 = User(username="jane_smith", password=generate_password_hash("password"), role="school_contact")
 
-        db.session.add_all([admin, school_contact1, school_contact2])
+        # Add Example Schools (first, since users will reference them)
+        print("🏫 Adding example schools...")
+        school1 = School(name="Springfield High", contact_name="John Doe", contact_email="john@school.com",
+                         contact_phone="123456789")
+        school2 = School(name="Riverdale Academy", contact_name="Jane Smith", contact_email="jane@school.com",
+                         contact_phone="987654321")
+        db.session.add_all([school1, school2])
         db.session.commit()
 
-        # Add Example Schools
-        print("🏫 Adding example schools...")
-        school1 = School(name="Springfield High", contact_name="John Doe", contact_email="john@school.com", contact_phone="123456789", user_id=school_contact1.id)
-        school2 = School(name="Riverdale Academy", contact_name="Jane Smith", contact_email="jane@school.com", contact_phone="987654321", user_id=school_contact2.id)
-        db.session.add_all([school1, school2])
+        # Add Example Users (with school_id assigned)
+        print("👤 Adding example users...")
+        admin = User(username="admin", password=generate_password_hash("admin123"), role="admin")
+        school_contact1 = User(username="john_doe", password=generate_password_hash("password"), role="school_contact",
+                               school_id=school1.id)
+        school_contact2 = User(username="jane_smith", password=generate_password_hash("password"),
+                               role="school_contact", school_id=school2.id)
+
+        db.session.add_all([admin, school_contact1, school_contact2])
         db.session.commit()
 
         # Add Example Programs

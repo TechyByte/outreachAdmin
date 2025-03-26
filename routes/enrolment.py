@@ -74,7 +74,12 @@ def enroll():
                         # Copy agenda items
                         template_agendas = TemplateAgendaItem.query.filter_by(template_event_id=template_event.id).all()
                         for template_agenda in template_agendas:
-                            new_agenda = AgendaItem(title=template_agenda.title, event_id=new_event.id)
+                            new_agenda = AgendaItem(title=template_agenda.title,
+                                                    event_id=new_event.id,
+                                                    lecturer_id=template_agenda.lecturer_id,
+                                                    time=template_agenda.time,
+                                                    duration=template_agenda.duration,
+                                                    description=template_agenda.description)
                             db.session.add(new_agenda)
 
                 db.session.commit()
