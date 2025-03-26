@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, current_app, flash
 from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
-from models import db, School, User
+from models import db, School, User, PupilCourse, AgendaItem, Pupil, Course
 
 bp = Blueprint('school_mgmt', __name__)
 
@@ -62,3 +62,25 @@ def remove_pupil(pupil_id):
     db.session.commit()
     flash('Pupil removed successfully.', 'info')
     return redirect(request.referrer or url_for('school_mgmt.school_pupils', school_id=1))
+
+
+@bp.route('/pupil-courses')
+@login_required
+def pupil_courses():
+    if current_user.role == 'school_contact':
+        school = School.query.filter_by(contact_email=current_user.username).first()
+        if not school:
+            flash("School not found for current user.", "danger")
+            return redirect(url_for('dashboard'))
+        records = PupilCourse.query.join(Pupil).join(Course).filter(Course.school_id == school.id).all()
+    elif current_user.role == 'lecturer':
+        # Get all courses where the lecturer is linked to an agenda item
+        lecturer_agendas = AgendaItem.query.filter_by(lecturer_id=current_user.id).all()
+        course_ids = list(set(a.event.course_id for a in lecturer_agendas))
+        records = PupilCourse.query.filter(PupilCourse.course_id.in_(course_ids)).all()
+    else:
+        # Default: admins or other roles see everything
+        records = PupilCourse.query.all()
+
+    return render_template('pupil_courses.html', pupil_courses=records)
+
