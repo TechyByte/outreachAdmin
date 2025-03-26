@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
-from flask_login import login_user, logout_user, login_required, current_user
+from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, School, Program, Course, Event, AgendaItem, TemplateCourse, TemplateEvent, TemplateAgendaItem
@@ -8,9 +8,10 @@ bp = Blueprint('school_mgmt', __name__)
 
 
 @bp.route('/schools', methods=['GET', 'POST'])
+@login_required
 def manage_schools():
     """Handles displaying and adding schools."""
-    if request.method == 'POST':  # Handle form submission
+    if request.method == 'POST' and current_user.role == 'admin':  # Handle form submission
         name = request.form['name']
         contact_name = request.form['contact_name']
         contact_email = request.form['contact_email']
