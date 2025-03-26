@@ -23,6 +23,24 @@
                 {% endfor %}
             </select>
         </div>
+        <div class="mb-3">
+            <label for="course_ids" class="form-label">Select Template Courses:</label>
+            <select class="form-control" id="course_ids" name="course_ids" multiple required>
+                {% for course in template_courses %}
+                    <option value="{{ course.id }}">{{ course.name }}</option>
+                {% endfor %}
+            </select>
+            <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple courses.</small>
+        </div>
+        <div class="mb-3">
+            <label for="pupil_ids" class="form-label">Select Pupils to Enroll:</label>
+            <select class="form-control" id="pupil_ids" name="pupil_ids" multiple required>
+                {% for pupil in pupils %}
+                    <option value="{{ pupil.id }}">{{ pupil.name }}</option>
+                {% endfor %}
+            </select>
+            <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple pupils.</small>
+        </div>
         <button type="submit" class="btn btn-success">Enroll</button>
     </form>
 
@@ -75,4 +93,61 @@
         </tbody>
     </table>
 </div>
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const schoolSelect = document.getElementById('school_id');
+    const programSelect = document.getElementById('program_id');
+    const courseSelect = document.getElementById('course_ids');
+    const pupilSelect = document.getElementById('pupil_ids');
+
+    function clearOptions(select) {
+        while (select.options.length > 0) {
+            select.remove(0);
+        }
+    }
+
+    schoolSelect.addEventListener('change', () => {
+        const schoolId = schoolSelect.value;
+
+        // Fetch filtered programs
+        fetch(`/_get_programs/${schoolId}`)
+            .then(res => res.json())
+            .then(data => {
+                clearOptions(programSelect);
+                data.forEach(program => {
+                    const opt = new Option(program.name, program.id);
+                    programSelect.add(opt);
+                });
+                programSelect.dispatchEvent(new Event('change')); // trigger update of courses
+            });
+
+        // Fetch pupils
+        fetch(`/_get_pupils/${schoolId}`)
+            .then(res => res.json())
+            .then(data => {
+                clearOptions(pupilSelect);
+                data.forEach(pupil => {
+                    const opt = new Option(pupil.name, pupil.id);
+                    pupilSelect.add(opt);
+                });
+            });
+    });
+
+    programSelect.addEventListener('change', () => {
+        const programId = programSelect.value;
+        fetch(`/_get_template_courses/${programId}`)
+            .then(res => res.json())
+            .then(data => {
+                clearOptions(courseSelect);
+                data.forEach(course => {
+                    const opt = new Option(course.name, course.id);
+                    courseSelect.add(opt);
+                });
+            });
+    });
+
+    // Trigger on load
+    schoolSelect.dispatchEvent(new Event('change'));
+});
+</script>
 {% endblock %}
