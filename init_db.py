@@ -75,13 +75,13 @@ def initialize_database():
         program2.template_courses.append(template_course3)  # Business gets Finance
         db.session.commit()
 
-        # Create Live Courses (Based on Templates)
-        print("🎓 Creating live courses from templates...")
-        course1 = Course(name="Mathematics", program_id=program1.id, school_id=school1.id)
-        course2 = Course(name="Physics", program_id=program1.id, school_id=school1.id)
-        course3 = Course(name="Finance 101", program_id=program2.id, school_id=school2.id)
-        db.session.add_all([course1, course2, course3])
-        db.session.commit()
+        # # Create Live Courses (Based on Templates)
+        # print("🎓 Creating live courses from templates...")
+        # course1 = Course(name="Mathematics", program_id=program1.id, school_id=school1.id)
+        # course2 = Course(name="Physics", program_id=program1.id, school_id=school1.id)
+        # course3 = Course(name="Finance 101", program_id=program2.id, school_id=school2.id)
+        # db.session.add_all([course1, course2, course3])
+        # db.session.commit()
 
         # Add Example Pupils
         print("👩‍🎓 Adding example pupils...")
