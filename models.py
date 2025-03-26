@@ -57,17 +57,19 @@ class TemplateCourse(db.Model):
     #
     # program = db.relationship('Program', backref='template_courses', lazy=True)
     programs = db.relationship('Program', secondary=program_template_course, back_populates='template_courses')
+    template_events = db.relationship('TemplateEvent', backref='template_course')
 
 
 class TemplateEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     template_course_id = db.Column(db.Integer, db.ForeignKey('template_course.id'), nullable=False)
+    template_agenda_items = db.relationship('TemplateAgendaItem', backref='template_event')
 
 class TemplateAgendaItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
-    template_event_id = db.Column(db.Integer, db.ForeignKey('template_event.id'), nullable=False)
+    template_event_id = db.Column(db.Integer, db.ForeignKey('template_event.id', ondelete='cascade'), nullable=False)
     lecturer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Allow null if no lecturer assigned
 
     lecturer = db.relationship('User', backref='template_agenda_items')

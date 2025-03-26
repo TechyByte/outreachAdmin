@@ -129,11 +129,11 @@ def edit_template_course(course_id):
         # ✅ Get the first program this template course is assigned to
         selected_program = selected_course.programs[0] if selected_course.programs else None
 
-    return render_template(
-        "edit_template_course.html",
-        selected_course=selected_course,
-        selected_program=selected_program
-    )
+        return render_template(
+            "edit_template_course.html",
+            selected_course=selected_course,
+            selected_program=selected_program
+        )
 
 @bp.route('/add-template-event', methods=['POST'])
 @login_required
@@ -213,7 +213,7 @@ def add_template_agenda_item():
         db.session.commit()
 
     flash("New agenda item added successfully!", "success")
-    return redirect(url_for('edit_template_course', course_id=TemplateEvent.query.get(event_id).template_course_id))
+    return redirect(url_for('template_mgmt.edit_template_course', course_id=TemplateEvent.query.get(event_id).template_course_id))
 
 
 @bp.route('/edit-template-agenda-item', methods=['POST'])
@@ -239,25 +239,25 @@ def edit_template_agenda_item():
 
 
 
-# @app.route('/delete-template-agenda-item', methods=['POST'])
-# @login_required
-# def delete_template_agenda_item():
-#     """Deletes a template agenda item from a template event."""
-#     if current_user.role != 'admin':
-#         flash("Unauthorized access!", "danger")
-#         return redirect(url_for('template_mgmt.manage_templates'))
-#
-#     agenda_item_id = request.form.get('agenda_item_id')
-#
-#     with app.app_context():
-#         agenda_item = TemplateAgendaItem.query.get(agenda_item_id)
-#         if agenda_item:
-#             course_id = agenda_item.event.template_course_id  # Get associated course before deleting
-#             db.session.delete(agenda_item)
-#             db.session.commit()
-#             flash("Agenda item deleted successfully!", "danger")
-#             return redirect(url_for('edit_template_course', course_id=course_id))
-#
-#     flash("Agenda item not found!", "warning")
-#     return redirect(url_for('template_mgmt.manage_templates'))
-#
+@bp.route('/delete-template-agenda-item', methods=['POST'])
+@login_required
+def delete_template_agenda_item():
+    """Deletes a template agenda item from a template event."""
+    if current_user.role != 'admin':
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('template_mgmt.manage_templates'))
+
+    agenda_item_id = request.form.get('agenda_item_id')
+
+    with current_app.app_context():
+        agenda_item = TemplateAgendaItem.query.get(agenda_item_id)
+        if agenda_item:
+            course_id = agenda_item.template_event.template_course_id  # Get associated course before deleting
+            db.session.delete(agenda_item)
+            db.session.commit()
+            flash("Agenda item deleted successfully!", "danger")
+            return redirect(url_for('template_mgmt.edit_template_course', course_id=course_id))
+
+    flash("Agenda item not found!", "warning")
+    return redirect(url_for('template_mgmt.manage_templates'))
+

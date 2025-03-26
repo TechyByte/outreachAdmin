@@ -21,7 +21,7 @@
         </div>
         <div class="card-body">
             <ul class="list-group">
-                {% for event in selected_course.events %}
+                {% for event in selected_course.template_events %}
                     <li class="list-group-item">
                         <div class="d-flex justify-content-between align-items-center">
                             <strong>{{ event.name }}</strong>
@@ -52,7 +52,7 @@
 
                         <!-- Display Agenda Items -->
                         <ul class="list-group mt-2">
-                            {% for agenda_item in event.agenda_items %}
+                            {% for agenda_item in event.template_agenda_items %}
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <span>{{ agenda_item.title }}</span>
                                     <div>
