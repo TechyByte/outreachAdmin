@@ -12,7 +12,7 @@ db.init_app(app)
 def initialize_database():
     """Drops existing tables, recreates them, and adds example template and live data."""
     with app.app_context():
-        if os.path.exists("database.db"):
+        if os.path.exists("instance/database.db"):
             user_input = input("⚠️ Database already exists. Overwrite it? (yes/no): ").strip().lower()
             if user_input not in ["yes", "y"]:
                 print("✅ Keeping existing database. No changes made.")
@@ -88,29 +88,29 @@ def initialize_database():
 
         # Add Example Template Events
         print("📅 Adding example template events...")
-        template_event1 = TemplateEvent(name="Mathematics Quiz", description="A quiz on basic math concepts")
-        template_event2 = TemplateEvent(name="Physics Lab", description="A lab session on Newton's Laws")
-        template_event3 = TemplateEvent(name="Finance Workshop", description="A workshop on personal finance")
+        template_event1 = TemplateEvent(name="Mathematics Quiz", template_course_id=template_course1.id)
+        template_event2 = TemplateEvent(name="Physics Lab", template_course_id=template_course2.id)
+        template_event3 = TemplateEvent(name="Finance Workshop", template_course_id=template_course3.id)
         db.session.add_all([template_event1, template_event2, template_event3])
         db.session.commit()
 
+        #
+        # # Assign Template Events to Template Courses (Many-to-Many)
+        # print("🔗 Assigning template events to template courses...")
+        # template_course1.template_events.append(template_event1)  # Math gets Quiz
+        # template_course2.template_events.append(template_event2)  # Physics gets Lab
+        # template_course3.template_events.append(template_event3)  # Finance gets Workshop
+        # db.session.commit()
 
-        # Assign Template Events to Template Courses (Many-to-Many)
-        print("🔗 Assigning template events to template courses...")
-        template_course1.template_events.append(template_event1)  # Math gets Quiz
-        template_course2.template_events.append(template_event2)  # Physics gets Lab
-        template_course3.template_events.append(template_event3)  # Finance gets Workshop
-        db.session.commit()
-
-
-        # Create Live Events (Based on Templates)
-        print("📅 Creating live events from templates...")
-        event1 = Event(name="Mathematics Quiz", course_id=course1.id, date="2021-12-01")
-        event2 = Event(name="Physics Lab", course_id=course2.id, date="2021-12-02")
-        event3 = Event(name="Finance Workshop", course_id=course3.id, date="2021-12-03")
-        db.session.add_all([event1, event2, event3])
-        db.session.commit()
-
+        #
+        # # Create Live Events (Based on Templates)
+        # print("📅 Creating live events from templates...")
+        # event1 = Event(name="Mathematics Quiz", course_id=course1.id, date="2021-12-01")
+        # event2 = Event(name="Physics Lab", course_id=course2.id, date="2021-12-02")
+        # event3 = Event(name="Finance Workshop", course_id=course3.id, date="2021-12-03")
+        # db.session.add_all([event1, event2, event3])
+        # db.session.commit()
+        #
 
         print("✅ Database initialized successfully with example data!")
 

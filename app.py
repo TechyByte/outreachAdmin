@@ -85,17 +85,17 @@ def admin_dashboard():
 @app.route('/lecturer-dashboard')
 @login_required
 def lecturer_dashboard():
-    if current_user.role != 'lecturer':
+    if current_user.role != 'lecturer' and current_user.role != 'admin':
         flash("Unauthorized access!", "danger")
         return redirect(url_for('login'))
 
-    agenda_items = current_user.agenda_items  # Assigned agenda items
+    agenda_items = AgendaItem.query.filter_by(lecturer_id=current_user.id)  # Assigned agenda items
     return render_template('lecturer_dashboard.html', agenda_items=agenda_items)
 
 @app.route('/school-dashboard')
 @login_required
 def school_dashboard():
-    if current_user.role != 'school_contact':
+    if current_user.role != 'school_contact' and current_user.role != 'admin':
         flash("Unauthorized access!", "danger")
         return redirect(url_for('login'))
 
