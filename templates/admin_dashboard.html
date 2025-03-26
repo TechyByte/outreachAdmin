@@ -19,7 +19,7 @@
             <tr>
                 <td>{{ user.username }}</td>
                 <td>
-                    <form method="POST" action="{{ url_for('change_user_type') }}">
+                    <form method="POST" action="{{ url_for('user_mgmt.change_user_type') }}">
                         <input type="hidden" name="user_id" value="{{ user.id }}">
                         <select name="new_role" class="form-select d-inline w-auto">
                             <option value="admin" {% if user.role == "admin" %}selected{% endif %}>Admin</option>
@@ -31,7 +31,7 @@
                 </td>
                 <td>
                     {% if user.role != 'admin' %}
-                        <form method="POST" action="{{ url_for('delete_user') }}">
+                        <form method="POST" action="{{ url_for('user_mgmt.delete_user') }}">
                             <input type="hidden" name="user_id" value="{{ user.id }}">
                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                         </form>
@@ -42,6 +42,6 @@
         </tbody>
     </table>
 
-    <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary">Logout</a>
 </div>
 {% endblock %}

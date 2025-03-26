@@ -18,7 +18,7 @@
             <tr>
                 <td>{{ agenda_item.title }}</td>
                 <td>
-                    <form method="POST" action="{{ url_for('edit_agenda_item') }}">
+                    <form method="POST" action="{{ url_for('template_mgmt.edit_agenda_item') }}">
                         <input type="hidden" name="agenda_item_id" value="{{ agenda_item.id }}">
                         <input type="text" name="new_title" placeholder="New Title" class="form-control d-inline w-50">
                         <button type="submit" class="btn btn-warning btn-sm">Edit</button>
@@ -28,7 +28,5 @@
             {% endfor %}
         </tbody>
     </table>
-
-    <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
 </div>
 {% endblock %}

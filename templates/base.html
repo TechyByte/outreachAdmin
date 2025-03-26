@@ -13,15 +13,16 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_schools') }}">Schools</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_programs') }}">Programs</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('enroll') }}">Enroll</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('lecturer_dashboard') }}">Lecturer Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('school_dashboard') }}">School Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_templates') }}">Manage Templates</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('school_mgmt.manage_schools') }}">Schools</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('programme_mgmt.manage_programs') }}">Programs</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('enrolment.enroll') }}">Enroll</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.register') }}">Register</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard.lecturer_dashboard') }}">Lecturer Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard.school_dashboard') }}">School Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard.admin_dashboard') }}">Admin Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('template_mgmt.manage_templates') }}">Manage Templates</a></li>
                 </ul>
             </div>
         </div>

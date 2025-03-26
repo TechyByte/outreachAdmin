@@ -6,7 +6,7 @@
 
     <!-- Enrollment Form -->
     <h3 class="mt-4">Enroll a School in a Program</h3>
-    <form method="POST" action="{{ url_for('enroll') }}">
+    <form method="POST" action="{{ url_for('enrolment.enroll') }}">
         <div class="mb-3">
             <label for="school_id" class="form-label">Select School:</label>
             <select class="form-control" id="school_id" name="school_id" required>
@@ -28,7 +28,7 @@
 
     <!-- Unenrollment Form -->
     <h3 class="mt-4">Unenroll a School from a Program</h3>
-    <form method="POST" action="{{ url_for('unenroll') }}">
+    <form method="POST" action="{{ url_for('enrolment.unenroll') }}">
         <div class="mb-3">
             <label for="unenroll_school_id" class="form-label">Select School:</label>
             <select class="form-control" id="unenroll_school_id" name="school_id" required>
