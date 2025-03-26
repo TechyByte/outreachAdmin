@@ -15,7 +15,7 @@
         <tbody>
             {% for program in programs %}
             <tr>
-                <td>{{ program.name }}</td>
+                <td><a href="{{ url_for('template_mgmt.manage_templates') }}?program_id={{ program.id }}">{{ program.name }}</a></td>
                 <td>
                     {% if program.schools %}
                         {% for school in program.schools %}
