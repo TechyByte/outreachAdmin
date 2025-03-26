@@ -1,3 +1,5 @@
+from datetime import time, datetime
+
 from flask import Flask, render_template, redirect, url_for, request, flash
 from models import db, User
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -28,6 +30,12 @@ login_manager.login_view = 'auth.login'
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
+
+@app.template_filter('short_time')
+def short_time_filter(value):
+    if isinstance(value, (time, datetime)):
+        return value.strftime('%H:%M')  # 24-hour format without seconds
+    return value
 
 @app.route('/')
 def index():

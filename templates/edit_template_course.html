@@ -46,6 +46,7 @@
                             <input type="hidden" name="event_id" value="{{ event.id }}">
                             <div class="input-group mt-2">
                                 <input type="text" name="agenda_title" class="form-control" placeholder="New Agenda Item" required>
+                                <input type="time" name="agenda_time" class="form-control" required>
                                 <button type="submit" class="btn btn-primary">Add</button>
                             </div>
                         </form>
@@ -54,7 +55,7 @@
                         <ul class="list-group mt-2">
                             {% for agenda_item in event.template_agenda_items %}
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>{{ agenda_item.title }}</span>
+                                    <span><em>{{ agenda_item.time | short_time }}</em> {{ agenda_item.title }}</span>
                                     <div>
                                         <!-- Edit Agenda Item -->
                                         <form method="POST" action="{{ url_for('template_mgmt.edit_template_agenda_item') }}" class="d-inline">

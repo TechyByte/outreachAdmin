@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 from flask_login import login_required, current_user
 from models import db, Program, TemplateCourse, TemplateEvent, TemplateAgendaItem
@@ -205,9 +207,14 @@ def add_template_agenda_item():
 
     event_id = request.form.get('event_id')
     agenda_title = request.form.get('agenda_title')
+    agenda_time = request.form.get('agenda_time')
+    agenda_time = datetime.strptime(agenda_time, '%H:%M').time()
 
     with current_app.app_context():
-        new_agenda = TemplateAgendaItem(title=agenda_title, template_event_id=event_id)
+        new_agenda = TemplateAgendaItem(title=agenda_title,
+                                        template_event_id=event_id,
+                                        time=agenda_time
+                                        )
         db.session.add(new_agenda)
         db.session.commit()
 
