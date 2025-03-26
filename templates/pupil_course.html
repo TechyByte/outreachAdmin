@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage School Enrollments</h2>
+
+    <!-- Enrollment Form -->
+    <h3 class="mt-4">Enroll a School in a Program</h3>
+    <form method="POST" action="{{ url_for('enrolment.enroll') }}">
+        <div class="mb-3">
+            <label for="school_id" class="form-label">Select School:</label>
+            <select class="form-control" id="school_id" name="school_id" required>
+                {% for school in schools %}
+                    <option value="{{ school.id }}">{{ school.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="program_id" class="form-label">Select Program:</label>
+            <select class="form-control" id="program_id" name="program_id" required>
+                {% for program in programs %}
+                    <option value="{{ program.id }}">{{ program.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="course_ids" class="form-label">Select Template Courses:</label>
+            <select class="form-control" id="course_ids" name="course_ids" multiple required>
+                {% for course in template_courses %}
+                    <option value="{{ course.id }}">{{ course.name }}</option>
+                {% endfor %}
+            </select>
+            <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple courses.</small>
+        </div>
+        <div class="mb-3">
+            <label for="pupil_ids" class="form-label">Select Pupils to Enroll:</label>
+            <select class="form-control" id="pupil_ids" name="pupil_ids" multiple required>
+                {% for pupil in pupils %}
+                    <option value="{{ pupil.id }}">{{ pupil.name }}</option>
+                {% endfor %}
+            </select>
+            <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple pupils.</small>
+        </div>
+        <button type="submit" class="btn btn-success">Enroll</button>
+    </form>
+
+    <!-- Unenrollment Form -->
+    <h3 class="mt-4">Unenroll a School from a Program</h3>
+    <form method="POST" action="{{ url_for('enrolment.unenroll') }}">
+        <div class="mb-3">
+            <label for="unenroll_school_id" class="form-label">Select School:</label>
+            <select class="form-control" id="unenroll_school_id" name="school_id" required>
+                {% for school in schools %}
+                    <option value="{{ school.id }}">{{ school.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="unenroll_program_id" class="form-label">Select Program:</label>
+            <select class="form-control" id="unenroll_program_id" name="program_id" required>
+                {% for program in programs %}
+                    <option value="{{ program.id }}">{{ program.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-danger">Unenroll</button>
+    </form>
+
+    <!-- List Enrollments -->
+    <h3 class="mt-4">Current Enrollments</h3>
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>School</th>
+                <th>Enrolled Programs</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for school in schools %}
+            <tr>
+                <td>{{ school.name }}</td>
+                <td>
+                    {% if school.programs %}
+                        {% for program in school.programs %}
+                            <span class="badge bg-primary">{{ program.name }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-muted">Not enrolled in any programs</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
