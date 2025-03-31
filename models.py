@@ -1,6 +1,6 @@
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from sqlalchemy import DateTime, Date
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Date
 
 db = SQLAlchemy()
 
@@ -11,12 +11,11 @@ program_template_course = db.Table(
     db.Column('template_course_id', db.Integer, db.ForeignKey('template_course.id'), primary_key=True)
 )
 
-
 # Association table: Schools in Programs
 school_program = db.Table('school_program',
-    db.Column('school_id', db.Integer, db.ForeignKey('school.id'), primary_key=True),
-    db.Column('program_id', db.Integer, db.ForeignKey('program.id'), primary_key=True)
-)
+                          db.Column('school_id', db.Integer, db.ForeignKey('school.id'), primary_key=True),
+                          db.Column('program_id', db.Integer, db.ForeignKey('program.id'), primary_key=True)
+                          )
 
 
 # Association table: Pupils in Courses
@@ -27,6 +26,7 @@ class PupilCourse(db.Model):
 
     pupil = db.relationship('Pupil', back_populates='pupil_courses')
     course = db.relationship('Course', back_populates='pupil_courses')
+
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -44,7 +44,8 @@ class School(db.Model):
     contact_email = db.Column(db.String(100), nullable=False)
     contact_phone = db.Column(db.String(20), nullable=False)
     users = db.relationship('User', back_populates='school')
-    programs = db.relationship('Program', secondary=school_program, back_populates='schools') # backref=db.backref('schools', lazy='dynamic'))
+    programs = db.relationship('Program', secondary=school_program,
+                               back_populates='schools')  # backref=db.backref('schools', lazy='dynamic'))
     pupils = db.relationship('Pupil', backref='school', cascade="all, delete-orphan")
 
 
@@ -71,7 +72,9 @@ class TemplateEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     template_course_id = db.Column(db.Integer, db.ForeignKey('template_course.id'), nullable=False)
-    template_agenda_items = db.relationship('TemplateAgendaItem', backref='template_event', order_by='TemplateAgendaItem.time.asc()')
+    template_agenda_items = db.relationship('TemplateAgendaItem', backref='template_event',
+                                            order_by='TemplateAgendaItem.time.asc()')
+
 
 class TemplateAgendaItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -89,10 +92,12 @@ class Course(db.Model):
     name = db.Column(db.String(100), nullable=False)
     program_id = db.Column(db.Integer, db.ForeignKey('program.id'), nullable=False)
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
-    pupil_courses = db.relationship('PupilCourse', back_populates='course', cascade='all, delete-orphan', passive_deletes=True)
+    pupil_courses = db.relationship('PupilCourse', back_populates='course', cascade='all, delete-orphan',
+                                    passive_deletes=True)
     program = db.relationship('Program', backref='courses')
     school = db.relationship('School', backref='courses')
     events = db.relationship('Event', backref='course', order_by='Event.date.asc()', cascade='all, delete-orphan')
+
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -101,14 +106,17 @@ class Event(db.Model):
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
     location = db.Column(db.String(100), nullable=True)
     date = db.Column(Date, nullable=True)
-    agenda_items = db.relationship('AgendaItem', backref='event', order_by='AgendaItem.time.asc()', cascade='all, delete-orphan')
+    agenda_items = db.relationship('AgendaItem', backref='event', order_by='AgendaItem.time.asc()',
+                                   cascade='all, delete-orphan')
+
 
 class Pupil(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
-    #school = db.relationship('School', back_populates='pupils')
+    # school = db.relationship('School', back_populates='pupils')
     pupil_courses = db.relationship('PupilCourse', back_populates='pupil')
+
 
 class AgendaItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
