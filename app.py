@@ -1,9 +1,9 @@
 from datetime import time, datetime
 
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template
 from models import db, User
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import LoginManager
+
 
 from routes.auth import bp as auth_bp
 from routes.dashboard import bp as dashboard_bp
@@ -36,6 +36,7 @@ def short_time_filter(value):
     if isinstance(value, (time, datetime)):
         return value.strftime('%H:%M')  # 24-hour format without seconds
     return value
+
 
 @app.route('/')
 def index():
