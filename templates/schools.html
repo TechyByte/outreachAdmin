@@ -33,32 +33,47 @@
                            class="btn btn-sm btn-secondary">
                             Manage Enrolments
                         </a>
+                        <a href="{{ url_for('school_mgmt.delete_school', school_id=school.id) }}"
+                           class="btn btn-sm btn-danger">
+                            Delete
+                        </a>
                     </td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
 
-        <!-- Add New School Form -->
-        <h3 class="mt-4">Add a New School</h3>
-        <form method="POST">
-            <div class="mb-3">
-                <label for="name" class="form-label">School Name:</label>
-                <input type="text" class="form-control" id="name" name="name" required>
+        <div class="accordion" id="school_actions">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#add_school" aria-expanded="true" aria-controls="add_school">
+                    Add New School
+                  </button>
+                </h2>
+                <div id="add_school" class="accordion-collapse collapse" data-bs-parent="#school_actions">
+                    <div class="accordion-body">
+                        <form method="POST">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">School Name:</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contact_name" class="form-label">Contact Name:</label>
+                                <input type="text" class="form-control" id="contact_name" name="contact_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contact_email" class="form-label">Contact Email:</label>
+                                <input type="email" class="form-control" id="contact_email" name="contact_email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contact_phone" class="form-label">Contact Phone:</label>
+                                <input type="text" class="form-control" id="contact_phone" name="contact_phone" required>
+                            </div>
+                            <button type="submit" class="btn btn-success">Add School</button>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="mb-3">
-                <label for="contact_name" class="form-label">Contact Name:</label>
-                <input type="text" class="form-control" id="contact_name" name="contact_name" required>
-            </div>
-            <div class="mb-3">
-                <label for="contact_email" class="form-label">Contact Email:</label>
-                <input type="email" class="form-control" id="contact_email" name="contact_email" required>
-            </div>
-            <div class="mb-3">
-                <label for="contact_phone" class="form-label">Contact Phone:</label>
-                <input type="text" class="form-control" id="contact_phone" name="contact_phone" required>
-            </div>
-            <button type="submit" class="btn btn-success">Add School</button>
-        </form>
+        </div>
     </div>
 {% endblock %}

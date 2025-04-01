@@ -34,3 +34,22 @@ def manage_schools():
         schools = db.session.query(School).options(joinedload(School.programs)).all()
 
     return render_template('schools.html', schools=schools)
+
+
+@bp.route('/schools/<int:school_id>/delete', methods=['GET'])
+@login_required
+def delete_school(school_id):
+    """Handles deleting a school."""
+    if current_user.role != 'admin':
+        return "Unauthorized", 403
+
+    with current_app.app_context():
+        school = School.query.get(school_id)
+
+        if not school:
+            return "School not found", 404
+
+        db.session.delete(school)
+        db.session.commit()
+
+    return redirect(url_for('school_mgmt.manage_schools'))
