@@ -1,43 +1,45 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Manage Programs</h2>
+    <div class="container mt-4">
+        <h2>Manage Programs</h2>
 
-    <!-- Display Existing Programs -->
-    <table class="table table-bordered mt-3">
-        <thead class="table-dark">
+        <!-- Display Existing Programs -->
+        <table class="table table-bordered mt-3">
+            <thead class="table-dark">
             <tr>
                 <th>Program Name</th>
                 <th>Enrolled Schools</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             {% for program in programs %}
-            <tr>
-                <td><a href="{{ url_for('template_mgmt.manage_templates') }}?program_id={{ program.id }}">{{ program.name }}</a></td>
-                <td>
-                    {% if program.schools %}
-                        {% for school in program.schools %}
-                            <span class="badge bg-primary">{{ school.name }}</span>
-                        {% endfor %}
-                    {% else %}
-                        <span class="text-muted">No schools enrolled</span>
-                    {% endif %}
-                </td>
-            </tr>
+                <tr>
+                    <td>
+                        <a href="{{ url_for('template_mgmt.manage_templates') }}?program_id={{ program.id }}">{{ program.name }}</a>
+                    </td>
+                    <td>
+                        {% if program.schools %}
+                            {% for school in program.schools %}
+                                <span class="badge bg-primary">{{ school.name }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">No schools enrolled</span>
+                        {% endif %}
+                    </td>
+                </tr>
             {% endfor %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
 
-    <!-- Add New Program Form -->
-    <h3 class="mt-4">Add a New Program</h3>
-    <form method="POST">
-        <div class="mb-3">
-            <label for="name" class="form-label">Program Name:</label>
-            <input type="text" class="form-control" id="name" name="name" required>
-        </div>
-        <button type="submit" class="btn btn-success">Add Program</button>
-    </form>
-</div>
+        <!-- Add New Program Form -->
+        <h3 class="mt-4">Add a New Program</h3>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="name" class="form-label">Program Name:</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <button type="submit" class="btn btn-success">Add Program</button>
+        </form>
+    </div>
 {% endblock %}

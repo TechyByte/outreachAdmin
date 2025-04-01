@@ -1,18 +1,17 @@
 from datetime import time, datetime
 
 from flask import Flask, render_template
-from models import db, User
 from flask_login import LoginManager
 
-
+from models import db, User
 from routes.auth import bp as auth_bp
 from routes.dashboard import bp as dashboard_bp
 from routes.enrolment import bp as enrolment_bp
-from routes.user_mgmt import bp as user_mgmt_bp
-from routes.school_mgmt import bp as school_mgmt_bp
-from routes.programme_mgmt import bp as programme_mgmt_bp
 from routes.event_mgmt import bp as event_mgmt_bp
+from routes.programme_mgmt import bp as programme_mgmt_bp
+from routes.school_mgmt import bp as school_mgmt_bp
 from routes.template_mgmt import bp as template_mgmt_bp
+from routes.user_mgmt import bp as user_mgmt_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "supersecretkey"

@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, redirect, url_for, request, current_app, flash
+from flask import Blueprint, render_template, redirect, url_for, request, current_app
 from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
-from models import db, School, User, AgendaItem, Course
+
+from models import db, School
 
 bp = Blueprint('school_mgmt', __name__)
 
@@ -29,10 +30,7 @@ def manage_schools():
 
         return redirect(url_for('school_mgmt.manage_schools'))  # Redirect to refresh list
 
-    # ✅ Fix: Use `joinedload()` to eagerly load programs
     with current_app.app_context():
         schools = db.session.query(School).options(joinedload(School.programs)).all()
 
     return render_template('schools.html', schools=schools)
-
-

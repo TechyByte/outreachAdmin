@@ -1,7 +1,9 @@
-from flask import Flask
-from models import db, User, School, Program, TemplateCourse, TemplateEvent, TemplateAgendaItem, Course, Event, AgendaItem
 import os
+
+from flask import Flask
 from werkzeug.security import generate_password_hash
+
+from models import db, User, School, Program, TemplateCourse, TemplateEvent
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -23,6 +25,8 @@ def check_database():
                 print("⚠️ Table 'school' not found. Recreating database...")
                 initialize_database()
 
+
+# noinspection PyArgumentList
 def initialize_database():
     """Drops existing tables, recreates them, and adds example template and live data."""
     with app.app_context():
@@ -36,7 +40,6 @@ def initialize_database():
 
         print("📦 Creating new tables...")
         db.create_all()
-
 
         # Add Example Schools (first, since users will reference them)
         print("🏫 Adding example schools...")
@@ -80,7 +83,6 @@ def initialize_database():
         program2.template_courses.append(template_course3)  # Business gets Finance
         db.session.commit()
 
-
         # Add Example Template Events
         print("📅 Adding example template events...")
         template_event1 = TemplateEvent(name="Mathematics Quiz", template_course_id=template_course1.id)
@@ -89,34 +91,8 @@ def initialize_database():
         db.session.add_all([template_event1, template_event2, template_event3])
         db.session.commit()
 
-
-        # # Create Live Courses (Based on Templates)
-        # print("🎓 Creating live courses from templates...")
-        # course1 = Course(name="Mathematics", program_id=program1.id, school_id=school1.id)
-        # course2 = Course(name="Physics", program_id=program1.id, school_id=school1.id)
-        # course3 = Course(name="Finance 101", program_id=program2.id, school_id=school2.id)
-        # db.session.add_all([course1, course2, course3])
-        # db.session.commit()
-
-        #
-        # # Assign Template Events to Template Courses (Many-to-Many)
-        # print("🔗 Assigning template events to template courses...")
-        # template_course1.template_events.append(template_event1)  # Math gets Quiz
-        # template_course2.template_events.append(template_event2)  # Physics gets Lab
-        # template_course3.template_events.append(template_event3)  # Finance gets Workshop
-        # db.session.commit()
-
-        #
-        # # Create Live Events (Based on Templates)
-        # print("📅 Creating live events from templates...")
-        # event1 = Event(name="Mathematics Quiz", course_id=course1.id, date="2021-12-01")
-        # event2 = Event(name="Physics Lab", course_id=course2.id, date="2021-12-02")
-        # event3 = Event(name="Finance Workshop", course_id=course3.id, date="2021-12-03")
-        # db.session.add_all([event1, event2, event3])
-        # db.session.commit()
-        #
-
         print("✅ Database initialized successfully with example data!")
+
 
 if __name__ == '__main__':
     initialize_database()

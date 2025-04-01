@@ -1,41 +1,41 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="text-center">School Dashboard</h2>
-    <p class="text-center">Manage your school's enrollments.</p>
+    <div class="container mt-4">
+        <h2 class="text-center">School Dashboard</h2>
+        <p class="text-center">Manage your school's enrollments.</p>
 
-    {% for school in schools %}
-        <h4>School: {{ school.name }}</h4>
-        <p>Contact: {{ school.contact_name }} ({{ school.contact_email }})</p>
+        {% for school in schools %}
+            <h4>School: {{ school.name }}</h4>
+            <p>Contact: {{ school.contact_name }} ({{ school.contact_email }})</p>
 
-        <!-- Display Enrolled Programs -->
-        <h3>Enrolled Programs</h3>
-        <ul class="list-group mb-4">
-            {% for program in school.programs %}
-                <li class="list-group-item d-flex justify-content-between">
-                    {{ program.name }}
-                    <form method="POST" action="{{ url_for('enrolment.unenroll') }}" class="d-inline">
-                        <input type="hidden" name="school_id" value="{{ school.id }}">
-                        <input type="hidden" name="program_id" value="{{ program.id }}">
-                        <button type="submit" class="btn btn-danger btn-sm">Unenroll</button>
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
+            <!-- Display Enrolled Programs -->
+            <h3>Enrolled Programs</h3>
+            <ul class="list-group mb-4">
+                {% for program in school.programs %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        {{ program.name }}
+                        <form method="POST" action="{{ url_for('enrolment.unenroll') }}" class="d-inline">
+                            <input type="hidden" name="school_id" value="{{ school.id }}">
+                            <input type="hidden" name="program_id" value="{{ program.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Unenroll</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
 
-        <!-- Course/Event/Agenda Tree -->
-        <h3>Schedule</h3>
-        <ul class="list-group">
-        {% for course in school.courses %}
-            {% include "_course_tree.html" with context %}
+            <!-- Course/Event/Agenda Tree -->
+            <h3>Schedule</h3>
+            <ul class="list-group">
+                {% for course in school.courses %}
+                    {% include "_course_tree.html" with context %}
+                {% endfor %}
+            </ul>
+
         {% endfor %}
-        </ul>
 
-    {% endfor %}
-
-    {% if not schools %}
-        <p class="text-muted">No school assigned to this account.</p>
-    {% endif %}
-</div>
+        {% if not schools %}
+            <p class="text-muted">No school assigned to this account.</p>
+        {% endif %}
+    </div>
 {% endblock %}

@@ -1,8 +1,10 @@
 from flask import Blueprint, redirect, url_for, request, flash
 from flask_login import login_required, current_user
+
 from models import db, User
 
 bp = Blueprint('user_mgmt', __name__)
+
 
 # 🔹 Delete a User (Only Admins Can Do This)
 @bp.route('/delete_user', methods=['POST'])
@@ -24,6 +26,7 @@ def delete_user():
         flash("User not found.", "danger")
 
     return redirect(url_for('dashboard.admin_dashboard'))
+
 
 # 🔹 Change User Role (Admin Only)
 @bp.route('/change_user_type', methods=['POST'])

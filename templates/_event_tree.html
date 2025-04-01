@@ -1,23 +1,23 @@
-        <li class="list-group-item">
-            <em>{{ event.name }}</em>
-            {% if event.location %}
-                <p>Location: {{ event.location }}</p>
-            {% else %}
-                <p><i>Location to be confirmed</i></p>
-            {% endif %}
-            {% if event.date %}
-                <p>Date: {{ event.date }}</p>
-            {% else %}
-                <p><i>Date to be confirmed</i></p>
-            {% endif %}
-    {%  if event.agenda_items %}
-            <p>Agenda:</p>
-            <ul class="list-group mt-2">
-                {% for item in event.agenda_items %}
-                <li class="list-group-item">{{ item.time }}  {{ item.title }}</li>
-                {% endfor %}
-            </ul>
+<li class="list-group-item">
+    <em>{{ event.name }}</em>
+    {% if event.location %}
+        <p>Location: {{ event.location }}</p>
     {% else %}
-            <p><i>Agenda to be confirmed</i></p>
+        <p><i>Location to be confirmed</i></p>
     {% endif %}
-        </li>
+    {% if event.date %}
+        <p>Date: {{ event.date }}</p>
+    {% else %}
+        <p><i>Date to be confirmed</i></p>
+    {% endif %}
+    {% if event.agenda_items %}
+        <p>Agenda:</p>
+        <ul class="list-group mt-2">
+            {% for item in event.agenda_items %}
+                <li class="list-group-item">{{ item.time }} {{ item.title }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p><i>Agenda to be confirmed</i></p>
+    {% endif %}
+</li>

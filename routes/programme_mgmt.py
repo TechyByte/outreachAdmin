@@ -1,9 +1,11 @@
 from flask import Blueprint, render_template, redirect, url_for, request, current_app
 from flask_login import login_required
 from sqlalchemy.orm import selectinload
+
 from models import db, Program
 
 bp = Blueprint('programme_mgmt', __name__)
+
 
 # Programs
 @bp.route('/programs', methods=['GET', 'POST'])
@@ -20,9 +22,7 @@ def manage_programs():
 
         return redirect(url_for('manage_programs'))  # Refresh list
 
-    # ✅ Fix: Use `selectinload()` for many-to-many
     with current_app.app_context():
         programs = db.session.query(Program).options(selectinload(Program.schools)).all()
 
     return render_template('programs.html', programs=programs)
-

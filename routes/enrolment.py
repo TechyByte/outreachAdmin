@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app, jsonify
-from flask_login import login_required, current_user
+from flask_login import login_required
 from sqlalchemy.orm import selectinload
+
 from models import db, School, Program, Course, Event, AgendaItem, TemplateCourse, TemplateEvent, \
     TemplateAgendaItem, program_template_course
 
@@ -86,6 +87,7 @@ def enroll():
             programs=programs,
             template_courses=template_courses
         )
+
 
 @bp.route('/unenroll', methods=['POST'])
 @login_required

@@ -1,87 +1,98 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="text-center">Edit Template Course</h2>
+    <div class="container mt-4">
+        <h2 class="text-center">Edit Template Course</h2>
 
-    <h4 class="mt-4">Course: {{ selected_course.name }}</h4>
+        <h4 class="mt-4">Course: {{ selected_course.name }}</h4>
 
-    <!-- Add New Event -->
-    <form method="POST" action="{{ url_for('template_mgmt.add_template_event') }}">
-        <input type="hidden" name="course_id" value="{{ selected_course.id }}">
-        <div class="input-group mb-3">
-            <input type="text" name="event_name" class="form-control" placeholder="New Event Name" required>
-            <button type="submit" class="btn btn-success">Add Event</button>
-        </div>
-    </form>
+        <!-- Add New Event -->
+        <form method="POST" action="{{ url_for('template_mgmt.add_template_event') }}">
+            <input type="hidden" name="course_id" value="{{ selected_course.id }}">
+            <div class="input-group mb-3">
+                <input type="text" name="event_name" class="form-control" placeholder="New Event Name" required>
+                <button type="submit" class="btn btn-success">Add Event</button>
+            </div>
+        </form>
 
-    <div class="card mt-3">
-        <div class="card-header">
-            <h5>Events & Agenda Items</h5>
-        </div>
-        <div class="card-body">
-            <ul class="list-group">
-                {% for event in selected_course.template_events %}
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <strong>{{ event.name }}</strong>
-                            <div>
-                                <!-- Edit Event Name -->
-                                <form method="POST" action="{{ url_for('template_mgmt.edit_template_event') }}" class="d-inline">
-                                    <input type="hidden" name="event_id" value="{{ event.id }}">
-                                    <input type="text" name="new_event_name" value="{{ event.name }}" class="form-control d-inline w-auto" required>
-                                    <button type="submit" class="btn btn-warning btn-sm">Rename</button>
-                                </form>
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Events & Agenda Items</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for event in selected_course.template_events %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>{{ event.name }}</strong>
+                                <div>
+                                    <!-- Edit Event Name -->
+                                    <form method="POST" action="{{ url_for('template_mgmt.edit_template_event') }}"
+                                          class="d-inline">
+                                        <input type="hidden" name="event_id" value="{{ event.id }}">
+                                        <input type="text" name="new_event_name" value="{{ event.name }}"
+                                               class="form-control d-inline w-auto" required>
+                                        <button type="submit" class="btn btn-warning btn-sm">Rename</button>
+                                    </form>
 
-                                <!-- Delete Event -->
-                                <form method="POST" action="{{ url_for('template_mgmt.delete_template_event') }}" class="d-inline">
-                                    <input type="hidden" name="event_id" value="{{ event.id }}">
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
+                                    <!-- Delete Event -->
+                                    <form method="POST" action="{{ url_for('template_mgmt.delete_template_event') }}"
+                                          class="d-inline">
+                                        <input type="hidden" name="event_id" value="{{ event.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    </form>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Add New Agenda Item -->
-                        <form method="POST" action="{{ url_for('template_mgmt.add_template_agenda_item') }}">
-                            <input type="hidden" name="event_id" value="{{ event.id }}">
-                            <div class="input-group mt-2">
-                                <input type="text" name="agenda_title" class="form-control" placeholder="New Agenda Item" required>
-                                <input type="time" name="agenda_time" class="form-control" required>
-                                <button type="submit" class="btn btn-primary">Add</button>
-                            </div>
-                        </form>
+                            <!-- Add New Agenda Item -->
+                            <form method="POST" action="{{ url_for('template_mgmt.add_template_agenda_item') }}">
+                                <input type="hidden" name="event_id" value="{{ event.id }}">
+                                <div class="input-group mt-2">
+                                    <input type="text" name="agenda_title" class="form-control"
+                                           placeholder="New Agenda Item" required>
+                                    <input type="time" name="agenda_time" class="form-control" required>
+                                    <button type="submit" class="btn btn-primary">Add</button>
+                                </div>
+                            </form>
 
-                        <!-- Display Agenda Items -->
-                        <ul class="list-group mt-2">
-                            {% for agenda_item in event.template_agenda_items %}
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span><em>{{ agenda_item.time | short_time }}</em> {{ agenda_item.title }}</span>
-                                    <div>
-                                        <!-- Edit Agenda Item -->
-                                        <form method="POST" action="{{ url_for('template_mgmt.edit_template_agenda_item') }}" class="d-inline">
-                                            <input type="hidden" name="agenda_item_id" value="{{ agenda_item.id }}">
-                                            <input type="text" name="new_agenda_title" value="{{ agenda_item.title }}" class="form-control d-inline w-auto" required>
-                                            <button type="submit" class="btn btn-warning btn-sm">Rename</button>
-                                        </form>
+                            <!-- Display Agenda Items -->
+                            <ul class="list-group mt-2">
+                                {% for agenda_item in event.template_agenda_items %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span><em>{{ agenda_item.time | short_time }}</em> {{ agenda_item.title }}</span>
+                                        <div>
+                                            <!-- Edit Agenda Item -->
+                                            <form method="POST"
+                                                  action="{{ url_for('template_mgmt.edit_template_agenda_item') }}"
+                                                  class="d-inline">
+                                                <input type="hidden" name="agenda_item_id" value="{{ agenda_item.id }}">
+                                                <input type="text" name="new_agenda_title"
+                                                       value="{{ agenda_item.title }}"
+                                                       class="form-control d-inline w-auto" required>
+                                                <button type="submit" class="btn btn-warning btn-sm">Rename</button>
+                                            </form>
 
-                                        <!-- Delete Agenda Item -->
-                                        <form method="POST" action="{{ url_for('template_mgmt.delete_template_agenda_item') }}" class="d-inline">
-                                            <input type="hidden" name="agenda_item_id" value="{{ agenda_item.id }}">
-                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                        </form>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
+                                            <!-- Delete Agenda Item -->
+                                            <form method="POST"
+                                                  action="{{ url_for('template_mgmt.delete_template_agenda_item') }}"
+                                                  class="d-inline">
+                                                <input type="hidden" name="agenda_item_id" value="{{ agenda_item.id }}">
+                                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                            </form>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
 
-                    </li>
-                {% endfor %}
-            </ul>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
+
+        <a href="{{ url_for('template_mgmt.manage_templates', program_id=selected_program.id if selected_program else '') }}"
+           class="btn btn-secondary mt-3">
+            Back to Template Management
+        </a>
     </div>
-
-    <a href="{{ url_for('template_mgmt.manage_templates', program_id=selected_program.id if selected_program else '') }}" class="btn btn-secondary mt-3">
-        Back to Template Management
-    </a>
-</div>
 {% endblock %}

@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Manage Schools</h2>
+    <div class="container mt-4">
+        <h2>Manage Schools</h2>
 
-    <!-- Display Existing Schools -->
-    <table class="table table-bordered mt-3">
-        <thead class="table-dark">
+        <!-- Display Existing Schools -->
+        <table class="table table-bordered mt-3">
+            <thead class="table-dark">
             <tr>
                 <th>School Name</th>
                 <th>Contact Name</th>
@@ -15,50 +15,50 @@
                 <th>Enrolled Programs</th>
                 <th>Actions</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             {% for school in schools %}
-            <tr>
-                <td>{{ school.name }}</td>
-                <td>{{ school.contact_name }}</td>
-                <td>{{ school.contact_email }}</td>
-                <td>{{ school.contact_phone }}</td>
-                <td>
-                    {%
-                            for program in school.programs %}
-                        <span class="badge bg-primary">{{ program.name }}</span>
-                    {% endfor %}
-                </td>
-                <td>
-                    <a href="{{ url_for('enrolment.enroll', school_id=school.id) }}" class="btn btn-sm btn-secondary">
-                        Manage Enrolments
-                    </a>
-                </td>
-            </tr>
+                <tr>
+                    <td>{{ school.name }}</td>
+                    <td>{{ school.contact_name }}</td>
+                    <td>{{ school.contact_email }}</td>
+                    <td>{{ school.contact_phone }}</td>
+                    <td>
+                        {% for program in school.programs %}
+                            <span class="badge bg-primary">{{ program.name }}</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('enrolment.enroll', school_id=school.id) }}"
+                           class="btn btn-sm btn-secondary">
+                            Manage Enrolments
+                        </a>
+                    </td>
+                </tr>
             {% endfor %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
 
-    <!-- Add New School Form -->
-    <h3 class="mt-4">Add a New School</h3>
-    <form method="POST">
-        <div class="mb-3">
-            <label for="name" class="form-label">School Name:</label>
-            <input type="text" class="form-control" id="name" name="name" required>
-        </div>
-        <div class="mb-3">
-            <label for="contact_name" class="form-label">Contact Name:</label>
-            <input type="text" class="form-control" id="contact_name" name="contact_name" required>
-        </div>
-        <div class="mb-3">
-            <label for="contact_email" class="form-label">Contact Email:</label>
-            <input type="email" class="form-control" id="contact_email" name="contact_email" required>
-        </div>
-        <div class="mb-3">
-            <label for="contact_phone" class="form-label">Contact Phone:</label>
-            <input type="text" class="form-control" id="contact_phone" name="contact_phone" required>
-        </div>
-        <button type="submit" class="btn btn-success">Add School</button>
-    </form>
-</div>
+        <!-- Add New School Form -->
+        <h3 class="mt-4">Add a New School</h3>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="name" class="form-label">School Name:</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="contact_name" class="form-label">Contact Name:</label>
+                <input type="text" class="form-control" id="contact_name" name="contact_name" required>
+            </div>
+            <div class="mb-3">
+                <label for="contact_email" class="form-label">Contact Email:</label>
+                <input type="email" class="form-control" id="contact_email" name="contact_email" required>
+            </div>
+            <div class="mb-3">
+                <label for="contact_phone" class="form-label">Contact Phone:</label>
+                <input type="text" class="form-control" id="contact_phone" name="contact_phone" required>
+            </div>
+            <button type="submit" class="btn btn-success">Add School</button>
+        </form>
+    </div>
 {% endblock %}

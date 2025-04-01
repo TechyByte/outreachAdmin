@@ -2,6 +2,7 @@ from datetime import datetime
 
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 from flask_login import login_required, current_user
+
 from models import db, Program, TemplateCourse, TemplateEvent, TemplateAgendaItem
 
 bp = Blueprint('template_mgmt', __name__)
@@ -29,7 +30,8 @@ def manage_templates():
         if program_id:
             selected_program = Program.query.get(program_id)
             assigned_courses = selected_program.template_courses  # ✅ Get assigned courses via many-to-many
-            available_courses = TemplateCourse.query.filter(~TemplateCourse.programs.any(Program.id == selected_program.id)).all()  # ✅ Get unassigned courses
+            available_courses = TemplateCourse.query.filter(
+                ~TemplateCourse.programs.any(Program.id == selected_program.id)).all()  # ✅ Get unassigned courses
 
         if course_id:
             selected_course = TemplateCourse.query.get(course_id)
@@ -83,12 +85,11 @@ def remove_template_course():
         course = TemplateCourse.query.get(course_id)
 
         if program and course and course in program.template_courses:
-            program.template_courses.remove(course)  # ✅ Unassign without deleting
+            program.template_courses.remove(course)
             db.session.commit()
 
     flash("Template course unassigned from program.", "warning")
     return redirect(url_for('template_mgmt.manage_templates', program_id=program_id))
-
 
 
 @bp.route('/edit_agenda_item', methods=['POST'])
@@ -135,6 +136,7 @@ def edit_template_course(course_id):
             selected_course=selected_course,
             selected_program=selected_program
         )
+
 
 @bp.route('/add-template-event', methods=['POST'])
 @login_required
@@ -219,7 +221,8 @@ def add_template_agenda_item():
         db.session.commit()
 
     flash("New agenda item added successfully!", "success")
-    return redirect(url_for('template_mgmt.edit_template_course', course_id=TemplateEvent.query.get(event_id).template_course_id))
+    return redirect(
+        url_for('template_mgmt.edit_template_course', course_id=TemplateEvent.query.get(event_id).template_course_id))
 
 
 @bp.route('/edit-template-agenda-item', methods=['POST'])
@@ -243,8 +246,6 @@ def edit_template_agenda_item():
     return redirect(url_for('template_mgmt.edit_template_course', course_id=agenda_item.event.template_course_id))
 
 
-
-
 @bp.route('/delete-template-agenda-item', methods=['POST'])
 @login_required
 def delete_template_agenda_item():
@@ -266,4 +267,3 @@ def delete_template_agenda_item():
 
     flash("Agenda item not found!", "warning")
     return redirect(url_for('template_mgmt.manage_templates'))
-

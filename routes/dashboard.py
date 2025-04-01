@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, User, School, Program, Course, Event, AgendaItem, TemplateCourse, TemplateEvent, TemplateAgendaItem
+
+from models import User, School, AgendaItem
 
 bp = Blueprint('dashboard', __name__)
 
@@ -15,6 +16,7 @@ def admin_dashboard():
     users = User.query.all()
     return render_template('admin_dashboard.html', users=users)
 
+
 @bp.route('/school-dashboard')
 @login_required
 def school_dashboard():
@@ -28,6 +30,7 @@ def school_dashboard():
         schools = School.query.filter_by(id=current_user.school_id).all()
     return render_template('school_dashboard.html', schools=schools)
 
+
 @bp.route('/lecturer-dashboard')
 @login_required
 def lecturer_dashboard():
@@ -37,4 +40,3 @@ def lecturer_dashboard():
 
     agenda_items = AgendaItem.query.filter_by(lecturer_id=current_user.id)  # Assigned agenda items
     return render_template('lecturer_dashboard.html', agenda_items=agenda_items)
-
