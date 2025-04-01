@@ -14,4 +14,4 @@ school_contact:
   view_schedule: false
   edit_course: false
   edit_event: false
-  edit_agenda_item: false
+  edit_agenda_item: true
