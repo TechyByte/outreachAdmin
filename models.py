@@ -91,6 +91,7 @@ class Event(db.Model):
     name = db.Column(db.String(100), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
+    school = db.relationship('School', backref='events')
     location = db.Column(db.String(100), nullable=True)
     date = db.Column(Date, nullable=True)
     agenda_items = db.relationship('AgendaItem', backref='event', order_by='AgendaItem.time.asc()',
