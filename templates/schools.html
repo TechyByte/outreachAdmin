@@ -30,9 +30,6 @@
                     {% endfor %}
                 </td>
                 <td>
-                    <a href="{{ url_for('school_mgmt.school_pupils', school_id=school.id) }}" class="btn btn-sm btn-secondary">
-                        Manage Pupils
-                    </a>
                     <a href="{{ url_for('enrolment.enroll', school_id=school.id) }}" class="btn btn-sm btn-secondary">
                         Manage Enrolments
                     </a>

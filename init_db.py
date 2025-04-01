@@ -1,5 +1,5 @@
 from flask import Flask
-from models import db, User, School, Program, TemplateCourse, TemplateEvent, TemplateAgendaItem, Course, Event, AgendaItem, Pupil
+from models import db, User, School, Program, TemplateCourse, TemplateEvent, TemplateAgendaItem, Course, Event, AgendaItem
 import os
 from werkzeug.security import generate_password_hash
 
@@ -96,22 +96,6 @@ def initialize_database():
         # course2 = Course(name="Physics", program_id=program1.id, school_id=school1.id)
         # course3 = Course(name="Finance 101", program_id=program2.id, school_id=school2.id)
         # db.session.add_all([course1, course2, course3])
-        # db.session.commit()
-
-        # Add Example Pupils
-        print("👩‍🎓 Adding example pupils...")
-        pupil1 = Pupil(name="Alice Johnson", school_id=school1.id)
-        pupil2 = Pupil(name="Bob Smith", school_id=school1.id)
-        pupil3 = Pupil(name="Charlie Brown", school_id=school2.id)
-        db.session.add_all([pupil1, pupil2, pupil3])
-        db.session.commit()
-
-        # # Enroll Pupils in Courses (Many-to-Many Relationship)
-        # print("🎓 Enrolling pupils into courses...")
-        # pupil1.courses.append(course1)  # Alice in Math
-        # pupil1.courses.append(course2)  # Alice in Physics
-        # pupil2.courses.append(course1)  # Bob in Math
-        # pupil3.courses.append(course3)  # Charlie in Finance
         # db.session.commit()
 
         #

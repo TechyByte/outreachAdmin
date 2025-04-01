@@ -18,16 +18,6 @@ school_program = db.Table('school_program',
                           )
 
 
-# Association table: Pupils in Courses
-class PupilCourse(db.Model):
-    __tablename__ = 'pupil_course'
-    pupil_id = db.Column(db.Integer, db.ForeignKey('pupil.id'), primary_key=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id', ondelete='CASCADE'), primary_key=True)
-
-    pupil = db.relationship('Pupil', back_populates='pupil_courses')
-    course = db.relationship('Course', back_populates='pupil_courses')
-
-
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -46,7 +36,6 @@ class School(db.Model):
     users = db.relationship('User', back_populates='school')
     programs = db.relationship('Program', secondary=school_program,
                                back_populates='schools')  # backref=db.backref('schools', lazy='dynamic'))
-    pupils = db.relationship('Pupil', backref='school', cascade="all, delete-orphan")
 
 
 class Program(db.Model):
@@ -92,8 +81,6 @@ class Course(db.Model):
     name = db.Column(db.String(100), nullable=False)
     program_id = db.Column(db.Integer, db.ForeignKey('program.id'), nullable=False)
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
-    pupil_courses = db.relationship('PupilCourse', back_populates='course', cascade='all, delete-orphan',
-                                    passive_deletes=True)
     program = db.relationship('Program', backref='courses')
     school = db.relationship('School', backref='courses')
     events = db.relationship('Event', backref='course', order_by='Event.date.asc()', cascade='all, delete-orphan')
@@ -108,14 +95,6 @@ class Event(db.Model):
     date = db.Column(Date, nullable=True)
     agenda_items = db.relationship('AgendaItem', backref='event', order_by='AgendaItem.time.asc()',
                                    cascade='all, delete-orphan')
-
-
-class Pupil(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
-    # school = db.relationship('School', back_populates='pupils')
-    pupil_courses = db.relationship('PupilCourse', back_populates='pupil')
 
 
 class AgendaItem(db.Model):

@@ -32,15 +32,6 @@
             </select>
             <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple courses.</small>
         </div>
-        <div class="mb-3">
-            <label for="pupil_ids" class="form-label">Select Pupils to Enroll:</label>
-            <select class="form-control" id="pupil_ids" name="pupil_ids" multiple required>
-                {% for pupil in pupils %}
-                    <option value="{{ pupil.id }}">{{ pupil.name }}</option>
-                {% endfor %}
-            </select>
-            <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple pupils.</small>
-        </div>
         <button type="submit" class="btn btn-success">Enroll</button>
     </form>
 
@@ -98,7 +89,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const schoolSelect = document.getElementById('school_id');
     const programSelect = document.getElementById('program_id');
     const courseSelect = document.getElementById('course_ids');
-    const pupilSelect = document.getElementById('pupil_ids');
 
     function clearOptions(select) {
         while (select.options.length > 0) {
@@ -121,16 +111,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 programSelect.dispatchEvent(new Event('change')); // trigger update of courses
             });
 
-        // Fetch pupils
-        fetch(`/_get_pupils/${schoolId}`)
-            .then(res => res.json())
-            .then(data => {
-                clearOptions(pupilSelect);
-                data.forEach(pupil => {
-                    const opt = new Option(pupil.name, pupil.id);
-                    pupilSelect.add(opt);
-                });
-            });
     });
 
     programSelect.addEventListener('change', () => {
