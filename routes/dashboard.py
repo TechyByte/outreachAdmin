@@ -1,7 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from datetime import datetime, timedelta
+
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 
-from models import User, School, AgendaItem
+from models import User, School, AgendaItem, Event
+from utils import check_permission
 
 bp = Blueprint('dashboard', __name__)
 
@@ -40,3 +43,15 @@ def lecturer_dashboard():
 
     agenda_items = AgendaItem.query.filter_by(lecturer_id=current_user.id)  # Assigned agenda items
     return render_template('lecturer_dashboard.html', agenda_items=agenda_items)
+
+
+@bp.route('/schedule')
+@login_required
+def schedule():
+    n_days = int(request.args.get('n_days', 7))
+    today = datetime.today().date()
+    future = today + timedelta(days=n_days)
+    events = Event.query.filter(((Event.date >= today) & (Event.date <= future)) | (Event.date == None))\
+        .order_by(Event.date).all()
+    return render_template('admin_schedule.html', events=events)
+

@@ -1,21 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Schedule for Next N Days</h2>
-<form method="get">
-    <label>Show next <input type="number" name="n_days" value="{{ request.args.get('n_days', 7) }}"> days</label>
-    <button type="submit">Refresh</button>
-</form>
+<h2>Schedule</h2>
+
 <ul>
 {% for event in events %}
     <li>
         <strong>{{ event.date }} - {{ event.name }}</strong> ({{ event.location }})<br>
-        <ul>
-        {% for item in event.agenda_items %}
-            <li>{{ item.time }} - {{ item.title }} ({{ item.duration }}) 
-                <a href="{{ item|mailto_link }}">✉️</a>
-            </li>
-        {% endfor %}
-        </ul>
+        <a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}">✏️</a>
+        {% include '_edit_event_agenda.html' with context %}
     </li>
 {% endfor %}
 </ul>

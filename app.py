@@ -1,9 +1,14 @@
 from datetime import time, datetime
 
-from flask import Flask, render_template
-from flask_login import LoginManager
+from flask import Flask, render_template, request
+from flask_login import LoginManager, login_required, current_user
 
-from models import db, User
+from datetime import datetime, timedelta
+
+from utils import check_permission
+import os
+
+from models import db, User, Event
 from routes.auth import bp as auth_bp
 from routes.dashboard import bp as dashboard_bp
 from routes.enrolment import bp as enrolment_bp
@@ -34,6 +39,13 @@ def load_user(user_id):
 def short_time_filter(value):
     if isinstance(value, (time, datetime)):
         return value.strftime('%H:%M')  # 24-hour format without seconds
+    if isinstance(value, timedelta):
+        hours = value.seconds // 3600
+        mod_minutes = (value.seconds % 3600) // 60
+        if hours >= 1:
+            return f'{hours}h {mod_minutes}m'
+        else:
+            return f'{mod_minutes}m'
     return value
 
 
@@ -53,3 +65,18 @@ app.register_blueprint(template_mgmt_bp)
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+@app.template_filter('mailto_link')
+def mailto_link(event_or_item):
+    template_path = os.path.join('mail_templates', 'default.txt')
+    with open(template_path) as f:
+        template = f.read()
+    contact_email = event_or_item.event.school.contact_email if hasattr(event_or_item,
+                                                                        'event') else event_or_item.school.contact_email
+    body = template.format(
+        school_name=event_or_item.event.school.name,
+        event_name=event_or_item.event.name,
+        date=str(event_or_item.event.date)
+    )
+    return f"mailto:{contact_email}?subject=Upcoming Event&body={body}"
