@@ -1,0 +1,17 @@
+admin:
+  view_schedule: true
+  edit_course: true
+  edit_event: true
+  edit_agenda_item: true
+
+lecturer:
+  view_schedule: true
+  edit_course: false
+  edit_event: false
+  edit_agenda_item: false
+
+school_contact:
+  view_schedule: true
+  edit_course: false
+  edit_event: false
+  edit_agenda_item: false

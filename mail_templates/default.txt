@@ -1,0 +1,1 @@
+Dear {school_name},%0AWe look forward to seeing you at {event_name} on {date}.%0ARegards,%0AThe Team
