@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Edit Event</h2>
+<form method="post">
+    <label>Name: <input type="text" name="name" value="{{ event.name }}"></label><br>
+    <label>Location: <input type="text" name="location" value="{{ event.location }}"></label><br>
+    <label>Date: <input type="date" name="date" value="{{ event.date }}"></label><br>
+    <button type="submit">Save</button>
+</form>
+{% endblock %}
