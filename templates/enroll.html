@@ -4,6 +4,33 @@
     <div class="container mt-4">
         <h2>Manage School Enrollments</h2>
 
+        <!-- List Enrollments -->
+        <h3 class="mt-4">Current Enrollments</h3>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+            <tr>
+                <th>School</th>
+                <th>Enrolled Programs</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for school in schools %}
+                <tr>
+                    <td>{{ school.name }}</td>
+                    <td>
+                        {% if school.programs %}
+                            {% for program in school.programs %}
+                                <span class="badge bg-primary">{{ program.name }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">Not enrolled in any programs</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
         <!-- Enrollment Form -->
         <h3 class="mt-4">Enroll a School in a Program</h3>
         <form method="POST" action="{{ url_for('enrolment.enroll') }}">
@@ -57,32 +84,7 @@
             <button type="submit" class="btn btn-danger">Unenroll</button>
         </form>
 
-        <!-- List Enrollments -->
-        <h3 class="mt-4">Current Enrollments</h3>
-        <table class="table table-bordered">
-            <thead class="table-dark">
-            <tr>
-                <th>School</th>
-                <th>Enrolled Programs</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for school in schools %}
-                <tr>
-                    <td>{{ school.name }}</td>
-                    <td>
-                        {% if school.programs %}
-                            {% for program in school.programs %}
-                                <span class="badge bg-primary">{{ program.name }}</span>
-                            {% endfor %}
-                        {% else %}
-                            <span class="text-muted">Not enrolled in any programs</span>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
