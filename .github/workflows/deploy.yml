@@ -28,7 +28,7 @@ jobs:
           LOCAL_USERNAME: ${{ secrets.LOCAL_USERNAME }}
           ENV_NAME: ${{ vars.ENV_NAME }}
       run: |
-        ssh $LOCAL_USERNAME@PUBLIC_IPV4 << 'EOF'
+        ssh $LOCAL_USERNAME@$PUBLIC_IPV4 << 'EOF'
           cd /home/github/apps/outreachAdmin
           git pull origin $ENV_NAME
           if [ ! -d "venv" ]; then python3 -m venv venv; fi
