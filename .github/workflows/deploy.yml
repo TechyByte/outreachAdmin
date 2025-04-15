@@ -24,6 +24,7 @@ jobs:
         ssh github@81.2.121.244 << 'EOF'
           cd /home/github/apps/outreachAdmin
           git pull origin preprod
+          if [ ! -d "venv" ]; then python3 -m venv venv; fi
           source venv/bin/activate
           pip install -r requirements.txt
           sudo /bin/systemctl restart outreach.service
