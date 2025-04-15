@@ -1,0 +1,38 @@
+name: Deploy to Bare Metal
+
+on:
+  push:
+    branches: [ preprod ]  # or 'master'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: preprod
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up SSH
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        PUBLIC_IPV4: ${{ secrets.PUBLIC_IPV4 }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H $PUBLIC_IPV4 >> ~/.ssh/known_hosts
+
+    - name: Deploy via SSH
+      env:
+          PUBLIC_IPV4: ${{ secrets.PUBLIC_IPV4 }}
+          LOCAL_USERNAME: ${{ secrets.LOCAL_USERNAME }}
+          ENV_NAME: ${{ vars.ENV_NAME }}
+      run: |
+        ssh $LOCAL_USERNAME@$PUBLIC_IPV4 << 'EOF'
+          cd /home/github/apps/outreachAdmin
+          git pull origin $ENV_NAME
+          if [ ! -d "venv" ]; then python3 -m venv venv; fi
+          source venv/bin/activate
+          pip install -r requirements.txt
+          sudo /bin/systemctl restart outreach.service
+        EOF

@@ -130,6 +130,6 @@ def manage_enrollment():
     """Displays schools and their enrolled programs."""
     with current_app.app_context():
         schools = db.session.query(School).options(selectinload(School.programs)).all()
-        programs = Program.query.all()
+        programs = db.session.query(Program).options(selectinload(Program.courses)).all()
 
     return render_template('enroll.html', schools=schools, programs=programs)
