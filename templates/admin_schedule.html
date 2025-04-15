@@ -2,13 +2,7 @@
 {% block content %}
 <h2>Schedule</h2>
 
-<ul>
-{% for event in events %}
-    <li>
-        <strong>{{ event.date }} - {{ event.name }}</strong> ({{ event.location }})<br>
-        <a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}">✏️</a>
-        {% include '_edit_event_agenda.html' with context %}
-    </li>
+{% for course in courses %}
+    {% include('_edit_course.html') with context %}
 {% endfor %}
-</ul>
 {% endblock %}
