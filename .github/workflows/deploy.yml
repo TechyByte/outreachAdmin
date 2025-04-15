@@ -26,5 +26,5 @@ jobs:
           git pull origin preprod
           source venv/bin/activate
           pip install -r requirements.txt
-          systemctl restart outreach.service
+          sudo /bin/systemctl restart outreach.service
         EOF
