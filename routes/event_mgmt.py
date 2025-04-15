@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, request, flash, redirect, url_for, render_template
 from flask_login import login_required
 
-from models import Event, db, AgendaItem, User, Course
+from models import Event, db, AgendaItem, User, Course, AgendaItemStatus
 from utils import check_permission
 
 bp = Blueprint('event_mgmt', __name__)
@@ -27,6 +27,7 @@ def edit_course(course_id):
 @check_permission('edit_event')
 def edit_event(event_id):
     event = Event.query.get_or_404(event_id)
+    course = db.session.query(Course).get(event.course_id)
     if request.method == 'POST':
         event.name = request.form['name']
         if len(request.form['location']) > 0:
@@ -36,7 +37,7 @@ def edit_event(event_id):
         db.session.commit()
         flash('Event updated.')
         return redirect(url_for('dashboard.schedule'))
-    return render_template('edit_event.html', event=event)
+    return render_template('edit_event.html', event=event, course=course)
 
 
 @bp.route('/agenda_item/<int:item_id>', methods=['GET', 'POST'])
@@ -45,6 +46,9 @@ def edit_event(event_id):
 def edit_agenda_item(item_id):
     item = AgendaItem.query.get_or_404(item_id)
     lecturers = User.query.filter((User.role == 'lecturer') | (User.role == 'admin')).all()
+    event = db.session.query(Event).get(item.event_id)
+    course = db.session.query(Course).get(event.course_id)  # Retrieve the course
+
     if request.method == 'POST':
         item.title = request.form['title']
         item.description = request.form['description']
@@ -56,9 +60,10 @@ def edit_agenda_item(item_id):
         if len(request.form['duration']) > 0:
             item.duration = timedelta(minutes=int(request.form['duration']))
         item.lecturer_id = request.form.get('lecturer_id') or None
-        item.lecturer_confirmed = 'lecturer_confirmed' in request.form
+        if request.form.get('status') is not None:
+            item.status = request.form.get('status') if request.form.get('status') in AgendaItemStatus.__members__ else None
         db.session.commit()
         flash('Agenda item updated.')
         return redirect(url_for('event_mgmt.edit_event', event_id=item.event_id))
-    return render_template('edit_agenda_item.html', item=item, lecturers=lecturers)
+    return render_template('edit_agenda_item.html', item=item, lecturers=lecturers, course=course, event=event, AgendaItemStatus=AgendaItemStatus)
 
