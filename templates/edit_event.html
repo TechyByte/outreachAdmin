@@ -1,11 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Edit Event</h2>
-<form method="post">
-    <label>Name: <input type="text" name="name" value="{{ event.name }}"></label><br>
-    <label>Location: <input type="text" name="location" value="{{ event.location }}"></label><br>
-    <label>Date: <input type="date" name="date" value="{{ event.date }}"></label><br>
-    <button type="submit">Save</button>
-</form>
-    {%  include '_edit_event_agenda.html' with context %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('enrolment.manage_enrollment') }}">Manage Enrollments</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_course', course_id=course.id) }}">{{ course.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ event.name }}</li>
+        </ol>
+    </nav>
+    <h2>Edit Event</h2>
+    <form method="post">
+        <label>Name: <input type="text" name="name" value="{{ event.name }}"></label><br>
+        <label>Location: <input type="text" name="location" value="{{ event.location }}"></label><br>
+        <label>Date: <input type="date" name="date" value="{{ event.date }}"></label><br>
+        <button type="submit">Save</button>
+    </form>
+    {%  include '_edit_agenda.html' with context %}
 {% endblock %}

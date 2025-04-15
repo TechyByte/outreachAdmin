@@ -20,7 +20,13 @@
                     <td>
                         {% if school.programs %}
                             {% for program in school.programs %}
-                                <span class="badge bg-primary">{{ program.name }}</span>
+                                <span class="badge bg-secondary">{{ program.name }}</span>
+                                {% for course in program.courses %}
+                                    {% if course.school_id == school.id %}
+                                        <a href="{{ url_for('event_mgmt.edit_course', course_id=course.id) }}" class="badge bg-primary">{{ course.name }}</a>
+                                    {% endif %}
+                                {% endfor %}
+                                <br />
                             {% endfor %}
                         {% else %}
                             <span class="text-muted">Not enrolled in any programs</span>

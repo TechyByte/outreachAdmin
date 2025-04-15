@@ -1,26 +1,41 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Edit Agenda Item</h2>
-<form method="post">
-    <label>Title: <input type="text" name="title" value="{{ item.title }}"></label><br>
-    <label>Description: <textarea name="description">{{ item.description }}</textarea></label><br>
-    <label>Time: <input type="time" name="time" value="{{ item.time }}"></label><br>
-    <label>Duration (minutes): <input type="number" name="duration" value="
-        {% if item.duration %}}
-            {{ item.duration.seconds // 60 }}
-        {% else %}
-            0
-        {% endif %}
-    "></label><br>
-    <label>Lecturer:
-        <select name="lecturer_id">
-            <option value="">-- None --</option>
-            {% for lecturer in lecturers %}
-                <option value="{{ lecturer.id }}" {% if item.lecturer_id == lecturer.id %}selected{% endif %}>{{ lecturer.username }}</option>
-            {% endfor %}
-        </select>
-    </label><br>
-    <label><input type="checkbox" name="lecturer_confirmed" {% if item.lecturer_confirmed %}checked{% endif %}> Lecturer Confirmed</label><br>
-    <button type="submit">Save</button>
-</form>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('enrolment.manage_enrollment') }}">Manage Enrollments</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_course', course_id=course.id) }}">{{ course.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}">{{ event.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ item.title }}</li>
+        </ol>
+    </nav>
+    <h2>Edit Agenda Item</h2>
+    <form method="post">
+        <label>Title: <input type="text" name="title" value="{{ item.title }}"></label><br>
+        <label>Description: <textarea name="description">{{ item.description }}</textarea></label><br>
+        <label>Time: <input type="time" name="time" value="{{ item.time }}"></label><br>
+        <label>Duration (minutes): <input type="number" name="duration" value="
+            {% if item.duration %}}
+                {{ item.duration.seconds // 60 }}
+            {% else %}
+                0
+            {% endif %}
+        "></label><br>
+        <label>Lecturer:
+            <select name="lecturer_id">
+                <option value="">-- None --</option>
+                {% for lecturer in lecturers %}
+                    <option value="{{ lecturer.id }}" {% if item.lecturer_id == lecturer.id %}selected{% endif %}>{{ lecturer.username }}</option>
+                {% endfor %}
+            </select>
+        </label><br>
+        <label>Status:
+            <select name="status">
+                <option value="">-- Select Status --</option>
+                {% for status in AgendaItemStatus %}
+                    <option value="{{ status.name }}" {% if item.status.name == status.name %}selected{% endif %}>{{ status.value }}</option>
+                {% endfor %}
+            </select>
+        </label><br>
+        <button type="submit">Save</button>
+    </form>
 {% endblock %}
