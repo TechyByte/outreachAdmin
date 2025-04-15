@@ -1,6 +1,8 @@
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Date
+from sqlalchemy import Enum
+from enum import Enum as PyEnum
 
 db = SQLAlchemy()
 
@@ -18,13 +20,29 @@ school_program = db.Table('school_program',
                           )
 
 
+class Location(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    address = db.Column(db.String(200), nullable=True)
+
+    is_school = db.Column(db.Boolean, default=False)  # True if location is a school
+
+    #if address is set, type is fixed location, else set as virtual/mobile
+    @property
+    def is_fixed(self):
+        return self.address is not None
+
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)  # Store hashed password
     role = db.Column(db.String(20), nullable=False)  # 'admin', 'lecturer', or 'school_contact'
+    # TODO: derive roles using registered users' email domain
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=True)
     school = db.relationship('School', back_populates='users')
+    default_location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=True)  # Allow null if no default location assigned
+    default_location = db.relationship('Location', backref='users')  # Allow null if no default location assigned
 
 
 class School(db.Model):
@@ -92,18 +110,37 @@ class Event(db.Model):
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
     school = db.relationship('School', backref='events')
-    location = db.Column(db.String(100), nullable=True)
+
+    location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=True)  # Allow null if no location assigned
+    location = db.relationship('Location', backref='events')
+
     date = db.Column(Date, nullable=True)
     agenda_items = db.relationship('AgendaItem', backref='event', order_by='AgendaItem.time.asc()',
                                    cascade='all, delete-orphan')
 
+    @property
+    def status(self):
+        if all(item.lecturer is None for item in self.agenda_items):
+            return "Unscheduled"
+        elif any(item.lecturer is None for item in self.agenda_items):
+            return "Partially Scheduled"
+        elif all(item.status == AgendaItemStatus.CONFIRMED for item in self.agenda_items):
+            return "Fully Scheduled"
+        elif all(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] for item in self.agenda_items):
+            return "Tentatively Scheduled"
+        return "Unknown"
+
+class AgendaItemStatus(PyEnum):
+    UNSCHEDULED = "Unscheduled"
+    TENTATIVE = "Tentative"
+    CONFIRMED = "Confirmed"
 
 class AgendaItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
     lecturer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Allow null if no lecturer assigned
-    lecturer_confirmed = db.Column(db.Boolean, nullable=False, default=False)
+    status = db.Column(Enum(AgendaItemStatus), nullable=False, default=AgendaItemStatus.UNSCHEDULED)
     lecturer = db.relationship('User', backref='agenda_items')
     time = db.Column(db.Time, nullable=True)
     duration = db.Column(db.Interval, nullable=True)
