@@ -5,13 +5,13 @@ admin:
   edit_agenda_item: true
 
 lecturer:
-  view_schedule: false
+  view_schedule: true
   edit_course: false
   edit_event: false
-  edit_agenda_item: false
+  edit_agenda_item: true
 
 school_contact:
-  view_schedule: false
+  view_schedule: true
   edit_course: false
   edit_event: false
   edit_agenda_item: false
