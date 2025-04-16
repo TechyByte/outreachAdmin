@@ -138,6 +138,14 @@ class AgendaItemNote(BaseNote):
     user = db.relationship('User', backref='agenda_item_notes')
 
 
+class CourseStatus(PyEnum):
+    UNSCHEDULED = "Unscheduled"
+    PARTIALLY_SCHEDULED = "Partially Scheduled"
+    FULLY_SCHEDULED = "Fully Scheduled"
+    TENTATIVELY_SCHEDULED = "Tentatively Scheduled"
+    UNKNOWN = "Unknown"
+
+
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -161,14 +169,14 @@ class Event(db.Model):
     @property
     def status(self):
         if all(item.lecturer is None for item in self.agenda_items):
-            return "Unscheduled"
-        elif any(item.lecturer is None for item in self.agenda_items):
-            return "Partially Scheduled"
+            return CourseStatus.UNSCHEDULED
+        elif any(item.lecturer is not None for item in self.agenda_items) and any(item.lecturer is None for item in self.agenda_items):
+            return CourseStatus.PARTIALLY_SCHEDULED
         elif all(item.status == AgendaItemStatus.CONFIRMED for item in self.agenda_items):
-            return "Fully Scheduled"
+            return CourseStatus.FULLY_SCHEDULED
         elif all(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] for item in self.agenda_items):
-            return "Tentatively Scheduled"
-        return "Unknown"
+            return CourseStatus.TENTATIVELY_SCHEDULED
+        return CourseStatus.UNKNOWN
 
 
 
