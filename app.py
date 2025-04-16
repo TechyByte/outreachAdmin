@@ -22,6 +22,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = "supersecretkey"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['DEBUG'] = True
 
 db.init_app(app)  # Initialize db with the app
 

@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 
 from flask import Blueprint, request, flash, redirect, url_for, render_template
-from flask_login import login_required
+from flask_login import login_required, current_user
 
-from models import Event, db, AgendaItem, User, Course, AgendaItemStatus
+from models import Event, db, AgendaItem, User, Course, AgendaItemStatus, EventNote
 from utils import check_permission
 
 bp = Blueprint('event_mgmt', __name__)
@@ -37,7 +37,51 @@ def edit_event(event_id):
         db.session.commit()
         flash('Event updated.')
         return redirect(url_for('dashboard.schedule'))
-    return render_template('edit_event.html', event=event, course=course)
+    return render_template('edit_event.html', event=event, course=course, notes=event.filtered_notes,
+                           can_add_note=check_permission('add_event_note'),
+                           can_archive_note=check_permission('archive_event_note'))
+
+
+@bp.route('/event/<int:event_id>/notes', methods=['GET', 'POST'])
+@login_required
+def notes(event_id):
+    event = Event.query.get_or_404(event_id)
+
+    # Check if the user has permission to add notes
+    can_add_note = check_permission('add_event_note')
+    can_archive_note = check_permission('archive_event_note')
+
+    if request.method == 'POST' and can_add_note:
+        content = request.form.get('content')
+        if content:
+            note = EventNote(
+                event_id=event_id,
+                user_id=current_user.id,
+                datetime=datetime.utcnow(),
+                content=content
+            )
+            db.session.add(note)
+            db.session.commit()
+            flash('Note added successfully.', 'success')
+            return redirect(url_for('event_mgmt.edit_event', event_id=event_id))
+
+        else:
+            flash('Note content cannot be empty.', 'danger')
+
+
+    return render_template('event_notes.html', event=event, notes=event.filtered_notes, can_add_note=can_add_note,
+                           can_archive_note=can_archive_note)
+
+
+@bp.route('/event_note/<int:note_id>/archive', methods=['POST'])
+@login_required
+@check_permission('archive_event_note')
+def archive_note(note_id):
+    note = EventNote.query.get_or_404(note_id)
+    event_id = note.event_id
+    note.delete()
+    flash('Note archived successfully.', 'success')
+    return redirect(url_for('event_mgmt.edit_event', event_id=event_id))
 
 
 @bp.route('/agenda_item/<int:item_id>', methods=['GET', 'POST'])
@@ -61,9 +105,10 @@ def edit_agenda_item(item_id):
             item.duration = timedelta(minutes=int(request.form['duration']))
         item.lecturer_id = request.form.get('lecturer_id') or None
         if request.form.get('status') is not None:
-            item.status = request.form.get('status') if request.form.get('status') in AgendaItemStatus.__members__ else None
+            item.status = request.form.get('status') if request.form.get(
+                'status') in AgendaItemStatus.__members__ else None
         db.session.commit()
         flash('Agenda item updated.')
         return redirect(url_for('event_mgmt.edit_event', event_id=item.event_id))
-    return render_template('edit_agenda_item.html', item=item, lecturers=lecturers, course=course, event=event, AgendaItemStatus=AgendaItemStatus)
-
+    return render_template('edit_agenda_item.html', item=item, lecturers=lecturers, course=course, event=event,
+                           AgendaItemStatus=AgendaItemStatus)

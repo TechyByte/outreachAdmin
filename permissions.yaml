@@ -3,15 +3,21 @@ admin:
   edit_course: true
   edit_event: true
   edit_agenda_item: true
+  add_event_note: true
+  archive_event_note: true
 
 lecturer:
   view_schedule: true
   edit_course: false
   edit_event: false
   edit_agenda_item: true
+  add_event_note: true
+  archive_event_note: false
 
 school_contact:
   view_schedule: true
   edit_course: false
   edit_event: false
   edit_agenda_item: false
+  add_event_note: false
+  archive_event_note: false
