@@ -110,35 +110,6 @@ class Course(db.Model):
     events = db.relationship('Event', backref='course', order_by='Event.date.asc()', cascade='all, delete-orphan')
 
 
-class Event(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
-    school = db.relationship('School', backref='events')
-
-    notes = db.relationship('EventNote', backref='event', order_by='EventNote.datetime.desc()')
-
-    location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=True)  # Allow null if no location assigned
-    location = db.relationship('Location', backref='events')
-
-    date = db.Column(Date, nullable=True)
-    agenda_items = db.relationship('AgendaItem', backref='event', order_by='AgendaItem.time.asc()',
-                                   cascade='all, delete-orphan')
-
-    @property
-    def status(self):
-        if all(item.lecturer is None for item in self.agenda_items):
-            return "Unscheduled"
-        elif any(item.lecturer is None for item in self.agenda_items):
-            return "Partially Scheduled"
-        elif all(item.status == AgendaItemStatus.CONFIRMED for item in self.agenda_items):
-            return "Fully Scheduled"
-        elif all(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] for item in self.agenda_items):
-            return "Tentatively Scheduled"
-        return "Unknown"
-
-
 class EventNote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
@@ -152,6 +123,44 @@ class EventNote(db.Model):
         self.hidden = True
         db.session.add(self)
         db.session.commit()
+
+
+
+
+class Event(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
+    school = db.relationship('School', backref='events')
+
+    notes = db.relationship('EventNote', backref='event', order_by='EventNote.datetime.desc()')
+
+
+
+    location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=True)  # Allow null if no location assigned
+    location = db.relationship('Location', backref='events')
+
+    date = db.Column(Date, nullable=True)
+    agenda_items = db.relationship('AgendaItem', backref='event', order_by='AgendaItem.time.asc()',
+                                   cascade='all, delete-orphan')
+
+    @property
+    def filtered_notes(self):
+        return EventNote.query.filter_by(event_id=self.id, hidden=False).order_by(EventNote.datetime.desc()).all()
+
+    @property
+    def status(self):
+        if all(item.lecturer is None for item in self.agenda_items):
+            return "Unscheduled"
+        elif any(item.lecturer is None for item in self.agenda_items):
+            return "Partially Scheduled"
+        elif all(item.status == AgendaItemStatus.CONFIRMED for item in self.agenda_items):
+            return "Fully Scheduled"
+        elif all(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] for item in self.agenda_items):
+            return "Tentatively Scheduled"
+        return "Unknown"
+
 
 
 @event.listens_for(EventNote, 'before_delete')
