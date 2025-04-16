@@ -10,7 +10,15 @@
     <h2>Edit Event</h2>
     <form method="post">
         <label>Name: <input type="text" name="name" value="{{ event.name }}"></label><br>
-        <label>Location: <input type="text" name="location" value="{{ event.location }}"></label><br>
+        <label>Location:
+            <select name="location">
+                {% for loc in locations %}
+                    <option value="{{ loc.id }}" {% if event.location_id == loc.id %}selected{% endif %}>
+                        {{ loc.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label><br>
         <label>Date: <input type="date" name="date" value="{{ event.date }}"></label><br>
         <button type="submit">Save</button>
     </form>

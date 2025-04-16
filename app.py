@@ -17,6 +17,7 @@ from routes.programme_mgmt import bp as programme_mgmt_bp
 from routes.school_mgmt import bp as school_mgmt_bp
 from routes.template_mgmt import bp as template_mgmt_bp
 from routes.user_mgmt import bp as user_mgmt_bp
+from routes.config_mgmt import bp as config_mgmt_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "supersecretkey"
@@ -63,6 +64,7 @@ app.register_blueprint(school_mgmt_bp)
 app.register_blueprint(programme_mgmt_bp)
 app.register_blueprint(event_mgmt_bp)
 app.register_blueprint(template_mgmt_bp)
+app.register_blueprint(config_mgmt_bp)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -3,7 +3,9 @@ import os
 from flask import Flask
 from werkzeug.security import generate_password_hash
 
-from models import db, User, School, Program, TemplateCourse, TemplateEvent
+from routes.enrolment import enroll
+from models import db, User, School, Program, TemplateCourse, TemplateEvent, TemplateAgendaItem, Course, Event, \
+    AgendaItem
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -91,6 +93,42 @@ def initialize_database():
         db.session.add_all([template_event1, template_event2, template_event3])
         db.session.commit()
 
+        # Add Example Template Agenda Items
+        print("📝 Adding example template agenda items...")
+        agenda_item1 = TemplateAgendaItem(title="Quiz Preparation", template_event_id=template_event1.id)
+        agenda_item2 = TemplateAgendaItem(title="Lab Setup", template_event_id=template_event2.id)
+        agenda_item3 = TemplateAgendaItem(title="Workshop Materials", template_event_id=template_event3.id)
+        db.session.add_all([agenda_item1, agenda_item2, agenda_item3])
+        db.session.commit()
+
+        # Add Example Live Courses
+        print("📅 Enrolling school in program...")
+        school1.programs.append(program1)
+
+        # Copy selected template courses
+        new_course = Course(name=template_course1.name, program_id=program1.id, school_id=school1.id)
+        db.session.add(new_course)
+        db.session.commit()
+
+        # Copy events
+        template_events = TemplateEvent.query.filter_by(template_course_id=template_course1.id).all()
+        for template_event in template_events:
+            new_event = Event(name=template_event.name, course_id=new_course.id, school_id=school1.id)
+            db.session.add(new_event)
+            db.session.commit()
+
+            # Copy agenda items
+            template_agendas = TemplateAgendaItem.query.filter_by(template_event_id=template_event.id).all()
+            for template_agenda in template_agendas:
+                new_agenda = AgendaItem(title=template_agenda.title,
+                                        event_id=new_event.id,
+                                        lecturer_id=template_agenda.lecturer_id,
+                                        time=template_agenda.time,
+                                        duration=template_agenda.duration,
+                                        description=template_agenda.description)
+                db.session.add(new_agenda)
+
+        db.session.commit()
         print("✅ Database initialized successfully with example data!")
 
 

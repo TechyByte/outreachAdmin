@@ -1,10 +1,14 @@
+from datetime import datetime, timedelta
+
 import sqlalchemy
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Date, event
 from sqlalchemy import Enum
 from enum import Enum as PyEnum
+import hashlib  # Add this import for hashing
 
+from sqlalchemy.event import Events
 from sqlalchemy.orm import object_session
 
 db = SQLAlchemy()
@@ -35,6 +39,12 @@ class Location(db.Model):
     def is_fixed(self):
         return self.address is not None
 
+    @property
+    def color(self):
+        # Generate a distinct color code using a hash of the location ID
+        hash_object = hashlib.md5(str(self.id).encode())
+        return f"#{hash_object.hexdigest()[:6]}"
+
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -49,6 +59,12 @@ class User(db.Model, UserMixin):
     school = db.relationship('School', back_populates='users')
     default_location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=True)  # Allow null if no default location assigned
     default_location = db.relationship('Location', backref='users')  # Allow null if no default location assigned
+
+    @property
+    def color(self):
+        # Generate a distinct color code using a hash of the user ID
+        hash_object = hashlib.md5(str(self.id).encode())
+        return f"#{hash_object.hexdigest()[:6]}"
 
 
 class School(db.Model):
@@ -138,7 +154,7 @@ class AgendaItemNote(BaseNote):
     user = db.relationship('User', backref='agenda_item_notes')
 
 
-class CourseStatus(PyEnum):
+class EventStatus(PyEnum):
     UNSCHEDULED = "Unscheduled"
     PARTIALLY_SCHEDULED = "Partially Scheduled"
     FULLY_SCHEDULED = "Fully Scheduled"
@@ -169,14 +185,29 @@ class Event(db.Model):
     @property
     def status(self):
         if all(item.lecturer is None for item in self.agenda_items):
-            return CourseStatus.UNSCHEDULED
+            return EventStatus.UNSCHEDULED
         elif any(item.lecturer is not None for item in self.agenda_items) and any(item.lecturer is None for item in self.agenda_items):
-            return CourseStatus.PARTIALLY_SCHEDULED
+            return EventStatus.PARTIALLY_SCHEDULED
         elif all(item.status == AgendaItemStatus.CONFIRMED for item in self.agenda_items):
-            return CourseStatus.FULLY_SCHEDULED
+            return EventStatus.FULLY_SCHEDULED
         elif all(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] for item in self.agenda_items):
-            return CourseStatus.TENTATIVELY_SCHEDULED
-        return CourseStatus.UNKNOWN
+            return EventStatus.TENTATIVELY_SCHEDULED
+        return EventStatus.UNKNOWN
+
+    @property
+    def start_time(self):
+        if not self.agenda_items:
+            return None
+        first_item = min(self.agenda_items, key=lambda item: item.time)
+        return (datetime.combine(self.date, first_item.time) - timedelta(minutes=15))
+
+    @property
+    def end_time(self):
+        if not self.agenda_items:
+            return None
+        last_item = max(self.agenda_items, key=lambda item: item.time)
+        end_time = datetime.combine(self.date, last_item.time) + last_item.duration + timedelta(minutes=15)
+        return end_time
 
 
 
@@ -211,4 +242,5 @@ class AgendaItem(db.Model):
     @property
     def filtered_notes(self):
         return AgendaItemNote.query.filter_by(agenda_item_id=self.id, hidden=False).order_by(AgendaItemNote.datetime.desc()).all()
+
 
