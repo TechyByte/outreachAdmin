@@ -1,8 +1,11 @@
+import sqlalchemy
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Date
+from sqlalchemy import Date, event
 from sqlalchemy import Enum
 from enum import Enum as PyEnum
+
+from sqlalchemy.orm import object_session
 
 db = SQLAlchemy()
 
@@ -38,7 +41,10 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)  # Store hashed password
     role = db.Column(db.String(20), nullable=False)  # 'admin', 'lecturer', or 'school_contact'
-    # TODO: derive roles using registered users' email domain
+    # TODO: accept only roles as defined in permissions.yaml
+    # TODO: derive default_role using registered users' email domain
+    # TODO: create configured_role for each user
+    # TODO: return role as configured_role, if set, else return default_role
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=True)
     school = db.relationship('School', back_populates='users')
     default_location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=True)  # Allow null if no default location assigned
@@ -111,6 +117,8 @@ class Event(db.Model):
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
     school = db.relationship('School', backref='events')
 
+    notes = db.relationship('EventNote', backref='event', order_by='EventNote.datetime.desc()')
+
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=True)  # Allow null if no location assigned
     location = db.relationship('Location', backref='events')
 
@@ -130,6 +138,27 @@ class Event(db.Model):
             return "Tentatively Scheduled"
         return "Unknown"
 
+
+class EventNote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
+    datetime = db.Column(db.DateTime, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    hidden = db.Column(db.Boolean, default=False)
+    content = db.Column(db.Text, nullable=False)
+
+    def delete(self):
+        # Perform a soft delete by setting hidden=True
+        self.hidden = True
+        db.session.add(self)
+        db.session.commit()
+
+
+@event.listens_for(EventNote, 'before_delete')
+def prevent_EventNote_deletion(mapper, connection, target):
+    # Prevent the actual deletion
+    raise sqlalchemy.exc.InvalidRequestError("EventNote deletion prevented.")
+
 class AgendaItemStatus(PyEnum):
     UNSCHEDULED = "Unscheduled"
     TENTATIVE = "Tentative"
@@ -145,3 +174,4 @@ class AgendaItem(db.Model):
     time = db.Column(db.Time, nullable=True)
     duration = db.Column(db.Interval, nullable=True)
     description = db.Column(db.Text, nullable=True)
+
