@@ -28,12 +28,14 @@ def get_template_courses(program_id):
 
 @bp.route('/enroll', methods=['GET', 'POST'])
 @login_required
-def enroll():
-    """Handles enrollment with template course."""
-    if request.method == 'POST':
-        school_id = request.form.get('school_id')
-        program_id = request.form.get('program_id')
-        selected_course_ids = request.form.getlist('course_ids')
+def enroll(school_id=None, program_id=None):
+    """Handles enrollment of School on Program."""
+    if request.method == 'POST' or (school_id and program_id):
+        if not school_id:
+            school_id = request.form.get('school_id')
+        if not program_id:
+            program_id = request.form.get('program_id')
+        selected_course_ids = request.form.getlist('course_ids') if request.method == 'POST' else []
 
         with current_app.app_context():
             school = School.query.get(school_id)
