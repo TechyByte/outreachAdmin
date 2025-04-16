@@ -1,8 +1,0 @@
-{% extends 'base.html' %}
-{% block content %}
-<h2>Schedule</h2>
-
-{% for course in courses %}
-    {% include('_edit_course.html') with context %}
-{% endfor %}
-{% endblock %}

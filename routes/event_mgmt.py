@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, request, flash, redirect, url_for, render_template
 from flask_login import login_required, current_user
 
-from models import Event, db, AgendaItem, User, Course, AgendaItemStatus, EventNote, AgendaItemNote
+from models import Event, db, AgendaItem, User, Course, AgendaItemStatus, EventNote, AgendaItemNote, Location
 from utils import check_permission
 
 bp = Blueprint('event_mgmt', __name__)
@@ -28,16 +28,20 @@ def edit_course(course_id):
 def edit_event(event_id):
     event = Event.query.get_or_404(event_id)
     course = db.session.query(Course).get(event.course_id)
+    locations = db.session.query(Location).all()
+
     if request.method == 'POST':
         event.name = request.form['name']
         if len(request.form['location']) > 0:
-            event.location = request.form['location']
+            location_id = int(request.form['location'])  # Convert the location ID to an integer
+            event.location = Location.query.get_or_404(location_id)  # Query the Location object
         if len(request.form['date']) > 0:
             event.date = datetime.strptime(request.form['date'], '%Y-%m-%d')
         db.session.commit()
         flash('Event updated.')
         return redirect(url_for('dashboard.schedule'))
     return render_template('edit_event.html', event=event, course=course, notes=event.filtered_notes,
+                           locations=locations,
                            can_add_note=check_permission('add_event_note'),
                            can_archive_note=check_permission('archive_event_note'))
 

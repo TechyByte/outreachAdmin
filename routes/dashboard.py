@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
 
-from models import User, School, AgendaItem, Event, Course
+from models import User, School, AgendaItem, Event, Course, Program, Location
 from utils import check_permission
 
 bp = Blueprint('dashboard', __name__)
@@ -49,15 +49,84 @@ def lecturer_dashboard():
 @bp.route('/schedule')
 @login_required
 def schedule():
-    n_days = int(request.args.get('n_days', 7))
+    view = request.args.get('view', 'week')  # Default to 'week' view
+    n_days = int(request.args.get('n_days', 60))
     today = datetime.today().date()
     future = today + timedelta(days=n_days)
-    # TODO: Include outer scope Program (via school_program)
-    courses = Course.query \
-        .join(Course.events) \
-        .filter(((Event.date >= today) & (Event.date <= future)) | (Event.date == None)) \
-        .options(joinedload(Course.events)) \
-        .distinct() \
-        .all()
-    return render_template('schedule.html', courses=courses)
+
+    # Filters
+    school_ids = request.args.getlist('school')
+    lecturer_ids = request.args.getlist('lecturer')
+    program_ids = request.args.getlist('program')
+    course_ids = request.args.getlist('course')
+    location_ids = request.args.getlist('location')
+
+    # Base query
+    events_query = Event.query.join(Course).join(School).join(Location, isouter=True)
+
+    # Apply filters
+    if school_ids:
+        events_query = events_query.filter(Event.school_id.in_(school_ids))
+    if lecturer_ids:
+        events_query = events_query.join(Event.agenda_items).filter(AgendaItem.lecturer_id.in_(lecturer_ids))
+    if program_ids:
+        events_query = events_query.filter(Course.program_id.in_(program_ids))
+    if course_ids:
+        events_query = events_query.filter(Event.course_id.in_(course_ids))
+    if location_ids:
+        events_query = events_query.filter(Event.location_id.in_(location_ids))
+
+    # Date range filter
+    if view in ['day', 'week']:
+        events_query = events_query.filter((Event.date >= today) | (Event.date == None), Event.date <= future)
+
+    events = events_query.options(joinedload(Event.agenda_items)).all()
+
+    # Fetch filters data
+    schools = School.query.all()
+    lecturers = User.query.all()
+    programs = Program.query.all()
+    courses = Course.query.all()
+    locations = Location.query.all()
+
+    return render_template(
+        'schedule.html',
+        events=events,
+        view=view,
+        schools=schools,
+        lecturers=lecturers,
+        programs=programs,
+        courses=courses,
+        locations=locations,
+    )
+
+
+@bp.route('/schedule/events')
+@login_required
+def schedule_events():
+    events = Event.query.all()
+    event_list = []
+    for event in events:
+        # Add the main event
+        event_list.append({
+            'id': f'event-{event.id}',
+            'title': event.name,
+            'start': event.start_time.isoformat() if event.start_time else event.date.isoformat(),
+            'end': event.end_time.isoformat() if event.end_time else event.date.isoformat(),
+            'location': event.location.name if event.location else 'N/A',
+            'backgroundColor': event.location.color,
+        })
+        # Add agenda items as overlapping events
+        for item in event.agenda_items:
+            if item.time and item.duration:
+                start_time = datetime.combine(event.date, item.time)
+                end_time = start_time + item.duration
+                event_list.append({
+                    'id': f'agenda-{item.id}',
+                    'title': f'{item.title}',
+                    'start': start_time.isoformat(),
+                    'end': end_time.isoformat(),
+                    'backgroundColor': item.lecturer.color if item.lecturer else None,  # Use a neutral color for agenda items
+                })
+    return event_list
 
