@@ -5,6 +5,8 @@ admin:
   edit_agenda_item: true
   add_event_note: true
   archive_event_note: true
+  add_agenda_item_note: true
+  archive_agenda_item_note: true
 
 lecturer:
   view_schedule: true
@@ -13,6 +15,8 @@ lecturer:
   edit_agenda_item: true
   add_event_note: true
   archive_event_note: false
+  add_agenda_item_note: true
+  archive_agenda_item_note: false
 
 school_contact:
   view_schedule: true
@@ -21,3 +25,5 @@ school_contact:
   edit_agenda_item: false
   add_event_note: false
   archive_event_note: false
+  add_agenda_item_note: false
+  archive_agenda_item_note: false

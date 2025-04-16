@@ -110,11 +110,12 @@ class Course(db.Model):
     events = db.relationship('Event', backref='course', order_by='Event.date.asc()', cascade='all, delete-orphan')
 
 
-class EventNote(db.Model):
+class BaseNote(db.Model):
+    __abstract__ = True
     id = db.Column(db.Integer, primary_key=True)
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
     datetime = db.Column(db.DateTime, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
     hidden = db.Column(db.Boolean, default=False)
     content = db.Column(db.Text, nullable=False)
 
@@ -125,6 +126,16 @@ class EventNote(db.Model):
         db.session.commit()
 
 
+class EventNote(BaseNote):
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
+    event = db.relationship('Event', back_populates='notes')
+    user = db.relationship('User', backref='event_notes')
+
+
+class AgendaItemNote(BaseNote):
+    agenda_item_id = db.Column(db.Integer, db.ForeignKey('agenda_item.id'), nullable=False)
+    agenda_item = db.relationship('AgendaItem', back_populates='notes')
+    user = db.relationship('User', backref='agenda_item_notes')
 
 
 class Event(db.Model):
@@ -134,9 +145,7 @@ class Event(db.Model):
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
     school = db.relationship('School', backref='events')
 
-    notes = db.relationship('EventNote', backref='event', order_by='EventNote.datetime.desc()')
-
-
+    notes = db.relationship('EventNote', back_populates='event', order_by='EventNote.datetime.desc()')
 
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=True)  # Allow null if no location assigned
     location = db.relationship('Location', backref='events')
@@ -168,6 +177,11 @@ def prevent_EventNote_deletion(mapper, connection, target):
     # Prevent the actual deletion
     raise sqlalchemy.exc.InvalidRequestError("EventNote deletion prevented.")
 
+@event.listens_for(AgendaItemNote, 'before_delete')
+def prevent_AgendaItemNote_deletion(mapper, connection, target):
+    # Prevent the actual deletion
+    raise sqlalchemy.exc.InvalidRequestError("EventNote deletion prevented.")
+
 class AgendaItemStatus(PyEnum):
     UNSCHEDULED = "Unscheduled"
     TENTATIVE = "Tentative"
@@ -183,4 +197,10 @@ class AgendaItem(db.Model):
     time = db.Column(db.Time, nullable=True)
     duration = db.Column(db.Interval, nullable=True)
     description = db.Column(db.Text, nullable=True)
+
+    notes = db.relationship('AgendaItemNote', back_populates='agenda_item', order_by='AgendaItemNote.datetime.desc()')
+
+    @property
+    def filtered_notes(self):
+        return AgendaItemNote.query.filter_by(agenda_item_id=self.id, hidden=False).order_by(AgendaItemNote.datetime.desc()).all()
 
