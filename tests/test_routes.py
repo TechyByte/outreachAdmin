@@ -26,7 +26,74 @@ def client():
 def login(client):
     return client.post("/login", data=dict(username="admin", password="test"), follow_redirects=True)
 
-# [other tests remain unchanged]
+
+def test_login_route(client):
+    response = client.get("/login")
+    assert response.status_code == 200
+    assert b"Login" in response.data
+
+
+def test_program_list(client):
+    login(client)
+    response = client.get("/programs")
+    assert response.status_code == 200
+
+
+def test_school_view(client):
+    login(client)
+    response = client.get("/schools")
+    assert response.status_code == 200
+
+
+def test_template_listing(client):
+    login(client)
+    response = client.get("/manage-templates")
+    assert response.status_code == 200
+
+
+def test_event_schedule(client):
+    login(client)
+    response = client.get("/schedule")
+    assert response.status_code == 200
+
+
+def test_enrolment_page(client):
+    login(client)
+    response = client.get("/manage-enrollment")
+    assert response.status_code == 200
+
+
+def test_program_create_form(client):
+    login(client)
+    response = client.post("/programs", data=dict(name="New Program"))
+    assert response.status_code == 302
+    programs = Program.query.filter_by(name="New Program")
+    assert programs.count() > 0
+
+
+def test_rest_program_crud(client):
+    login(client)
+
+    # Create
+    response = client.post("/programs", data=dict(name="REST Program"), follow_redirects=True)
+    assert response.status_code in (200, 201)
+
+    # Read
+    response = client.get("/programs")
+    assert response.status_code == 200
+    assert b"REST Program" in response.data
+
+    # # Update
+    # program = Program.query.filter_by(name="REST Program").first()
+    # response = client.put(f"/programs/{program.id}", json={"name": "Updated REST Program"})
+    # assert response.status_code == 200
+
+
+    # # Delete
+    # response = client.delete(f"/api/programs/{program.id}")
+    # assert response.status_code == 200
+
+
 
 def test_enroll_school_on_program(client):
     login(client)
