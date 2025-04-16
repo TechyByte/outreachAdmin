@@ -59,5 +59,5 @@ def schedule():
         .options(joinedload(Course.events)) \
         .distinct() \
         .all()
-    return render_template('admin_schedule.html', courses=courses)
+    return render_template('schedule.html', courses=courses)
 
