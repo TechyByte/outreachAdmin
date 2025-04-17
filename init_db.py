@@ -54,13 +54,15 @@ def initialize_database():
 
         # Add Example Users (with school_id assigned)
         print("👤 Adding example users...")
-        admin = User(username="admin", password=generate_password_hash("admin123"), role="admin")
-        school_contact1 = User(username="john_doe", password=generate_password_hash("password"), role="school_contact",
+        admin = User(username="admin", password=generate_password_hash("admin123"), configured_role="admin")
+        school_contact1 = User(username="john_doe", password=generate_password_hash("password"), configured_role="school_contact",
                                school_id=school1.id)
         school_contact2 = User(username="jane_smith", password=generate_password_hash("password"),
-                               role="school_contact", school_id=school2.id)
+                               configured_role="school_contact", school_id=school2.id)
 
-        db.session.add_all([admin, school_contact1, school_contact2])
+        user1 = User(username="user", password=generate_password_hash("password"))
+
+        db.session.add_all([admin, school_contact1, school_contact2, user1])
         db.session.commit()
 
         # Add Example Programs

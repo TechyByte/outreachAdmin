@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from utils import check_permission
 import os
 
-from models import db, User, Event
+from models import db, User, valid_user_roles
 from routes.auth import bp as auth_bp
 from routes.dashboard import bp as dashboard_bp
 from routes.enrolment import bp as enrolment_bp
@@ -24,6 +24,7 @@ app.config['SECRET_KEY'] = "supersecretkey"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['DEBUG'] = True
+app.config['VALID_USER_ROLES'] = valid_user_roles
 
 db.init_app(app)  # Initialize db with the app
 
