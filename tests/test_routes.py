@@ -16,7 +16,7 @@ def client():
     with flask_app.app_context():
         db.drop_all()
         db.create_all()
-        user = User(username='admin', password=generate_password_hash('test'), role='admin')
+        user = User(username='admin', password=generate_password_hash('test'), configured_role='admin')
         db.session.add(user)
         db.session.commit()
         yield flask_app.test_client()
@@ -107,7 +107,7 @@ def test_enroll_school_on_program(client):
     db.session.add(template_event)
     db.session.commit()
 
-    lecturer = User(username='lecturer', password=generate_password_hash('pass'), role='lecturer')
+    lecturer = User(username='lecturer', password=generate_password_hash('pass'), configured_role='lecturer')
     db.session.add(lecturer)
     db.session.commit()
 
@@ -167,7 +167,7 @@ def test_unenroll_school_from_program(client):
     db.session.add(template_event)
     db.session.commit()
 
-    lecturer = User(username='lecturer', password=generate_password_hash('pass'), role='lecturer')
+    lecturer = User(username='lecturer', password=generate_password_hash('pass'), configured_role='lecturer')
     db.session.add(lecturer)
     db.session.commit()
 
