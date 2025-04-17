@@ -115,6 +115,7 @@ def schedule_events():
             'end': event.end_time.isoformat() if event.end_time else event.date.isoformat(),
             'location': event.location.name if event.location else 'N/A',
             'backgroundColor': event.location.color,
+            'display': 'block',
         })
         # Add agenda items as overlapping events
         for item in event.agenda_items:
