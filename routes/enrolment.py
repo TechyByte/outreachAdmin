@@ -28,6 +28,7 @@ def get_template_courses(program_id):
 
 
 @bp.route('/enroll', methods=['GET', 'POST'])
+@check_permission('enroll_school')
 @login_required
 def enroll(school_id=None, program_id=None):
     """Handles enrollment of School on Program."""
