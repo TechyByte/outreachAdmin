@@ -45,8 +45,6 @@ def edit_event(event_id):
                            can_add_note=check_permission('add_event_note'),
                            can_archive_note=check_permission('archive_event_note'))
 
-
-
 @bp.route('/event/<int:event_id>/notes', methods=['GET', 'POST'])
 @login_required
 def event_notes(event_id):
