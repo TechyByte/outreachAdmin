@@ -3,9 +3,9 @@ import sqlalchemy
 
 from app import app as flask_app
 from models import db, User, Program, Course, Event, AgendaItem, School, TemplateCourse, TemplateEvent, \
-    TemplateAgendaItem, Location, EventNote
+    TemplateAgendaItem, Location, EventNote, AgendaItemNote
 from flask import Flask
-from datetime import date, time, timedelta
+from datetime import date, time, timedelta, datetime
 from init_db import initialize_database
 
 @pytest.fixture(scope='module')
@@ -22,11 +22,13 @@ def test_client():
 
 def test_user_crud(test_client):
     with flask_app.app_context():
-        user = User(username='testuser', password='hashed', role='admin')
+        user = User(username='testuser', password='hashed', configured_role='admin')
         db.session.add(user)
         db.session.commit()
 
         assert User.query.count() == 1
+        assert user.role == 'admin'
+        assert user.default_role is None
 
         user.username = 'updateduser'
         db.session.commit()
@@ -84,7 +86,7 @@ def test_event_and_agenda_relationship(test_client):
         db.session.add(event)
         db.session.commit()
 
-        user = User(username='lecturer1', password='hashed', role='lecturer')
+        user = User(username='lecturer1', password='hashed', configured_role='lecturer')
         db.session.add(user)
         db.session.commit()
 
@@ -106,7 +108,7 @@ def test_template_hierarchy(test_client):
         db.session.add(template_event)
         db.session.commit()
 
-        user = User(username='templ_lecturer', password='hashed', role='lecturer')
+        user = User(username='templ_lecturer', password='hashed', configured_role='lecturer')
         db.session.add(user)
         db.session.commit()
 
@@ -128,7 +130,7 @@ def test_template_hierarchy(test_client):
 def test_eventnote_prevent_deletion(test_client):
     with flask_app.app_context():
         # Create a user and an event
-        user = User(username='note_user', password='hashed', role='admin')
+        user = User(username='note_user', password='hashed', configured_role='admin')
         school = School(name='Note School', contact_name='Charlie', contact_email='charlie@example.com', contact_phone='555555555')
         program = Program(name='Note Program')
         db.session.add_all([user, school, program])
@@ -168,4 +170,36 @@ def test_eventnote_prevent_deletion(test_client):
 
         # Verify the note is not deleted but hidden is set to True
         assert EventNote.query.count() == 1
+        assert note.hidden
+
+
+def test_agenda_item_note_crud(test_client):
+    with flask_app.app_context():
+        user = User(username='note2_user', password='hashed', configured_role='admin')
+        agenda_item = AgendaItem(title='Test Agenda', event_id=1, description='Test Description')
+        db.session.add_all([user, agenda_item])
+        db.session.commit()
+
+        note = AgendaItemNote(agenda_item_id=agenda_item.id, user_id=user.id, datetime=datetime.utcnow(), content='Test Note')
+        db.session.add(note)
+        db.session.commit()
+
+        assert AgendaItemNote.query.count() == 1
+        assert not note.hidden
+
+        # Delete note the wrong way
+        with pytest.raises(sqlalchemy.exc.InvalidRequestError):
+            db.session.delete(note)
+            db.session.commit()
+
+        db.session.rollback()
+
+        # Verify the note still exists
+        assert AgendaItemNote.query.count() == 1
+        assert not note.hidden
+
+        note.delete()
+        db.session.commit()
+
+        assert AgendaItemNote.query.count() == 1
         assert note.hidden

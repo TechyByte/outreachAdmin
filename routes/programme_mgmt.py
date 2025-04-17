@@ -20,7 +20,7 @@ def manage_programs():
             db.session.add(new_program)
             db.session.commit()
 
-        return redirect(url_for('manage_programs'))  # Refresh list
+        return redirect(url_for('programme_mgmt.manage_programs'))
 
     with current_app.app_context():
         programs = db.session.query(Program).options(selectinload(Program.schools)).all()
