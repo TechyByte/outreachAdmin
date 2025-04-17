@@ -152,12 +152,12 @@ class Course(db.Model):
     events = db.relationship('Event', backref='course', order_by='Event.date.asc()', cascade='all, delete-orphan')
 
 
+
 class BaseNote(db.Model):
     __abstract__ = True
     id = db.Column(db.Integer, primary_key=True)
     datetime = db.Column(db.DateTime, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
     hidden = db.Column(db.Boolean, default=False)
     content = db.Column(db.Text, nullable=False)
 
@@ -197,6 +197,8 @@ class Event(db.Model):
 
     notes = db.relationship('EventNote', back_populates='event', order_by='EventNote.datetime.desc()')
 
+
+
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=True)  # Allow null if no location assigned
     location = db.relationship('Location', backref='events')
 
@@ -227,6 +229,7 @@ class Event(db.Model):
         first_item = min(self.agenda_items, key=lambda item: item.time)
         return (datetime.combine(self.date, first_item.time) - timedelta(minutes=15))
 
+
     @property
     def end_time(self):
         if not self.agenda_items:
@@ -234,7 +237,6 @@ class Event(db.Model):
         last_item = max(self.agenda_items, key=lambda item: item.time)
         end_time = datetime.combine(self.date, last_item.time) + last_item.duration + timedelta(minutes=15)
         return end_time
-
 
 
 @event.listens_for(EventNote, 'before_delete')

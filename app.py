@@ -26,6 +26,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['DEBUG'] = True
 app.config['VALID_USER_ROLES'] = valid_user_roles
 
+
+
 db.init_app(app)  # Initialize db with the app
 
 login_manager = LoginManager()
