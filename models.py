@@ -15,6 +15,12 @@ from sqlalchemy.orm import object_session
 
 db = SQLAlchemy()
 
+
+# Load roles from permissions.yaml
+with open('permissions.yaml', 'r') as file:
+    valid_user_roles = list(yaml.safe_load(file).keys())
+
+
 # Many-to-Many Relationship Between Programs & Template Courses
 program_template_course = db.Table(
     'program_template_course',
@@ -47,10 +53,6 @@ class Location(db.Model):
         hash_object = hashlib.md5(str(self.id).encode())
         return f"#{hash_object.hexdigest()[:6]}"
 
-
-# Load roles from permissions.yaml
-with open('permissions.yaml', 'r') as file:
-    valid_user_roles = list(yaml.safe_load(file).keys())
 
 class User(db.Model, UserMixin):
 
@@ -142,6 +144,14 @@ class TemplateAgendaItem(db.Model):
     time = db.Column(db.Time, nullable=True)  # Time of day
 
 
+class CourseStatus(PyEnum):
+    UNSCHEDULED = "Unscheduled"
+    PARTIALLY_SCHEDULED = "Partially Scheduled"
+    FULLY_SCHEDULED = "Fully Scheduled"
+    TENTATIVELY_SCHEDULED = "Tentatively Scheduled"
+    UNKNOWN = "Unknown"
+
+
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -150,6 +160,18 @@ class Course(db.Model):
     program = db.relationship('Program', backref='courses')
     school = db.relationship('School', backref='courses')
     events = db.relationship('Event', backref='course', order_by='Event.date.asc()', cascade='all, delete-orphan')
+
+    @property
+    def status(self):
+        if all(event.status == EventStatus.UNKNOWN for event in self.events):
+            return CourseStatus.UNKNOWN
+        elif any(event.status == EventStatus.PARTIALLY_SCHEDULED for event in self.events):
+            return CourseStatus.PARTIALLY_SCHEDULED
+        elif all(event.status == EventStatus.CONFIRMED for event in self.events):
+            return CourseStatus.FULLY_SCHEDULED
+        elif all(event.status in [EventStatus.CONFIRMED, EventStatus.TENTATIVE] for event in self.events):
+            return CourseStatus.TENTATIVELY_SCHEDULED
+        return CourseStatus.UNKNOWN
 
 
 
