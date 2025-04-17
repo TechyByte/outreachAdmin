@@ -1,11 +1,12 @@
 import os
+import sys
 
 from flask import Flask
 from werkzeug.security import generate_password_hash
 
 from routes.enrolment import enroll
 from models import db, User, School, Program, TemplateCourse, TemplateEvent, TemplateAgendaItem, Course, Event, \
-    AgendaItem
+    AgendaItem, Location
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -33,10 +34,11 @@ def initialize_database():
     """Drops existing tables, recreates them, and adds example template and live data."""
     with app.app_context():
         if os.path.exists("instance/database.db"):
-            user_input = input("⚠️ Database already exists. Overwrite it? (yes/no): ").strip().lower()
-            if user_input not in ["yes", "y"]:
-                print("✅ Keeping existing database. No changes made.")
-                return
+            if "--noinput" not in sys.argv:
+                user_input = input("⚠️ Database already exists. Overwrite it? (yes/no): ").strip().lower()
+                if user_input not in ["yes", "y"]:
+                    print("✅ Keeping existing database. No changes made.")
+                    return
             print("🛠 Dropping existing tables...")
             db.drop_all()
 
@@ -131,6 +133,15 @@ def initialize_database():
                 db.session.add(new_agenda)
 
         db.session.commit()
+
+        # Add example locations
+        print("📍 Adding example locations...")
+        location1 = Location(name="BWC-CH")
+        location2 = Location(name="UHB-QE")
+        location3 = Location(name="School")
+        db.session.add_all([location1, location2, location3])
+        db.session.commit()
+
         print("✅ Database initialized successfully with example data!")
 
 
