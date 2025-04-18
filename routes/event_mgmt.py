@@ -20,7 +20,7 @@ def edit_course(course_id):
         course.name = request.form['name']
         db.session.commit()
         flash('Course updated.')
-        return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('dashboard.admin_dashboard'))
     return render_template('edit_course.html', course=course)
 
 
