@@ -4,6 +4,7 @@ from sqlalchemy.orm import selectinload
 
 from models import db, School, Program, Course, Event, AgendaItem, TemplateCourse, TemplateEvent, \
     TemplateAgendaItem, program_template_course
+from utils import check_permission
 
 bp = Blueprint('enrolment', __name__)
 
@@ -27,6 +28,7 @@ def get_template_courses(program_id):
 
 
 @bp.route('/enroll', methods=['GET', 'POST'])
+@check_permission('enroll_school')
 @login_required
 def enroll(school_id=None, program_id=None):
     """Handles enrollment of School on Program."""
@@ -92,13 +94,13 @@ def enroll(school_id=None, program_id=None):
 
 
 @bp.route('/unenroll', methods=['POST'])
+@check_permission('unenroll_school')
 @login_required
 def unenroll():
     """Handles school unenrollment and removes independent records."""
     school_id = request.form.get('school_id')
     program_id = request.form.get('program_id')
 
-    # TODO: check user is admin
 
     with current_app.app_context():
         school = School.query.get(school_id)

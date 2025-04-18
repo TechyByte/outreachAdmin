@@ -24,6 +24,14 @@
                                    class="form-control d-inline w-50">
                             <button type="submit" class="btn btn-warning btn-sm">Edit</button>
                         </form>
+                        <form method="post" action="{{ url_for('event_mgmt.confirm_agenda_item', item_id=agenda_item.id) }}">
+                            <input type="hidden" name="agenda_item_id" value="{{ agenda_item.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Confirm</button>
+                        </form>
+                        <form method="post" action="{{ url_for('event_mgmt.reject_agenda_item', item_id=agenda_item.id) }}">
+                            <input type="hidden" name="agenda_item_id" value="{{ agenda_item.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                        </form>
                     </td>
                 </tr>
             {% endfor %}

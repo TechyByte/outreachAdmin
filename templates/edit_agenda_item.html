@@ -28,14 +28,9 @@
                 {% endfor %}
             </select>
         </label><br>
-        <label>Status:
-            <select name="status">
-                <option value="">-- Select Status --</option>
-                {% for status in AgendaItemStatus %}
-                    <option value="{{ status.name }}" {% if item.status.name == status.name %}selected{% endif %}>{{ status.value }}</option>
-                {% endfor %}
-            </select>
-        </label><br>
+        <p>Status:
+            {{ item.status.name }}
+        </p><br>
         <button type="submit">Save</button>
     </form>
     {% include 'agenda_item_notes.html' with context %}

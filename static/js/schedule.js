@@ -3,7 +3,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const calendarEl = document.getElementById('calendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        events: '/schedule/events', // Fetch events from the backend
+        events: function(fetchInfo, successCallback, failureCallback) {
+            // Build query parameters from filters
+            const params = new URLSearchParams();
+            document.querySelectorAll('#filters-form select').forEach(select => {
+                Array.from(select.selectedOptions).forEach(option => {
+                    params.append(select.name, option.value);
+                });
+            });
+            params.append('n_days', 60); // Example: Pass n_days filter
+
+            // Fetch events with filters
+            fetch(`/schedule/events?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => successCallback(data))
+                .catch(error => failureCallback(error));
+        },
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
@@ -21,16 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Switched to tab: ${target}`);
     });
 
-    // Toggle agenda items visibility
-    document.querySelectorAll('.toggle-agenda').forEach(button => {
-        button.addEventListener('click', () => {
-            const eventId = button.getAttribute('data-event-id');
-            const agendaItems = document.getElementById(`agenda-items-${eventId}`);
-            if (agendaItems.style.display === 'none') {
-                agendaItems.style.display = 'block';
-            } else {
-                agendaItems.style.display = 'none';
-            }
-        });
+    // Re-render calendar when filters are applied
+    document.getElementById('filters-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        calendar.refetchEvents();
     });
 });

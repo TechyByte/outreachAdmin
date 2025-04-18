@@ -104,7 +104,37 @@ def schedule():
 @bp.route('/schedule/events')
 @login_required
 def schedule_events():
-    events = Event.query.all()
+    # Fetch filters from query parameters
+    school_ids = request.args.getlist('school')
+    lecturer_ids = request.args.getlist('lecturer')
+    program_ids = request.args.getlist('program')
+    course_ids = request.args.getlist('course')
+    location_ids = request.args.getlist('location')
+    n_days = int(request.args.get('n_days', 60))
+    today = datetime.today().date()
+    future = today + timedelta(days=n_days)
+
+    # Base query
+    events_query = Event.query.join(Course).join(School).join(Location, isouter=True)
+
+    # Apply filters
+    if school_ids:
+        events_query = events_query.filter(Event.school_id.in_(school_ids))
+    if lecturer_ids:
+        events_query = events_query.join(Event.agenda_items).filter(AgendaItem.lecturer_id.in_(lecturer_ids))
+    if program_ids:
+        events_query = events_query.filter(Course.program_id.in_(program_ids))
+    if course_ids:
+        events_query = events_query.filter(Event.course_id.in_(course_ids))
+    if location_ids:
+        events_query = events_query.filter(Event.location_id.in_(location_ids))
+
+    # Date range filter
+    events_query = events_query.filter((Event.date >= today) | (Event.date == None), Event.date <= future)
+
+    events = events_query.options(joinedload(Event.agenda_items)).all()
+
+    # Prepare event data for the calendar
     event_list = []
     for event in events:
         # Add the main event
@@ -114,7 +144,9 @@ def schedule_events():
             'start': event.start_time.isoformat() if event.start_time else event.date.isoformat(),
             'end': event.end_time.isoformat() if event.end_time else event.date.isoformat(),
             'location': event.location.name if event.location else 'N/A',
-            'backgroundColor': event.location.color,
+            'backgroundColor': event.location.color if event.location else '#cccccc',
+            'display': 'block',
+            #'url': url_for('event_mgmt.edit_event', event_id=event.id),
         })
         # Add agenda items as overlapping events
         for item in event.agenda_items:
@@ -127,6 +159,7 @@ def schedule_events():
                     'start': start_time.isoformat(),
                     'end': end_time.isoformat(),
                     'backgroundColor': item.lecturer.color if item.lecturer else None,  # Use a neutral color for agenda items
+                    #'url': url_for('event_mgmt.edit_agenda_item', item_id=item.id),
                 })
     return event_list
 

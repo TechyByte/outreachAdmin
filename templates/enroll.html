@@ -37,60 +37,77 @@
             </tbody>
         </table>
 
-        <!-- Enrollment Form -->
-        <h3 class="mt-4">Enroll a School in a Program</h3>
-        <form method="POST" action="{{ url_for('enrolment.enroll') }}">
-            <div class="mb-3">
-                <label for="school_id" class="form-label">Select School:</label>
-                <select class="form-control" id="school_id" name="school_id" required>
-                    {% for school in schools %}
-                        <option value="{{ school.id }}">{{ school.name }}</option>
-                    {% endfor %}
-                </select>
+        <div class="accordion" id="enroll_actions">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#enroll_school" aria-expanded="true" aria-controls="enroll_school">
+                    Enroll a School in a Program
+                  </button>
+                </h2>
+                <div id="enroll_school" class="accordion-collapse collapse" data-bs-parent="#enroll_actions">
+                    <div class="accordion-body">
+                        <form method="POST" action="{{ url_for('enrolment.enroll') }}">
+                            <div class="mb-3">
+                                <label for="school_id" class="form-label">Select School:</label>
+                                <select class="form-control" id="school_id" name="school_id" required>
+                                    {% for school in schools %}
+                                        <option value="{{ school.id }}">{{ school.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="program_id" class="form-label">Select Program:</label>
+                                <select class="form-control" id="program_id" name="program_id" required>
+                                    {% for program in programs %}
+                                        <option value="{{ program.id }}">{{ program.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="course_ids" class="form-label">Select Template Courses:</label>
+                                <select class="form-control" id="course_ids" name="course_ids" multiple required>
+                                    {% for course in template_courses %}
+                                        <option value="{{ course.id }}">{{ course.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple courses.</small>
+                            </div>
+                            <button type="submit" class="btn btn-success">Enroll</button>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="mb-3">
-                <label for="program_id" class="form-label">Select Program:</label>
-                <select class="form-control" id="program_id" name="program_id" required>
-                    {% for program in programs %}
-                        <option value="{{ program.id }}">{{ program.name }}</option>
-                    {% endfor %}
-                </select>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#unenroll_school" aria-expanded="true" aria-controls="unenroll_school">
+                    Unenroll a School from a Program
+                  </button>
+                </h2>
+                <div id="unenroll_school" class="accordion-collapse collapse" data-bs-parent="#unenroll_actions">
+                    <div class="accordion-body">
+                        <form method="POST" action="{{ url_for('enrolment.unenroll') }}">
+                            <div class="mb-3">
+                                <label for="unenroll_school_id" class="form-label">Select School:</label>
+                                <select class="form-control" id="unenroll_school_id" name="school_id" required>
+                                    {% for school in schools %}
+                                        <option value="{{ school.id }}">{{ school.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="unenroll_program_id" class="form-label">Select Program:</label>
+                                <select class="form-control" id="unenroll_program_id" name="program_id" required>
+                                    {% for program in programs %}
+                                        <option value="{{ program.id }}">{{ program.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-danger">Unenroll</button>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="mb-3">
-                <label for="course_ids" class="form-label">Select Template Courses:</label>
-                <select class="form-control" id="course_ids" name="course_ids" multiple required>
-                    {% for course in template_courses %}
-                        <option value="{{ course.id }}">{{ course.name }}</option>
-                    {% endfor %}
-                </select>
-                <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple courses.</small>
-            </div>
-            <button type="submit" class="btn btn-success">Enroll</button>
-        </form>
-
-        <!-- Unenrollment Form -->
-        <h3 class="mt-4">Unenroll a School from a Program</h3>
-        <form method="POST" action="{{ url_for('enrolment.unenroll') }}">
-            <div class="mb-3">
-                <label for="unenroll_school_id" class="form-label">Select School:</label>
-                <select class="form-control" id="unenroll_school_id" name="school_id" required>
-                    {% for school in schools %}
-                        <option value="{{ school.id }}">{{ school.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="unenroll_program_id" class="form-label">Select Program:</label>
-                <select class="form-control" id="unenroll_program_id" name="program_id" required>
-                    {% for program in programs %}
-                        <option value="{{ program.id }}">{{ program.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <button type="submit" class="btn btn-danger">Unenroll</button>
-        </form>
-
-
+        </div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
