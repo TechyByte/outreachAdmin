@@ -280,6 +280,8 @@ class Event(db.Model):
         if not self.date or not self.agenda_items:
             return None  # Return None if date or agenda_items is missing
         first_item = min(self.agenda_items, key=lambda item: item.time)
+        if first_item.time is None:
+            return None
         return datetime.combine(self.date, first_item.time) - timedelta(minutes=15)
 
 
