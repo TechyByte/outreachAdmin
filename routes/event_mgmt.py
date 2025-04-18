@@ -116,19 +116,19 @@ def edit_agenda_item(item_id):
         if len(request.form['duration']) > 0:
             item.duration = timedelta(minutes=int(request.form['duration']))
 
-        new_lecturer_id = request.form.get('lecturer_id')
-        if new_lecturer_id:
-            if new_lecturer_id == item.lecturer_id:
-                # No change in lecturer
-                pass
+        try:
+            new_lecturer_id = int(request.form.get('lecturer_id'))
+            if new_lecturer_id:
+                if new_lecturer_id != item.lecturer_id:
+                    # Change in lecturer
+                    item.lecturer_id = new_lecturer_id
+                    item.status = AgendaItemStatus.TENTATIVE
             else:
-                # Change in lecturer
-                item.lecturer_id = new_lecturer_id
-                item.status = AgendaItemStatus.TENTATIVE
-        else:
-            # No lecturer assigned
-            item.lecturer_id = None
-            item.status = AgendaItemStatus.UNSCHEDULED
+                # No lecturer assigned
+                item.lecturer_id = None
+                item.status = AgendaItemStatus.UNSCHEDULED
+        except ValueError:
+            logging.debug('Invalid lecturer ID')
 
         # if request.form.get('status') is not None:
         #     item.status = request.form.get('status') if request.form.get(
@@ -136,7 +136,7 @@ def edit_agenda_item(item_id):
         #
         db.session.commit()
         flash('Agenda item updated.')
-        return redirect(url_for('event_mgmt.edit_event', event_id=item.event_id))
+        #return redirect(url_for('event_mgmt.edit_event', event_id=item.event_id))
     return render_template('edit_agenda_item.html', item=item, lecturers=lecturers, course=course, event=event,
                            AgendaItemStatus=AgendaItemStatus, notes=item.filtered_notes,
                            can_add_note=can_add_note, can_archive_note=can_archive_note)
@@ -176,6 +176,18 @@ def agenda_item_notes(agenda_item_id):
 def confirm_agenda_item(item_id):
     item = AgendaItem.query.get_or_404(item_id)
     item.status = AgendaItemStatus.CONFIRMED
+    item = AgendaItem.query.get_or_404(item_id)
+    item.status = AgendaItemStatus.CONFIRMED
+
+    # Create a note to record the action
+    note = AgendaItemNote(
+        agenda_item_id=item_id,
+        user_id=current_user.id,
+        datetime=datetime.utcnow(),
+        content=f"Agenda item confirmed by {current_user.username}."
+    )
+    db.session.add(note)
+
     db.session.commit()
     flash('Agenda item confirmed successfully.', 'success')
     return redirect(url_for('event_mgmt.edit_agenda_item', item_id=item_id))
@@ -188,6 +200,14 @@ def reject_agenda_item(item_id):
     item = AgendaItem.query.get_or_404(item_id)
     item.status = AgendaItemStatus.UNSCHEDULED
     item.lecturer_id = None
+    # Create a note to record the action
+    note = AgendaItemNote(
+        agenda_item_id=item_id,
+        user_id=current_user.id,
+        datetime=datetime.utcnow(),
+        content=f"Agenda item rejected by {current_user.username}."
+    )
+    db.session.add(note)
     db.session.commit()
     flash('Agenda item rejected successfully.', 'success')
     return redirect(url_for('event_mgmt.edit_agenda_item', item_id=item_id))
