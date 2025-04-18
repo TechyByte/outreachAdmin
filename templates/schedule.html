@@ -70,7 +70,9 @@
                 <thead>
                     <tr>
                         <th>Event</th>
+                        <th>Status</th>
                         <th>Date</th>
+                        <th>Time</th>
                         <th>Location</th>
                         <th>Agenda Items</th>
                     </tr>
@@ -79,14 +81,38 @@
                     {% for event in events %}
                         <tr>
                             <td>{{ event.name }}</td>
+                            <td>{{ event.status.value }}</td>
                             <td>{{ event.date }}</td>
-                            <td>{{ event.location.name if event.location else 'N/A' }}</td>
                             <td>
-                                <ul>
-                                    {% for item in event.agenda_items %}
-                                        <li>{{ item.title }}</li>
-                                    {% endfor %}
-                                </ul>
+                                {% if event.start_time and event.end_time %}
+                                    {{ event.start_time.strftime('%H:%M') }} - {{ event.end_time.strftime('%H:%M') }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            <td>{{ event.location.name if event.location else 'unknown' }}</td>
+                            <td>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Title</th>
+                                            <th>Lecturer</th>
+                                            <th>Duration</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in event.agenda_items %}
+                                            <tr>
+                                                <td>{{ item.time }}</td>
+                                                <td>{{ item.title }}</td>
+                                                <td>{{ item.lecturer.username if item.lecturer else 'unknown' }}</td>
+                                                <td>{{ item.duration }}</td>
+                                                <td>{{ item.status.value }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </td>
                         </tr>
                     {% endfor %}
