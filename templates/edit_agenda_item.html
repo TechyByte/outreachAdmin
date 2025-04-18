@@ -28,9 +28,9 @@
                 {% endfor %}
             </select>
         </label><br>
-        <label>Status:
-            <p>{{ item.status.name }}</p>
-        </label><br>
+        <p>Status:
+            {{ item.status.name }}
+        </p><br>
         <button type="submit">Save</button>
     </form>
     {% include 'agenda_item_notes.html' with context %}

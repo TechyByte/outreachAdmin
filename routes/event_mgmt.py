@@ -62,7 +62,7 @@ def event_notes(event_id):
             note = EventNote(
                 event_id=event_id,
                 user_id=current_user.id,
-                datetime=datetime.utcnow(),
+                datetime=datetime.now(),
                 content=content
             )
             db.session.add(note)
@@ -156,7 +156,7 @@ def agenda_item_notes(agenda_item_id):
             note = AgendaItemNote(
                 agenda_item_id=agenda_item_id,
                 user_id=current_user.id,
-                datetime=datetime.utcnow(),
+                datetime=datetime.now(),
                 content=content
             )
             db.session.add(note)
@@ -183,7 +183,7 @@ def confirm_agenda_item(item_id):
     note = AgendaItemNote(
         agenda_item_id=item_id,
         user_id=current_user.id,
-        datetime=datetime.utcnow(),
+        datetime=datetime.now(),
         content=f"Agenda item confirmed by {current_user.username}."
     )
     db.session.add(note)
@@ -204,7 +204,7 @@ def reject_agenda_item(item_id):
     note = AgendaItemNote(
         agenda_item_id=item_id,
         user_id=current_user.id,
-        datetime=datetime.utcnow(),
+        datetime=datetime.now(),
         content=f"Agenda item rejected by {current_user.username}."
     )
     db.session.add(note)
