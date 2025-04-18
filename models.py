@@ -277,15 +277,15 @@ class Event(db.Model):
 
     @property
     def start_time(self):
-        if not self.agenda_items:
-            return None
+        if not self.date or not self.agenda_items:
+            return None  # Return None if date or agenda_items is missing
         first_item = min(self.agenda_items, key=lambda item: item.time)
         return datetime.combine(self.date, first_item.time) - timedelta(minutes=15)
 
 
     @property
     def end_time(self):
-        if not self.agenda_items:
+        if not self.date or not self.agenda_items:
             return None
         last_item = max(self.agenda_items, key=lambda item: item.time)
         end_time = datetime.combine(self.date, last_item.time) + last_item.duration + timedelta(minutes=15)
