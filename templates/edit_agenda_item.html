@@ -29,12 +29,7 @@
             </select>
         </label><br>
         <label>Status:
-            <select name="status">
-                <option value="">-- Select Status --</option>
-                {% for status in AgendaItemStatus %}
-                    <option value="{{ status.name }}" {% if item.status.name == status.name %}selected{% endif %}>{{ status.value }}</option>
-                {% endfor %}
-            </select>
+            <p>{{ item.status.name }}</p>
         </label><br>
         <button type="submit">Save</button>
     </form>

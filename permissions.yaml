@@ -9,6 +9,8 @@ admin:
   archive_agenda_item_note: true
   enroll_school: true
   unenroll_school: true
+  confirm_agenda_item: true
+  reject_agenda_item: true
 
 lecturer:
   view_schedule: true
@@ -21,6 +23,8 @@ lecturer:
   archive_agenda_item_note: false
   enroll_school: false
   unenroll_school: false
+  confirm_agenda_item: true
+  reject_agenda_item: true
 
 school_contact:
   view_schedule: true

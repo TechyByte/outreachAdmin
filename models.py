@@ -9,9 +9,15 @@ from enum import Enum as PyEnum
 import hashlib  # Add this import for hashing
 import yaml
 from sqlalchemy.orm import validates
+from sqlalchemy.ext.hybrid import hybrid_property  # Import hybrid_property
+from sqlalchemy.sql import case  # Import case for hybrid property expression
 
 from sqlalchemy.event import Events
 from sqlalchemy.orm import object_session
+import logging as logger
+logger.basicConfig(level=logger.DEBUG)
+logging = logger.getLogger(__name__)
+
 
 db = SQLAlchemy()
 
@@ -68,20 +74,46 @@ class User(db.Model, UserMixin):
             raise ValueError(f"Invalid configured_role: {value}. Allowed configured_roles are: {valid_user_roles}")
         return value
 
-    email = db.Column(db.String(120), unique=True, nullable=True) # TODO: make email not null
+    email = db.Column(db.String(120), unique=True, nullable=True) # TODO: make email not null?
 
-    @property
+    @hybrid_property
     def default_role(self):
-        # TODO: derive default_role using user's email domain
+        # TODO: replace example logic - derive default_role using user's email domain, only when email is confirmed or SSO
+        if self.email:
+            domain = self.email.split('@')[-1]
+            if domain == 'school.edu':
+                return 'school_contact'
+            elif domain == 'lecturer.edu':
+                return 'lecturer'
         return None
 
-    @property
+    @default_role.expression
+    def default_role(cls):
+        return sqlalchemy.case(
+            (cls.email.like('%@school.edu'), 'school_contact'),
+            (cls.email.like('%@lecturer.edu'), 'lecturer'),
+            else_=None
+        )
+
+    @hybrid_property
     def role(self):
-        # Check if the user has a valid configured role
+        logging.debug(f"Configured role: {self.configured_role}, Default role: {self.default_role}")
         if self.configured_role in valid_user_roles:
             return self.configured_role
-        # If no configured role, return the default role, if set, or 'guest' if not.
-        return self.default_role if self.default_role else ('user' if self.email else 'guest')
+        if self.default_role in valid_user_roles:
+            return self.default_role
+        return 'user' if self.email else 'guest'
+
+
+    @role.expression
+    def role(cls):
+        # Use a case statement to replicate the logic in the database query
+        return sqlalchemy.case(
+            (cls.configured_role.in_(valid_user_roles), cls.configured_role),
+            (sqlalchemy.literal_column(f"'{cls.default_role}'").in_(valid_user_roles), cls.default_role),
+            else_='user'
+        )
+
 
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=True)
     school = db.relationship('School', back_populates='users')
@@ -174,7 +206,6 @@ class Course(db.Model):
         return CourseStatus.UNKNOWN
 
 
-
 class BaseNote(db.Model):
     __abstract__ = True
     id = db.Column(db.Integer, primary_key=True)
@@ -249,7 +280,7 @@ class Event(db.Model):
         if not self.agenda_items:
             return None
         first_item = min(self.agenda_items, key=lambda item: item.time)
-        return (datetime.combine(self.date, first_item.time) - timedelta(minutes=15))
+        return datetime.combine(self.date, first_item.time) - timedelta(minutes=15)
 
 
     @property
