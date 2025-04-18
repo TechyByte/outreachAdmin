@@ -7,6 +7,7 @@
         </ol>
     </nav>
     <h2>Edit Course</h2>
+    <h3>{{ course.school.name }} on {{ course.program.name }}</h3>
     <form method="post">
         <label>Name: <input type="text" name="name" value="{{ course.name }}"></label>
         <button type="submit">Save</button>
