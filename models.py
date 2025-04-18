@@ -195,13 +195,13 @@ class Course(db.Model):
 
     @property
     def status(self):
-        if all(event.status == EventStatus.UNKNOWN for event in self.events):
-            return CourseStatus.UNKNOWN
+        if all(event.status == EventStatus.UNSCHEDULED for event in self.events):
+            return CourseStatus.UNSCHEDULED
         elif any(event.status == EventStatus.PARTIALLY_SCHEDULED for event in self.events):
             return CourseStatus.PARTIALLY_SCHEDULED
-        elif all(event.status == EventStatus.CONFIRMED for event in self.events):
+        elif all(event.status == EventStatus.FULLY_SCHEDULED for event in self.events):
             return CourseStatus.FULLY_SCHEDULED
-        elif all(event.status in [EventStatus.CONFIRMED, EventStatus.TENTATIVE] for event in self.events):
+        elif all(event.status in [EventStatus.FULLY_SCHEDULED, EventStatus.TENTATIVELY_SCHEDULED] for event in self.events):
             return CourseStatus.TENTATIVELY_SCHEDULED
         return CourseStatus.UNKNOWN
 
