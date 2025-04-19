@@ -51,9 +51,11 @@ def edit_event(event_id):
                            locations=locations,
                            can_add_note=check_permission('add_event_note'),
                            can_archive_note=check_permission('archive_event_note'),
+                           can_view_note=check_permission('view_event_note'),
                            school=school, program=program)
 
 @bp.route('/event/<int:event_id>/notes', methods=['GET', 'POST'])
+@check_permission('view_event_note')
 @login_required
 def event_notes(event_id):
     event = Event.query.get_or_404(event_id)
@@ -109,6 +111,7 @@ def edit_agenda_item(item_id):
 
     can_add_note = check_permission('add_agenda_item_note')
     can_archive_note = check_permission('archive_agenda_item_note')
+    can_view_note = check_permission('view_agenda_item_note')
 
     if request.method == 'POST':
         item.title = request.form['title']
@@ -147,10 +150,12 @@ def edit_agenda_item(item_id):
         #return redirect(url_for('event_mgmt.edit_event', event_id=item.event_id))
     return render_template('edit_agenda_item.html', item=item, lecturers=lecturers, course=course, event=event,
                            AgendaItemStatus=AgendaItemStatus, notes=item.filtered_notes,
-                           can_add_note=can_add_note, can_archive_note=can_archive_note, school=school, program=program)
+                           can_add_note=can_add_note, can_archive_note=can_archive_note, can_view_note=can_view_note,
+                           school=school, program=program)
 
 
 @bp.route('/agenda_item/<int:agenda_item_id>/notes', methods=['GET', 'POST'])
+@check_permission('view_agenda_item_note')
 @login_required
 def agenda_item_notes(agenda_item_id):
     agenda_item = AgendaItem.query.get_or_404(agenda_item_id)

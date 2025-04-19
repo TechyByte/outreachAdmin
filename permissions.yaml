@@ -3,8 +3,10 @@ admin:
   edit_course: true
   edit_event: true
   edit_agenda_item: true
+  view_event_note: true
   add_event_note: true
   archive_event_note: true
+  view_agenda_item_note: true
   add_agenda_item_note: true
   archive_agenda_item_note: true
   enroll_school: true
@@ -17,8 +19,10 @@ lecturer:
   edit_course: false
   edit_event: false
   edit_agenda_item: true
+  view_event_note: true
   add_event_note: true
   archive_event_note: false
+  view_agenda_item_note: true
   add_agenda_item_note: true
   archive_agenda_item_note: false
   enroll_school: false
@@ -26,13 +30,16 @@ lecturer:
   confirm_agenda_item: true
   reject_agenda_item: true
 
+
 school_contact:
   view_schedule: true
   edit_course: false
   edit_event: false
   edit_agenda_item: false
+  view_event_note: true
   add_event_note: false
   archive_event_note: false
+  view_agenda_item_note: true
   add_agenda_item_note: false
   archive_agenda_item_note: false
   enroll_school: false

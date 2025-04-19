@@ -24,5 +24,7 @@
         <button type="submit">Save</button>
     </form>
     {%  include '_edit_agenda.html' with context %}
+    {%  if can_view_note %}
     {% include 'event_notes.html' with context %}
+    {%  endif  %}
 {% endblock %}

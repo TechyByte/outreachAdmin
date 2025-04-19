@@ -34,5 +34,7 @@
         </p><br>
         <button type="submit">Save</button>
     </form>
+    {% if can_view_note %}
     {% include 'agenda_item_notes.html' with context %}
+    {% endif %}
 {% endblock %}
