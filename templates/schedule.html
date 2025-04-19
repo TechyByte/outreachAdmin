@@ -110,10 +110,10 @@
                                     <tbody>
                                         {% for item in event.agenda_items %}
                                             <tr>
-                                                <td>{{ item.time }}</td>
+                                                <td>{{ item.time|short_time }}</td>
                                                 <td><a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" data-toggle="tooltip" data-placement="left" title="Description: {{ item.description }}">{{ item.title }}</a></td>
                                                 <td>{{ item.lecturer.username if item.lecturer else 'unknown' }}</td>
-                                                <td>{{ item.duration }}</td>
+                                                <td>{{ item.duration|short_time }}</td>
                                                 <td>{{ item.status.value }}</td>
                                             </tr>
                                         {% endfor %}

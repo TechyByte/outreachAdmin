@@ -100,7 +100,7 @@
                             {% for item in event.agenda_items %}
                                 <tr>
                                     <td>{{ event.name }}</td>
-                                    <td>{{ item.time }}</td>
+                                    <td>{{ item.time|short_time }}</td>
                                     <td>{{ item.title }}</td>
                                     <td>{{ item.lecturer.username if item.lecturer else 'Unassigned' }}</td>
                                     <td>{{ item.status.value }}</td>
