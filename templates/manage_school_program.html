@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('enrolment.manage_enrollment') }}">Manage Enrollments</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ school.name }} on {{ program.name }}</li>
+        </ol>
+    </nav>
     <div class="container mt-4">
         <h2>Manage Program: {{ program.name }}</h2>
         <h3>School: {{ school.name }}</h3>

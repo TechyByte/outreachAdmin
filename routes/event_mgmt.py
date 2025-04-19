@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 from flask import Blueprint, request, flash, redirect, url_for, render_template
 from flask_login import login_required, current_user
 
-from models import Event, db, AgendaItem, User, Course, AgendaItemStatus, EventNote, AgendaItemNote, Location, valid_user_roles
+from models import Event, db, AgendaItem, User, Course, AgendaItemStatus, EventNote, AgendaItemNote, Location, \
+    valid_user_roles, School, Program
 from utils import check_permission
 
 bp = Blueprint('event_mgmt', __name__)
@@ -16,12 +17,14 @@ bp = Blueprint('event_mgmt', __name__)
 @check_permission('edit_course')
 def edit_course(course_id):
     course = Course.query.get_or_404(course_id)
+    school = School.query.get_or_404(course.school_id)
+    program = Program.query.get_or_404(course.program_id)
     if request.method == 'POST':
         course.name = request.form['name']
         db.session.commit()
         flash('Course updated.')
         return redirect(url_for('dashboard.admin_dashboard'))
-    return render_template('edit_course.html', course=course)
+    return render_template('edit_course.html', course=course, school=school, program=program)
 
 
 @bp.route('/event/<int:event_id>', methods=['GET', 'POST'])
@@ -30,6 +33,8 @@ def edit_course(course_id):
 def edit_event(event_id):
     event = Event.query.get_or_404(event_id)
     course = db.session.query(Course).get(event.course_id)
+    school = School.query.get_or_404(course.school_id)
+    program = Program.query.get_or_404(course.program_id)
     locations = db.session.query(Location).all()
 
     if request.method == 'POST':
@@ -45,7 +50,8 @@ def edit_event(event_id):
     return render_template('edit_event.html', event=event, course=course, notes=event.filtered_notes,
                            locations=locations,
                            can_add_note=check_permission('add_event_note'),
-                           can_archive_note=check_permission('archive_event_note'))
+                           can_archive_note=check_permission('archive_event_note'),
+                           school=school, program=program)
 
 @bp.route('/event/<int:event_id>/notes', methods=['GET', 'POST'])
 @login_required
@@ -98,6 +104,8 @@ def edit_agenda_item(item_id):
 
     event = db.session.query(Event).get(item.event_id)
     course = db.session.query(Course).get(event.course_id)  # Retrieve the course
+    school = School.query.get_or_404(course.school_id)
+    program = Program.query.get_or_404(course.program_id)
 
     can_add_note = check_permission('add_agenda_item_note')
     can_archive_note = check_permission('archive_agenda_item_note')
@@ -139,7 +147,7 @@ def edit_agenda_item(item_id):
         #return redirect(url_for('event_mgmt.edit_event', event_id=item.event_id))
     return render_template('edit_agenda_item.html', item=item, lecturers=lecturers, course=course, event=event,
                            AgendaItemStatus=AgendaItemStatus, notes=item.filtered_notes,
-                           can_add_note=can_add_note, can_archive_note=can_archive_note)
+                           can_add_note=can_add_note, can_archive_note=can_archive_note, school=school, program=program)
 
 
 @bp.route('/agenda_item/<int:agenda_item_id>/notes', methods=['GET', 'POST'])

@@ -3,6 +3,7 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ url_for('enrolment.manage_enrollment') }}">Manage Enrollments</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('school_mgmt.manage_school_program', school_id=school.id, program_id=program.id) }}">{{ school.name }} on {{ program.name }}</a></li>
             <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_course', course_id=course.id) }}">{{ course.name }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ event.name }}</li>
         </ol>
