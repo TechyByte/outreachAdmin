@@ -2,6 +2,7 @@ admin:
   view_schedule: true
   edit_course: true
   edit_event: true
+  add_agenda_item: true
   edit_agenda_item: true
   view_event_note: true
   add_event_note: true
@@ -13,11 +14,13 @@ admin:
   unenroll_school: true
   confirm_agenda_item: true
   reject_agenda_item: true
+  create_event: true
 
 lecturer:
   view_schedule: true
   edit_course: false
   edit_event: false
+  add_agenda_item: false
   edit_agenda_item: true
   view_event_note: true
   add_event_note: true
@@ -29,12 +32,14 @@ lecturer:
   unenroll_school: false
   confirm_agenda_item: true
   reject_agenda_item: true
+  create_event: false
 
 
 school_contact:
   view_schedule: true
   edit_course: false
   edit_event: false
+  add_agenda_item: false
   edit_agenda_item: false
   view_event_note: true
   add_event_note: false
@@ -44,4 +49,5 @@ school_contact:
   archive_agenda_item_note: false
   enroll_school: false
   unenroll_school: false
+  create_event: false
 

@@ -23,8 +23,9 @@
         <label>Date: <input type="date" name="date" value="{{ event.date }}"></label><br>
         <button type="submit">Save</button>
     </form>
-    {%  include '_edit_agenda.html' with context %}
-    {%  if can_view_note %}
+    <a href="{{ url_for('event_mgmt.create_agenda_item', event_id=event.id) }}" class="btn btn-primary">Add Agenda Item</a>
+    {% include '_edit_agenda.html' with context %}
+    {% if can_view_note %}
     {% include 'event_notes.html' with context %}
-    {%  endif  %}
+    {% endif %}
 {% endblock %}

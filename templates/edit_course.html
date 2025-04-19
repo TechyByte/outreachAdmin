@@ -13,5 +13,6 @@
         <label>Name: <input type="text" name="name" value="{{ course.name }}"></label>
         <button type="submit">Save</button>
     </form>
+    <a href="{{ url_for('event_mgmt.create_event', course_id=course.id) }}" class="btn btn-primary mb-3">Create Event</a>
     {% include  '_edit_course.html' with context %}
 {% endblock %}

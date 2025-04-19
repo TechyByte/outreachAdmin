@@ -49,7 +49,7 @@ def lecturer_dashboard():
 @bp.route('/schedule')
 @login_required
 def schedule():
-    view = request.args.get('view', 'week')  # Default to 'week' view
+    # view = request.args.get('view', 'week')  # Default to 'week' view
     n_days = int(request.args.get('n_days', 60))
     today = datetime.today().date()
     future = today + timedelta(days=n_days)
@@ -77,8 +77,7 @@ def schedule():
         events_query = events_query.filter(Event.location_id.in_(location_ids))
 
     # Date range filter
-    if view in ['day', 'week']:
-        events_query = events_query.filter((Event.date >= today) | (Event.date == None), Event.date <= future)
+    # events_query = events_query.filter((Event.date >= today) | (Event.date == None), Event.date <= future)
 
     events = events_query.options(joinedload(Event.agenda_items)).all()
 
@@ -92,7 +91,7 @@ def schedule():
     return render_template(
         'schedule.html',
         events=events,
-        view=view,
+        # view=view,
         schools=schools,
         lecturers=lecturers,
         programs=programs,

@@ -6,7 +6,7 @@ from flask import Blueprint, request, flash, redirect, url_for, render_template
 from flask_login import login_required, current_user
 
 from models import Event, db, AgendaItem, User, Course, AgendaItemStatus, EventNote, AgendaItemNote, Location, \
-    valid_user_roles, School, Program
+    valid_user_roles, School, Program, TemplateEvent
 from utils import check_permission
 
 bp = Blueprint('event_mgmt', __name__)
@@ -236,3 +236,75 @@ def archive_agenda_item_note(note_id):
     flash('Note archived successfully.', 'success')
     return redirect(url_for('event_mgmt.edit_agenda_item', item_id=agenda_item_id))
 
+
+@bp.route('/course/<int:course_id>/create_event', methods=['GET', 'POST'])
+@login_required
+@check_permission('create_event')
+def create_event(course_id):
+    course = Course.query.get_or_404(course_id)
+    templates = TemplateEvent.query.all()  # Fetch all template events
+    if request.method == 'POST':
+        event_name = request.form.get('name')
+        template_id = request.form.get('template_id')
+        new_event = Event(name=event_name, course_id=course.id, school_id=course.school_id)
+
+        if template_id and template_id != "none":
+            template = TemplateEvent.query.get(template_id)
+            if template:
+                new_event.name = template.name
+                db.session.add(new_event)
+                db.session.commit()
+
+                # Copy agenda items from template
+                for template_item in template.template_agenda_items:
+                    new_agenda_item = AgendaItem(
+                        title=template_item.title,
+                        event_id=new_event.id,
+                        time=template_item.time,
+                        duration=template_item.duration,
+                        description=template_item.description
+                    )
+                    db.session.add(new_agenda_item)
+        else:
+            db.session.add(new_event)
+
+        db.session.commit()
+        flash('Event created successfully.', 'success')
+        return redirect(url_for('event_mgmt.edit_course', course_id=course.id))
+
+    return render_template('create_event.html', course=course, templates=templates)
+
+
+@bp.route('/event/<int:event_id>/create_agenda_item', methods=['GET', 'POST'])
+@login_required
+@check_permission('add_agenda_item')
+def create_agenda_item(event_id):
+    event = Event.query.get_or_404(event_id)
+    lecturers = User.query.filter((User.role == 'lecturer') | (User.role == 'admin')).all()
+
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        time = request.form.get('time')
+        duration = request.form.get('duration')
+        lecturer_id = request.form.get('lecturer_id')
+
+        if not title:
+            flash('Title is required.', 'danger')
+            return redirect(url_for('event_mgmt.create_agenda_item', event_id=event_id))
+
+        new_item = AgendaItem(
+            title=title,
+            description=description,
+            event_id=event_id,
+            time=datetime.strptime(time, '%H:%M').time() if time else None,
+            duration=timedelta(minutes=int(duration)) if duration else None,
+            lecturer_id=int(lecturer_id) if lecturer_id and lecturer_id != "0" else None,
+            status=AgendaItemStatus.TENTATIVE if lecturer_id and lecturer_id != "0" else AgendaItemStatus.UNSCHEDULED
+        )
+        db.session.add(new_item)
+        db.session.commit()
+        flash('Agenda item created successfully.', 'success')
+        return redirect(url_for('event_mgmt.edit_event', event_id=event_id))
+
+    return render_template('create_agenda_item.html', event=event, lecturers=lecturers)

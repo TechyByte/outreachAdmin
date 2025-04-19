@@ -285,7 +285,7 @@ class Event(db.Model):
 
     @property
     def status(self):
-        if all(item.lecturer is None for item in self.agenda_items):
+        if all(item.lecturer is None for item in self.agenda_items) or not self.date:
             return EventStatus.UNSCHEDULED
         elif any(item.lecturer is not None for item in self.agenda_items) and any(item.lecturer is None for item in self.agenda_items):
             return EventStatus.PARTIALLY_SCHEDULED

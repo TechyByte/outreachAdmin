@@ -28,6 +28,7 @@
                         <td>{{ course.status.value }}</td>
                         <td>
                             <a href="{{ url_for('event_mgmt.edit_course', course_id=course.id) }}" class="btn btn-sm btn-primary">Edit</a>
+                            <a href="{{ url_for('event_mgmt.create_event', course_id=course.id) }}" class="btn btn-sm btn-success">Create Event</a>
                         </td>
                     </tr>
                 {% endfor %}
@@ -115,3 +116,4 @@
         {% endif %}
     </div>
 {% endblock %}
+

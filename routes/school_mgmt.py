@@ -31,7 +31,7 @@ def manage_schools():
         return redirect(url_for('school_mgmt.manage_schools'))  # Redirect to refresh list
 
     with current_app.app_context():
-        users = User.query.all()  # TODO: fetch only users that are not assigned to a school, ie. school_id is None
+        users = User.query.all()
         schools = db.session.query(School).options(joinedload(School.programs)).all()
 
     return render_template('schools.html', schools=schools, users=users)
