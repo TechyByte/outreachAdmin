@@ -183,6 +183,16 @@ class CourseStatus(PyEnum):
     TENTATIVELY_SCHEDULED = "Tentatively Scheduled"
     UNKNOWN = "Unknown"
 
+    @property
+    def color(self):
+        return {
+            CourseStatus.UNSCHEDULED: "#ff0000",
+            CourseStatus.PARTIALLY_SCHEDULED: "#ffa500",
+            CourseStatus.FULLY_SCHEDULED: "#008000",
+            CourseStatus.TENTATIVELY_SCHEDULED: "#0000ff",
+            CourseStatus.UNKNOWN: "#808080"
+        }.get(self, "#000000")
+
 
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -239,6 +249,16 @@ class EventStatus(PyEnum):
     FULLY_SCHEDULED = "Fully Scheduled"
     TENTATIVELY_SCHEDULED = "Tentatively Scheduled"
     UNKNOWN = "Unknown"
+
+    @property
+    def color(self):
+        return {
+            EventStatus.UNSCHEDULED: "#ff0000",
+            EventStatus.PARTIALLY_SCHEDULED: "#ffa500",
+            EventStatus.FULLY_SCHEDULED: "#008000",
+            EventStatus.TENTATIVELY_SCHEDULED: "#0000ff",
+            EventStatus.UNKNOWN: "#808080"
+        }.get(self, "#000000")
 
 
 class Event(db.Model):
@@ -309,6 +329,15 @@ class AgendaItemStatus(PyEnum):
     TENTATIVE = "Tentative"
     CONFIRMED = "Confirmed"
 
+    @property
+    def color(self):
+        return {
+            AgendaItemStatus.UNSCHEDULED: "#ff0000",
+            AgendaItemStatus.TENTATIVE: "#ffa500",
+            AgendaItemStatus.CONFIRMED: "#008000"
+        }.get(self, "#000000")
+
+
 class AgendaItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
@@ -325,5 +354,6 @@ class AgendaItem(db.Model):
     @property
     def filtered_notes(self):
         return AgendaItemNote.query.filter_by(agenda_item_id=self.id, hidden=False).order_by(AgendaItemNote.datetime.desc()).all()
+
 
 

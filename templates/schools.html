@@ -25,7 +25,9 @@
                     <td>{{ school.contact_phone }}</td>
                     <td>
                         {% for program in school.programs %}
-                            <span class="badge bg-primary">{{ program.name }}</span>
+                            <a href="{{ url_for('school_mgmt.manage_school_program', school_id=school.id, program_id=program.id) }}" class="badge bg-primary">
+                                {{ program.name }}
+                            </a>
                         {% endfor %}
                     </td>
                     <td>

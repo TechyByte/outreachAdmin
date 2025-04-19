@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, curren
 from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
 
-from models import db, School, User
+from models import db, School, User, Program, Course
 
 bp = Blueprint('school_mgmt', __name__)
 
@@ -87,3 +87,25 @@ def unassign_user(user_id):
     db.session.commit()
     flash('User unassigned from school successfully.', 'success')
     return redirect(url_for('school_mgmt.manage_schools'))
+
+
+@bp.route('/school/<int:school_id>/program/<int:program_id>', methods=['GET'])
+@login_required
+def manage_school_program(school_id, program_id):
+    """View and manage courses, events, and agenda items for a school-program."""
+    school = School.query.get_or_404(school_id)
+    program = Program.query.get_or_404(program_id)
+    courses = Course.query.filter_by(school_id=school_id, program_id=program_id).all()
+
+    # Fetch events and agenda items based on user-configurable filters
+    include_events = request.args.get('include_events', 'true') == 'true'
+    include_agenda_items = request.args.get('include_agenda_items', 'true') == 'true'
+
+    return render_template(
+        'manage_school_program.html',
+        school=school,
+        program=program,
+        courses=courses,
+        include_events=include_events,
+        include_agenda_items=include_agenda_items
+    )

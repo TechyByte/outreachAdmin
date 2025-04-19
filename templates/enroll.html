@@ -20,7 +20,9 @@
                     <td>
                         {% if school.programs %}
                             {% for program in school.programs %}
-                                <span class="badge bg-secondary">{{ program.name }}</span>
+                                <a href="{{ url_for('school_mgmt.manage_school_program', school_id=school.id, program_id=program.id) }}" class="badge bg-secondary">
+                                {{ program.name }}
+                                </a>
                                 {% for course in program.courses %}
                                     {% if course.school_id == school.id %}
                                         <a href="{{ url_for('event_mgmt.edit_course', course_id=course.id) }}" class="badge bg-primary">{{ course.name }}</a>

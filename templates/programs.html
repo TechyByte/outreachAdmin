@@ -21,7 +21,9 @@
                     <td>
                         {% if program.schools %}
                             {% for school in program.schools %}
-                                <span class="badge bg-primary">{{ school.name }}</span>
+                                <a href="{{ url_for('school_mgmt.manage_school_program', school_id=school.id, program_id=program.id) }}" class="badge bg-primary">
+                                {{ school.name }}
+                                </a>
                             {% endfor %}
                         {% else %}
                             <span class="text-muted">No schools enrolled</span>
