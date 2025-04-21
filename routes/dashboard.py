@@ -49,7 +49,7 @@ def lecturer_dashboard():
 @bp.route('/schedule')
 @login_required
 def schedule():
-    view = request.args.get('view', 'week')  # Default to 'week' view
+    # view = request.args.get('view', 'week')  # Default to 'week' view
     n_days = int(request.args.get('n_days', 60))
     today = datetime.today().date()
     future = today + timedelta(days=n_days)
@@ -77,8 +77,8 @@ def schedule():
         events_query = events_query.filter(Event.location_id.in_(location_ids))
 
     # Date range filter
-    if view in ['day', 'week']:
-        events_query = events_query.filter((Event.date >= today) | (Event.date == None), Event.date <= future)
+    # events_query = events_query.filter((Event.date >= today) | (Event.date == None), Event.date <= future)
+
 
     events = events_query.options(joinedload(Event.agenda_items)).all()
 
@@ -92,7 +92,7 @@ def schedule():
     return render_template(
         'schedule.html',
         events=events,
-        view=view,
+        # view=view,
         schools=schools,
         lecturers=lecturers,
         programs=programs,
@@ -144,7 +144,7 @@ def schedule_events():
             'start': event.start_time.isoformat() if event.start_time else event.date.isoformat(),
             'end': event.end_time.isoformat() if event.end_time else event.date.isoformat(),
             'location': event.location.name if event.location else 'N/A',
-            'backgroundColor': event.location.color if event.location else '#cccccc',
+            'backgroundColor': event.status.color,
             'display': 'block',
             #'url': url_for('event_mgmt.edit_event', event_id=event.id),
         })
@@ -158,7 +158,7 @@ def schedule_events():
                     'title': f'{item.title}',
                     'start': start_time.isoformat(),
                     'end': end_time.isoformat(),
-                    'backgroundColor': item.lecturer.color if item.lecturer else None,  # Use a neutral color for agenda items
+                    'backgroundColor': item.status.color,
                     #'url': url_for('event_mgmt.edit_agenda_item', item_id=item.id),
                 })
     return event_list

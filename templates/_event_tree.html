@@ -1,7 +1,7 @@
 <li class="list-group-item">
     <em>{{ event.name }}</em>
     {% if event.location %}
-        <p>Location: {{ event.location }}</p>
+        <p>Location: {{ event.location.name }}</p>
     {% else %}
         <p><i>Location to be confirmed</i></p>
     {% endif %}
@@ -14,7 +14,7 @@
         <p>Agenda:</p>
         <ul class="list-group mt-2">
             {% for item in event.agenda_items %}
-                <li class="list-group-item">{{ item.time }} {{ item.title }}</li>
+                <li class="list-group-item">{{ item.time|short_time }} {{ item.title }}</li>
             {% endfor %}
         </ul>
     {% else %}

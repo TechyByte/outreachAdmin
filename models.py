@@ -66,7 +66,27 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)  # Store hashed password
     configured_role = db.Column(db.String(20), nullable=True)
+    o365_id = db.Column(db.String(100), unique=True, nullable=True)  # Office 365 unique identifier
+    email_verified = db.Column(db.Boolean, default=False)  # Whether the email has been verified via SSO
 
+    @staticmethod
+    def get_or_create_o365_user(o365_id, email, username=None):
+        """
+        Retrieve an existing user by their Office 365 ID or create a new one.
+        """
+        user = User.query.filter_by(o365_id=o365_id).first()
+        if user:
+            return user
+        else:
+            user = User(
+                o365_id=o365_id,
+                email=email,
+                username=username or email.split('@')[0],
+                email_verified=True  # Assume email is verified if coming from SSO
+            )
+            db.session.add(user)
+            db.session.commit()
+            return user
 
     @validates('configured_role')
     def validate_configured_role(self, key, value):
@@ -129,13 +149,51 @@ class User(db.Model, UserMixin):
 
 class School(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    urn = db.Column(db.String(20), nullable=True)
+    la_code = db.Column(db.String(10), nullable=True)
+    la_name = db.Column(db.String(100), nullable=True)
+    establishment_number = db.Column(db.String(20), nullable=True)
     name = db.Column(db.String(100), nullable=False)
-    contact_name = db.Column(db.String(100), nullable=False)
-    contact_email = db.Column(db.String(100), nullable=False)
-    contact_phone = db.Column(db.String(20), nullable=False)
+    type_of_establishment = db.Column(db.String(100), nullable=True)
+    phase_of_education = db.Column(db.String(100), nullable=True)
+    statutory_low_age = db.Column(db.Integer, nullable=True)
+    statutory_high_age = db.Column(db.Integer, nullable=True)
+    street = db.Column(db.String(200), nullable=True)
+    town = db.Column(db.String(100), nullable=True)
+    postcode = db.Column(db.String(20), nullable=True)
+    telephone = db.Column(db.String(20), nullable=True)
+    head_name = db.Column(db.String(100), nullable=True)
+    school_website = db.Column(db.String(200), nullable=True)
+    number_of_pupils = db.Column(db.Integer, nullable=True)
+    number_of_boys = db.Column(db.Integer, nullable=True)
+    number_of_girls = db.Column(db.Integer, nullable=True)
+    percentage_fsm = db.Column(db.Float, nullable=True)
+    head_preferred_job_title = db.Column(db.String(100), nullable=True)
+    nursery_provision = db.Column(db.String(100), nullable=True)
+    establishment_status = db.Column(db.String(100), nullable=True)
+    diocese = db.Column(db.String(100), nullable=True)
+    gender = db.Column(db.String(50), nullable=True)
+    school_capacity = db.Column(db.Integer, nullable=True)
+    admissions_policy = db.Column(db.String(100), nullable=True)
+    locality = db.Column(db.String(100), nullable=True)
+    address3 = db.Column(db.String(200), nullable=True)
+    parliamentary_constituency = db.Column(db.String(100), nullable=True)
+    easting = db.Column(db.Integer, nullable=True)
+    northing = db.Column(db.Integer, nullable=True)
+    contact_name = db.Column(db.String(100), nullable=True)
+    contact_email = db.Column(db.String(100), nullable=True)
+    contact_phone = db.Column(db.String(20), nullable=True)
     users = db.relationship('User', back_populates='school')
     programs = db.relationship('Program', secondary=school_program,
                                back_populates='schools')  # backref=db.backref('schools', lazy='dynamic'))
+
+    @property
+    def estimated_year_group_size(self):
+        if self.statutory_low_age and self.statutory_high_age and self.number_of_pupils:
+            est_year_groups = self.statutory_high_age - self.statutory_low_age
+            if est_year_groups > 0:
+                return self.number_of_pupils // est_year_groups
+        return ""
 
 
 class Program(db.Model):
@@ -182,6 +240,17 @@ class CourseStatus(PyEnum):
     FULLY_SCHEDULED = "Fully Scheduled"
     TENTATIVELY_SCHEDULED = "Tentatively Scheduled"
     UNKNOWN = "Unknown"
+
+    @property
+    def color(self):
+        return {
+            CourseStatus.UNSCHEDULED: "#ff0000",
+            CourseStatus.PARTIALLY_SCHEDULED: "#ffa500",
+            CourseStatus.FULLY_SCHEDULED: "#008000",
+            CourseStatus.TENTATIVELY_SCHEDULED: "#0000ff",
+            CourseStatus.UNKNOWN: "#808080"
+        }.get(self, "#000000")
+
 
 
 class Course(db.Model):
@@ -240,6 +309,16 @@ class EventStatus(PyEnum):
     TENTATIVELY_SCHEDULED = "Tentatively Scheduled"
     UNKNOWN = "Unknown"
 
+    @property
+    def color(self):
+        return {
+            EventStatus.UNSCHEDULED: "#ff0000",
+            EventStatus.PARTIALLY_SCHEDULED: "#ffa500",
+            EventStatus.FULLY_SCHEDULED: "#008000",
+            EventStatus.TENTATIVELY_SCHEDULED: "#0000ff",
+            EventStatus.UNKNOWN: "#808080"
+        }.get(self, "#000000")
+
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -265,7 +344,7 @@ class Event(db.Model):
 
     @property
     def status(self):
-        if all(item.lecturer is None for item in self.agenda_items):
+        if all(item.lecturer is None for item in self.agenda_items) or not self.date:
             return EventStatus.UNSCHEDULED
         elif any(item.lecturer is not None for item in self.agenda_items) and any(item.lecturer is None for item in self.agenda_items):
             return EventStatus.PARTIALLY_SCHEDULED
@@ -290,6 +369,8 @@ class Event(db.Model):
         if not self.date or not self.agenda_items:
             return None
         last_item = max(self.agenda_items, key=lambda item: item.time)
+        if last_item.duration is None:
+            return None
         end_time = datetime.combine(self.date, last_item.time) + last_item.duration + timedelta(minutes=15)
         return end_time
 
@@ -309,6 +390,15 @@ class AgendaItemStatus(PyEnum):
     TENTATIVE = "Tentative"
     CONFIRMED = "Confirmed"
 
+    @property
+    def color(self):
+        return {
+            AgendaItemStatus.UNSCHEDULED: "#ff0000",
+            AgendaItemStatus.TENTATIVE: "#ffa500",
+            AgendaItemStatus.CONFIRMED: "#008000"
+        }.get(self, "#000000")
+
+
 class AgendaItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
@@ -326,4 +416,4 @@ class AgendaItem(db.Model):
     def filtered_notes(self):
         return AgendaItemNote.query.filter_by(agenda_item_id=self.id, hidden=False).order_by(AgendaItemNote.datetime.desc()).all()
 
-
+ 

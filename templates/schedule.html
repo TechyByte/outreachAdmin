@@ -4,13 +4,13 @@
 
 <!-- Filters -->
 <form method="get" id="filters-form">
-    <label for="view">View:</label>
-    <select name="view" id="view" onchange="document.getElementById('filters-form').submit();">
-        <option value="day" {% if view == 'day' %}selected{% endif %}>Day</option>
-        <option value="week" {% if view == 'week' %}selected{% endif %}>Week</option>
-        <option value="month" {% if view == 'month' %}selected{% endif %}>Month</option>
-        <option value="multi-month" {% if view == 'multi-month' %}selected{% endif %}>Multi-Month</option>
-    </select>
+{#    <label for="view">View:</label>#}
+{#    <select name="view" id="view" onchange="document.getElementById('filters-form').submit();">#}
+{#        <option value="day" {% if view == 'day' %}selected{% endif %}>Day</option>#}
+{#        <option value="week" {% if view == 'week' %}selected{% endif %}>Week</option>#}
+{#        <option value="month" {% if view == 'month' %}selected{% endif %}>Month</option>#}
+{#        <option value="multi-month" {% if view == 'multi-month' %}selected{% endif %}>Multi-Month</option>#}
+{#    </select>#}
 
     <label for="school">School:</label>
     <select name="school" id="school" multiple>
@@ -70,6 +70,9 @@
                 <thead>
                     <tr>
                         <th>Event</th>
+                        <th>School</th>
+                        <th>Course</th>
+                        <th>Program</th>
                         <th>Status</th>
                         <th>Date</th>
                         <th>Time</th>
@@ -80,7 +83,10 @@
                 <tbody>
                     {% for event in events %}
                         <tr>
-                            <td>{{ event.name }}</td>
+                            <td><a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}">{{ event.name }}</a></td>
+                            <td>{{ event.school.name if event.school else 'unknown' }}</td>
+                            <td>{{ event.course.name if event.course else 'unknown' }}</td>
+                            <td>{{ event.course.program.name if event.course.program.name else 'unknown' }}</td>
                             <td>{{ event.status.value }}</td>
                             <td>{{ event.date }}</td>
                             <td>
@@ -104,10 +110,10 @@
                                     <tbody>
                                         {% for item in event.agenda_items %}
                                             <tr>
-                                                <td>{{ item.time }}</td>
-                                                <td>{{ item.title }}</td>
+                                                <td>{{ item.time|short_time }}</td>
+                                                <td><a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" data-toggle="tooltip" data-placement="left" title="Description: {{ item.description }}">{{ item.title }}</a></td>
                                                 <td>{{ item.lecturer.username if item.lecturer else 'unknown' }}</td>
-                                                <td>{{ item.duration }}</td>
+                                                <td>{{ item.duration|short_time }}</td>
                                                 <td>{{ item.status.value }}</td>
                                             </tr>
                                         {% endfor %}

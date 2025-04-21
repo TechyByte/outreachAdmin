@@ -62,3 +62,49 @@ def register():
         return redirect(url_for('auth.login'))
 
     return render_template('register.html')
+
+### Proposed integrating Office 365 login
+#
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     if app.config['USE_O365']:
+#         if request.method == 'POST':
+#             email = request.form.get('email')
+#             o365_user = o365_interface.find_staff(email)
+#             if o365_user:
+#                 user = User.get_or_create_o365_user(
+#                     o365_id=o365_user['id'],
+#                     email=o365_user['mail'],
+#                     username=o365_user['displayName']
+#                 )
+#                 # Log the user in
+#                 login_user(user)
+#                 flash('Logged in successfully via Office 365.', 'success')
+#                 return redirect(url_for('index'))
+#             else:
+#                 flash('Office 365 user not found.', 'danger')
+#         return render_template('o365_login.html')  # Create a template for O365 login
+#     # ...existing Flask-Login logic for non-O365 login...
+#     return render_template('login.html')
+#
+#
+# @app.route('/signup', methods=['GET', 'POST'])
+# def signup():
+#     if app.config['USE_O365']:
+#         if request.method == 'POST':
+#             email = request.form.get('email')
+#             o365_user = o365_interface.find_staff(email)
+#             if o365_user:
+#                 user = User.get_or_create_o365_user(
+#                     o365_id=o365_user['id'],
+#                     email=o365_user['mail'],
+#                     username=o365_user['displayName']
+#                 )
+#                 flash('Signed up successfully via Office 365.', 'success')
+#                 return redirect(url_for('login'))
+#             else:
+#                 flash('Office 365 user not found.', 'danger')
+#         return render_template('o365_signup.html')  # Create a template for O365 signup
+#     # ...existing sign-up logic for non-O365 signup...
+#     return render_template('signup.html')
+#

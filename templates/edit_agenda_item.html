@@ -3,6 +3,7 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ url_for('enrolment.manage_enrollment') }}">Manage Enrollments</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('school_mgmt.manage_school_program', school_id=school.id, program_id=program.id) }}">{{ school.name }} on {{ program.name }}</a></li>
             <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_course', course_id=course.id) }}">{{ course.name }}</a></li>
             <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}">{{ event.name }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ item.title }}</li>
@@ -13,16 +14,10 @@
         <label>Title: <input type="text" name="title" value="{{ item.title }}"></label><br>
         <label>Description: <textarea name="description">{{ item.description }}</textarea></label><br>
         <label>Time: <input type="time" name="time" value="{{ item.time }}"></label><br>
-        <label>Duration (minutes): <input type="number" name="duration" value="
-            {% if item.duration %}}
-                {{ item.duration.seconds // 60 }}
-            {% else %}
-                0
-            {% endif %}
-        "></label><br>
+        <label>Duration (minutes): <input type="number" name="duration" value="{% if item.duration %}{{ item.duration.seconds // 60 }}{% else %}0{% endif %}"></label><br>
         <label>Lecturer:
             <select name="lecturer_id">
-                <option value="">-- None --</option>
+                <option value="0">-- None --</option>
                 {% for lecturer in lecturers %}
                     <option value="{{ lecturer.id }}" {% if item.lecturer_id == lecturer.id %}selected{% endif %}>{{ lecturer.username }}</option>
                 {% endfor %}
@@ -33,5 +28,7 @@
         </p><br>
         <button type="submit">Save</button>
     </form>
+    {% if can_view_note %}
     {% include 'agenda_item_notes.html' with context %}
+    {% endif %}
 {% endblock %}

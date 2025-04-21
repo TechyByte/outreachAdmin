@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('enrolment.manage_enrollment') }}">Manage Enrollments</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('school_mgmt.manage_school_program', school_id=event.school.id, program_id=event.course.program.id) }}">{{ event.school.name }} on {{ event.course.program.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_course', course_id=event.course.id) }}">{{ event.course.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}">{{ event.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Create Agenda Item</li>
+        </ol>
+    </nav>
+    <h2>Create Agenda Item</h2>
+    <form method="post">
+        <label>Title: <input type="text" name="title" required></label><br>
+        <label>Description: <textarea name="description"></textarea></label><br>
+        <label>Time: <input type="time" name="time"></label><br>
+        <label>Duration (minutes): <input type="number" name="duration"></label><br>
+        <label>Lecturer:
+            <select name="lecturer_id">
+                <option value="0">-- None --</option>
+                {% for lecturer in lecturers %}
+                    <option value="{{ lecturer.id }}">{{ lecturer.username }}</option>
+                {% endfor %}
+            </select>
+        </label><br>
+        <button type="submit">Create</button>
+    </form>
+{% endblock %}

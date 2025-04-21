@@ -31,6 +31,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('dashboard.schedule') }}">
+                        Schedule
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('dashboard.lecturer_dashboard') }}">
                         Lecturer Dashboard
                     </a>
@@ -47,7 +52,7 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('template_mgmt.manage_templates') }}">
-                        Manage Templates
+                        Enrollment Templates
                     </a>
                 </li>
 
@@ -88,7 +93,7 @@
         </div>
     </div>
 </nav>
-<div class="container mt-3">
+<div class="container-fluid mt-3"> <!-- Changed from 'container' to 'container-fluid' -->
     <!-- Flash messages for login errors -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -99,5 +104,10 @@
     {% endwith %}
     {% block content %}{% endblock %}
 </div>
+<script type="application/javascript">
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
+</script>
 </body>
 </html>

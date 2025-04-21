@@ -1,47 +1,145 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="container mt-4">
+    <div class="container-fluid mt-4">
         <h2>Manage Schools</h2>
+
+        <!-- Filters -->
+        <form method="GET" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label for="type_filter" class="form-label">Filter by Type:</label>
+                <select class="form-select" id="type_filter" name="type">
+                    <option value="">All Types</option>
+                    {% for type in all_types %}
+                        <option value="{{ type }}" {% if request.args.get('type') == type %}selected{% endif %}>
+                            {{ type }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="phase_filter" class="form-label">Filter by Phase:</label>
+                <select class="form-select" id="phase_filter" name="phase">
+                    <option value="">All Phases</option>
+                    {% for phase in all_phases %}
+                        <option value="{{ phase }}" {% if request.args.get('phase') == phase %}selected{% endif %}>
+                            {{ phase }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="search_filter" class="form-label">Search:</label>
+                <input type="text" class="form-control" id="search_filter" name="search"
+                       value="{{ request.args.get('search', '') }}" placeholder="Search by name, address, URN, etc.">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                <a href="{{ url_for('school_mgmt.manage_schools') }}" class="btn btn-secondary ms-2 w-100">Reset</a>
+            </div>
+        </form>
 
         <!-- Display Existing Schools -->
         <table class="table table-bordered mt-3">
             <thead class="table-dark">
             <tr>
+                <th>URN</th>
                 <th>School Name</th>
-                <th>Contact Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Enrolled Programs</th>
+                <th>Type</th>
+                <th>Phase</th>
+                <th>Address</th>
+                <th>Telephone</th>
+                <th>Headcount</th>
+                <th>Est. Year Group Size</th>
+                <th>Website</th>
                 <th>Actions</th>
             </tr>
             </thead>
             <tbody>
             {% for school in schools %}
-                <tr>
-                    <td>{{ school.name }}</td>
-                    <td>{{ school.contact_name }}</td>
-                    <td>{{ school.contact_email }}</td>
-                    <td>{{ school.contact_phone }}</td>
-                    <td>
-                        {% for program in school.programs %}
-                            <span class="badge bg-primary">{{ program.name }}</span>
-                        {% endfor %}
-                    </td>
-                    <td>
-                        <a href="{{ url_for('enrolment.enroll', school_id=school.id) }}"
-                           class="btn btn-sm btn-secondary">
-                            Manage Enrolments
-                        </a>
-                        <a href="{{ url_for('school_mgmt.delete_school', school_id=school.id) }}"
-                           class="btn btn-sm btn-danger">
-                            Delete
-                        </a>
-                    </td>
-                </tr>
+                {% if (not request.args.get('type') or school.type_of_establishment == request.args.get('type')) and
+                       (not request.args.get('phase') or school.phase_of_education == request.args.get('phase')) and
+                       (not request.args.get('search') or request.args.get('search').lower() in (
+                           school.name | lower,
+                           school.street | lower,
+                           school.town | lower,
+                           school.postcode | lower,
+                           school.head_name | lower,
+                           school.contact_name | lower,
+                           school.urn | lower,
+                           school.establishment_number | lower
+                       ) | join(' ')) %}
+                    <tr>
+                        <td>{{ school.urn }}</td>
+                        <td>{{ school.name }}</td>
+                        <td>{{ school.type_of_establishment }}</td>
+                        <td>{{ school.phase_of_education }}</td>
+                        <td>{{ school.street }}, {{ school.town }}, {{ school.postcode }}</td>
+                        <td>{{ school.telephone }}</td>
+                        <td>{{ school.number_of_pupils }}</td>
+                        <td>{{ school.estimated_year_group_size }}</td>
+                        <td>
+                            {% if school.school_website %}
+                                <a href="{{ school.school_website }}" target="_blank">Visit</a>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#editSchoolModal{{ school.id }}">
+                                Edit
+                            </a>
+                            <a href="{{ url_for('enrolment.enroll', school_id=school.id) }}"
+                               class="btn btn-sm btn-primary">
+                                Enrolments
+                            </a>
+                            <a href="{{ url_for('school_mgmt.delete_school', school_id=school.id) }}"
+                               class="btn btn-sm btn-danger">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                {% endif %}
             {% endfor %}
             </tbody>
         </table>
+
+        <!-- Pagination Controls -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('school_mgmt.manage_schools', page=page-1, type=request.args.get('type'), phase=request.args.get('phase'), search=request.args.get('search')) }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% if pagination_range.start > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('school_mgmt.manage_schools', page=1, type=request.args.get('type'), phase=request.args.get('phase'), search=request.args.get('search')) }}">1</a>
+                    </li>
+                    {% if pagination_range.start > 2 %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endif %}
+                {% for p in pagination_range %}
+                    <li class="page-item {% if page == p %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('school_mgmt.manage_schools', page=p, type=request.args.get('type'), phase=request.args.get('phase'), search=request.args.get('search')) }}">{{ p }}</a>
+                    </li>
+                {% endfor %}
+                {% if pagination_range.stop <= total_pages %}
+                    {% if pagination_range.stop < total_pages %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('school_mgmt.manage_schools', page=total_pages, type=request.args.get('type'), phase=request.args.get('phase'), search=request.args.get('search')) }}">{{ total_pages }}</a>
+                    </li>
+                {% endif %}
+                <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('school_mgmt.manage_schools', page=page+1, type=request.args.get('type'), phase=request.args.get('phase'), search=request.args.get('search')) }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
 
         <div class="accordion" id="school_actions">
             <div class="accordion-item">
@@ -76,4 +174,67 @@
             </div>
         </div>
     </div>
+
+    {% for school in schools %}
+    <div class="modal fade" id="editSchoolModal{{ school.id }}" tabindex="-1" aria-labelledby="editSchoolModalLabel{{ school.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editSchoolModalLabel{{ school.id }}">Edit School: {{ school.name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Form for editing school details -->
+                    <form method="POST" action="{{ url_for('school_mgmt.update_school', school_id=school.id) }}">
+                        <div class="mb-3">
+                            <label for="name{{ school.id }}" class="form-label">School Name:</label>
+                            <input type="text" class="form-control" id="name{{ school.id }}" name="name" value="{{ school.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contact_name{{ school.id }}" class="form-label">Contact Name:</label>
+                            <input type="text" class="form-control" id="contact_name{{ school.id }}" name="contact_name" value="{{ school.contact_name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contact_email{{ school.id }}" class="form-label">Contact Email:</label>
+                            <input type="email" class="form-control" id="contact_email{{ school.id }}" name="contact_email" value="{{ school.contact_email }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contact_phone{{ school.id }}" class="form-label">Contact Phone:</label>
+                            <input type="text" class="form-control" id="contact_phone{{ school.id }}" name="contact_phone" value="{{ school.contact_phone }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Save Changes</button>
+                    </form>
+
+                    <hr>
+
+                    <!-- Section for managing user assignments -->
+                    <h5>Manage Users</h5>
+                    <ul class="list-group">
+                        {% for user in users %}
+                            {%  if user.school_id == school.id or not user.school_id %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>{{ user.username }} (
+                                            {% if user.email %}{{ user.email }}{% else %}Email missing{% endif %}
+                                        )</span>
+                                    {% if user.school_id == school.id %}
+                                        <!-- Unassign user -->
+                                        <form method="POST" action="{{ url_for('school_mgmt.unassign_user', user_id=user.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-danger btn-sm">Unassign</button>
+                                        </form>
+                                    {% else %}
+                                        <!-- Assign user -->
+                                        <form method="POST" action="{{ url_for('school_mgmt.assign_user', user_id=user.id) }}" class="d-inline">
+                                            <input type="hidden" name="school_id" value="{{ school.id }}">
+                                            <button type="submit" class="btn btn-success btn-sm">Assign</button>
+                                        </form>
+                                    {% endif %}
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 {% endblock %}
