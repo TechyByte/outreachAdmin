@@ -8,27 +8,33 @@
         <table class="table table-bordered mt-3">
             <thead class="table-dark">
             <tr>
+                <th>URN</th>
                 <th>School Name</th>
-                <th>Contact Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Enrolled Programs</th>
+                <th>Type</th>
+                <th>Phase</th>
+                <th>Address</th>
+                <th>Telephone</th>
+                <th>Head Name</th>
+                <th>Website</th>
                 <th>Actions</th>
             </tr>
             </thead>
             <tbody>
             {% for school in schools %}
                 <tr>
+                    <td>{{ school.urn }}</td>
                     <td>{{ school.name }}</td>
-                    <td>{{ school.contact_name }}</td>
-                    <td>{{ school.contact_email }}</td>
-                    <td>{{ school.contact_phone }}</td>
+                    <td>{{ school.type_of_establishment }}</td>
+                    <td>{{ school.phase_of_education }}</td>
+                    <td>{{ school.street }}, {{ school.town }}, {{ school.postcode }}</td>
+                    <td>{{ school.telephone }}</td>
+                    <td>{{ school.head_name }}</td>
                     <td>
-                        {% for program in school.programs %}
-                            <a href="{{ url_for('school_mgmt.manage_school_program', school_id=school.id, program_id=program.id) }}" class="badge bg-primary">
-                                {{ program.name }}
-                            </a>
-                        {% endfor %}
+                        {% if school.school_website %}
+                            <a href="{{ school.school_website }}" target="_blank">Visit</a>
+                        {% else %}
+                            N/A
+                        {% endif %}
                     </td>
                     <td>
                         <a href="#" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#editSchoolModal{{ school.id }}">

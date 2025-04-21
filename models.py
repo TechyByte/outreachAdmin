@@ -129,10 +129,40 @@ class User(db.Model, UserMixin):
 
 class School(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    urn = db.Column(db.String(20), nullable=True)
+    la_code = db.Column(db.String(10), nullable=True)
+    la_name = db.Column(db.String(100), nullable=True)
+    establishment_number = db.Column(db.String(20), nullable=True)
     name = db.Column(db.String(100), nullable=False)
-    contact_name = db.Column(db.String(100), nullable=False)
-    contact_email = db.Column(db.String(100), nullable=False)
-    contact_phone = db.Column(db.String(20), nullable=False)
+    type_of_establishment = db.Column(db.String(100), nullable=True)
+    phase_of_education = db.Column(db.String(100), nullable=True)
+    statutory_low_age = db.Column(db.Integer, nullable=True)
+    statutory_high_age = db.Column(db.Integer, nullable=True)
+    street = db.Column(db.String(200), nullable=True)
+    town = db.Column(db.String(100), nullable=True)
+    postcode = db.Column(db.String(20), nullable=True)
+    telephone = db.Column(db.String(20), nullable=True)
+    head_name = db.Column(db.String(100), nullable=True)
+    school_website = db.Column(db.String(200), nullable=True)
+    number_of_pupils = db.Column(db.Integer, nullable=True)
+    number_of_boys = db.Column(db.Integer, nullable=True)
+    number_of_girls = db.Column(db.Integer, nullable=True)
+    percentage_fsm = db.Column(db.Float, nullable=True)
+    head_preferred_job_title = db.Column(db.String(100), nullable=True)
+    nursery_provision = db.Column(db.String(100), nullable=True)
+    establishment_status = db.Column(db.String(100), nullable=True)
+    diocese = db.Column(db.String(100), nullable=True)
+    gender = db.Column(db.String(50), nullable=True)
+    school_capacity = db.Column(db.Integer, nullable=True)
+    admissions_policy = db.Column(db.String(100), nullable=True)
+    locality = db.Column(db.String(100), nullable=True)
+    address3 = db.Column(db.String(200), nullable=True)
+    parliamentary_constituency = db.Column(db.String(100), nullable=True)
+    easting = db.Column(db.Integer, nullable=True)
+    northing = db.Column(db.Integer, nullable=True)
+    contact_name = db.Column(db.String(100), nullable=True)
+    contact_email = db.Column(db.String(100), nullable=True)
+    contact_phone = db.Column(db.String(20), nullable=True)
     users = db.relationship('User', back_populates='school')
     programs = db.relationship('Program', secondary=school_program,
                                back_populates='schools')  # backref=db.backref('schools', lazy='dynamic'))
@@ -354,6 +384,7 @@ class AgendaItem(db.Model):
     @property
     def filtered_notes(self):
         return AgendaItemNote.query.filter_by(agenda_item_id=self.id, hidden=False).order_by(AgendaItemNote.datetime.desc()).all()
+
 
 
 

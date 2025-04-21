@@ -1,5 +1,6 @@
 import os
 import sys
+import csv  # Add this import for CSV handling
 
 from flask import Flask
 from werkzeug.security import generate_password_hash
@@ -30,7 +31,7 @@ db.init_app(app)
 
 
 # noinspection PyArgumentList
-def initialise_database():
+def initialise_database(schools_from_file=False):
     """Drops existing tables, recreates them, and adds example template and live data."""
     with app.app_context():
         print("🛠 Dropping existing tables...")
@@ -39,15 +40,63 @@ def initialise_database():
         print("📦 Creating new tables...")
         db.create_all()
 
-        # TODO: Check if /instance/schools.csv is present whether --schools-from-file is passed
-        # Add Example Schools (first, since users will reference them)
-        print("🏫 Adding example schools...")
-        school1 = School(name="Springfield High", contact_name="John Doe", contact_email="john@school.com",
-                         contact_phone="123456789")
-        school2 = School(name="Riverdale Academy", contact_name="Jane Smith", contact_email="jane@school.com",
-                         contact_phone="987654321")
-        db.session.add_all([school1, school2])
-        db.session.commit()
+        if schools_from_file:
+            print("🏫 Adding schools from file...")
+            schools_file = "instance/schools.csv"
+            if not os.path.exists(schools_file):
+                print(f"⚠️ File {schools_file} not found. Skipping school import.")
+            else:
+                with open(schools_file, mode='r', encoding='latin1') as csvfile:
+                    reader = csv.DictReader(csvfile)
+                    for row in reader:
+                        if row['LA (name)'] == "Birmingham":
+                            school = School(
+                                urn=row['URN'],
+                                la_code=row['LA (code)'],
+                                la_name=row['LA (name)'],
+                                establishment_number=row['EstablishmentNumber'],
+                                name=row['EstablishmentName'],
+                                type_of_establishment=row['TypeOfEstablishment (name)'],
+                                phase_of_education=row['PhaseOfEducation (name)'],
+                                statutory_low_age=row['StatutoryLowAge'],
+                                statutory_high_age=row['StatutoryHighAge'],
+                                street=row['Street'],
+                                town=row['Town'],
+                                postcode=row['Postcode'],
+                                telephone=row['TelephoneNum'],
+                                head_name=f"{row['HeadFirstName']} {row['HeadLastName']}",
+                                school_website=row['SchoolWebsite'],
+                                number_of_pupils = row['NumberOfPupils'],
+                                number_of_boys = row['NumberOfBoys'],
+                                number_of_girls = row['NumberOfGirls'],
+                                percentage_fsm = row['PercentageFSM'] if row['PercentageFSM'] != "" else None,
+                                head_preferred_job_title = row['HeadPreferredJobTitle'],
+                                nursery_provision = row['NurseryProvision (name)'],
+                                establishment_status = row['EstablishmentStatus (name)'],
+                                diocese = row['Diocese (name)'],
+                                gender = row['Gender (name)'],
+                                school_capacity = row['SchoolCapacity'],
+                                admissions_policy = row['AdmissionsPolicy (name)'],
+                                locality = row['Locality'],
+                                address3 = row['Address3'],
+                                parliamentary_constituency = row['ParliamentaryConstituency (name)'],
+                                easting = row['Easting'],
+                                northing = row['Northing']
+
+                            )
+                            db.session.add(school)
+                db.session.commit()
+                school1 = School.query.filter_by(urn=103554).first()
+                school2 = School.query.filter_by(urn=137043).first()
+        else:
+            # Add Example Schools (first, since users will reference them)
+            print("🏫 Adding example schools...")
+            school1 = School(name="Springfield High", contact_name="John Doe", contact_email="john@school.com",
+                             contact_phone="123456789")
+            school2 = School(name="Riverdale Academy", contact_name="Jane Smith", contact_email="jane@school.com",
+                             contact_phone="987654321")
+            db.session.add_all([school1, school2])
+            db.session.commit()
 
         # Add Example Users (with school_id assigned)
         print("👤 Adding example users...")
@@ -141,11 +190,13 @@ def initialise_database():
 
 
 if __name__ == '__main__':
+    schools_from_file = "--schools-from-file" in sys.argv
     if os.path.exists("instance/database.db"):
         if "--noinput" not in sys.argv:
             user_input = input("⚠️ Database already exists. Overwrite it? (yes/no): ").strip().lower()
             if user_input not in ["yes", "y"]:
                 print("✅ Keeping existing database. No changes made.")
                 sys.exit(0)
-        print("🛠 initialise_database...")
-        initialise_database()
+    print("🛠 initialise_database...")
+    initialise_database(schools_from_file=schools_from_file)
+
