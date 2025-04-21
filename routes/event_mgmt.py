@@ -27,6 +27,7 @@ def edit_course(course_id):
     return render_template('edit_course.html', course=course, school=school, program=program)
 
 
+
 @bp.route('/event/<int:event_id>', methods=['GET', 'POST'])
 @login_required
 @check_permission('edit_event')
@@ -156,6 +157,7 @@ def edit_agenda_item(item_id):
 
 @bp.route('/agenda_item/<int:agenda_item_id>/notes', methods=['GET', 'POST'])
 @check_permission('view_agenda_item_note')
+
 @login_required
 def agenda_item_notes(agenda_item_id):
     agenda_item = AgendaItem.query.get_or_404(agenda_item_id)

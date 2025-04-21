@@ -222,3 +222,4 @@ def test_location_crud(test_client):
         db.session.delete(location)
         db.session.commit()
         assert Location.query.count() == 0
+

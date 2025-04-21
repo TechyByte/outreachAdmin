@@ -252,6 +252,7 @@ class CourseStatus(PyEnum):
         }.get(self, "#000000")
 
 
+
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -414,3 +415,5 @@ class AgendaItem(db.Model):
     @property
     def filtered_notes(self):
         return AgendaItemNote.query.filter_by(agenda_item_id=self.id, hidden=False).order_by(AgendaItemNote.datetime.desc()).all()
+
+ 

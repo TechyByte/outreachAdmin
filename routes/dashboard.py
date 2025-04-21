@@ -79,6 +79,7 @@ def schedule():
     # Date range filter
     # events_query = events_query.filter((Event.date >= today) | (Event.date == None), Event.date <= future)
 
+
     events = events_query.options(joinedload(Event.agenda_items)).all()
 
     # Fetch filters data

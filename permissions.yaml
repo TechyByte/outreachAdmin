@@ -16,6 +16,7 @@ admin:
   reject_agenda_item: true
   create_event: true
 
+
 lecturer:
   view_schedule: true
   edit_course: false
@@ -49,5 +50,7 @@ school_contact:
   archive_agenda_item_note: false
   enroll_school: false
   unenroll_school: false
+  confirm_agenda_item: false
+  reject_agenda_item: false
   create_event: false
 
