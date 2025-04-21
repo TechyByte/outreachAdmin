@@ -49,7 +49,8 @@
                 <th>Phase</th>
                 <th>Address</th>
                 <th>Telephone</th>
-                <th>Head Name</th>
+                <th>Headcount</th>
+                <th>Est. Year Group Size</th>
                 <th>Website</th>
                 <th>Actions</th>
             </tr>
@@ -75,7 +76,8 @@
                         <td>{{ school.phase_of_education }}</td>
                         <td>{{ school.street }}, {{ school.town }}, {{ school.postcode }}</td>
                         <td>{{ school.telephone }}</td>
-                        <td>{{ school.head_name }}</td>
+                        <td>{{ school.number_of_pupils }}</td>
+                        <td>{{ school.estimated_year_group_size }}</td>
                         <td>
                             {% if school.school_website %}
                                 <a href="{{ school.school_website }}" target="_blank">Visit</a>

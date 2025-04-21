@@ -1,12 +1,16 @@
 from datetime import time, datetime
 
-from flask import Flask, render_template, request
-from flask_login import LoginManager, login_required, current_user
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, login_required, current_user, login_user
 
 from datetime import datetime, timedelta
 
 from utils import check_permission
 import os
+
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env file
 
 from models import db, User, valid_user_roles
 from routes.auth import bp as auth_bp
@@ -19,14 +23,18 @@ from routes.template_mgmt import bp as template_mgmt_bp
 from routes.user_mgmt import bp as user_mgmt_bp
 from routes.config_mgmt import bp as config_mgmt_bp
 
+from utils.o365_interface import O365Interface
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "supersecretkey"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'defaultsecretkey')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['DEBUG'] = True
 app.config['VALID_USER_ROLES'] = valid_user_roles
+app.config['USE_O365'] = os.getenv('USE_O365', 'false').lower() == 'true'  # Enable O365 if flag is set
 
-
+if app.config['USE_O365']:
+    o365_interface = O365Interface()  # Initialize O365 interface
 
 db.init_app(app)  # Initialize db with the app
 

@@ -143,7 +143,7 @@ def schedule_events():
             'start': event.start_time.isoformat() if event.start_time else event.date.isoformat(),
             'end': event.end_time.isoformat() if event.end_time else event.date.isoformat(),
             'location': event.location.name if event.location else 'N/A',
-            'backgroundColor': event.location.color if event.location else '#cccccc',
+            'backgroundColor': event.status.color,
             'display': 'block',
             #'url': url_for('event_mgmt.edit_event', event_id=event.id),
         })
@@ -157,7 +157,7 @@ def schedule_events():
                     'title': f'{item.title}',
                     'start': start_time.isoformat(),
                     'end': end_time.isoformat(),
-                    'backgroundColor': item.lecturer.color if item.lecturer else None,  # Use a neutral color for agenda items
+                    'backgroundColor': item.status.color,
                     #'url': url_for('event_mgmt.edit_agenda_item', item_id=item.id),
                 })
     return event_list

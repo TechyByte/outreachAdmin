@@ -27,8 +27,18 @@ jobs:
           PUBLIC_IPV4: ${{ secrets.PUBLIC_IPV4 }}
           LOCAL_USERNAME: ${{ secrets.LOCAL_USERNAME }}
           ENV_NAME: ${{ vars.ENV_NAME }}
+          SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          SQLALCHEMY_DATABASE_URI: ${{ vars.SQLALCHEMY_DATABASE_URI }}
+          O365_CLIENT_ID: ${{ vars.O365_CLIENT_ID }}
+          O365_CLIENT_SECRET: ${{ secrets.O365_CLIENT_SECRET }}
+          O365_TENANT_ID: ${{ vars.O365_TENANT_ID }}
       run: |
         ssh $LOCAL_USERNAME@$PUBLIC_IPV4 << 'EOF'
+          export SECRET_KEY=$SECRET_KEY
+          export SQLALCHEMY_DATABASE_URI=$SQLALCHEMY_DATABASE_URI
+          export O365_CLIENT_ID=$O365_CLIENT_ID
+          export O365_CLIENT_SECRET=$O365_CLIENT_SECRET
+          export O365_TENANT_ID=$O365_TENANT_ID
           cd /home/github/apps/outreachAdmin
           git pull origin $ENV_NAME
           if [ ! -d "venv" ]; then python3 -m venv venv; fi

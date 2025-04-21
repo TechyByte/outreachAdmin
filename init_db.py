@@ -49,7 +49,7 @@ def initialise_database(schools_from_file=False):
                 with open(schools_file, mode='r', encoding='latin1') as csvfile:
                     reader = csv.DictReader(csvfile)
                     for row in reader:
-                        if row['LA (name)'] == "Birmingham":
+                        if row['LA (name)'] == "Birmingham" and row['EstablishmentStatus (name)'] == "Open":
                             school = School(
                                 urn=row['URN'],
                                 la_code=row['LA (code)'],
@@ -86,8 +86,8 @@ def initialise_database(schools_from_file=False):
                             )
                             db.session.add(school)
                 db.session.commit()
-                school1 = School.query.filter_by(urn=103554).first()
-                school2 = School.query.filter_by(urn=137043).first()
+                school1 = School.query.filter_by(name='King Edward VI Camp Hill School for Boys').first()
+                school2 = School.query.filter_by(name='King Edward VI Aston School').first()
         else:
             # Add Example Schools (first, since users will reference them)
             print("🏫 Adding example schools...")

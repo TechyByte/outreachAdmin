@@ -66,7 +66,27 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)  # Store hashed password
     configured_role = db.Column(db.String(20), nullable=True)
+    o365_id = db.Column(db.String(100), unique=True, nullable=True)  # Office 365 unique identifier
+    email_verified = db.Column(db.Boolean, default=False)  # Whether the email has been verified via SSO
 
+    @staticmethod
+    def get_or_create_o365_user(o365_id, email, username=None):
+        """
+        Retrieve an existing user by their Office 365 ID or create a new one.
+        """
+        user = User.query.filter_by(o365_id=o365_id).first()
+        if user:
+            return user
+        else:
+            user = User(
+                o365_id=o365_id,
+                email=email,
+                username=username or email.split('@')[0],
+                email_verified=True  # Assume email is verified if coming from SSO
+            )
+            db.session.add(user)
+            db.session.commit()
+            return user
 
     @validates('configured_role')
     def validate_configured_role(self, key, value):
@@ -166,6 +186,14 @@ class School(db.Model):
     users = db.relationship('User', back_populates='school')
     programs = db.relationship('Program', secondary=school_program,
                                back_populates='schools')  # backref=db.backref('schools', lazy='dynamic'))
+
+    @property
+    def estimated_year_group_size(self):
+        if self.statutory_low_age and self.statutory_high_age and self.number_of_pupils:
+            est_year_groups = self.statutory_high_age - self.statutory_low_age
+            if est_year_groups > 0:
+                return self.number_of_pupils // est_year_groups
+        return ""
 
 
 class Program(db.Model):
@@ -340,6 +368,8 @@ class Event(db.Model):
         if not self.date or not self.agenda_items:
             return None
         last_item = max(self.agenda_items, key=lambda item: item.time)
+        if last_item.duration is None:
+            return None
         end_time = datetime.combine(self.date, last_item.time) + last_item.duration + timedelta(minutes=15)
         return end_time
 
@@ -384,7 +414,3 @@ class AgendaItem(db.Model):
     @property
     def filtered_notes(self):
         return AgendaItemNote.query.filter_by(agenda_item_id=self.id, hidden=False).order_by(AgendaItemNote.datetime.desc()).all()
-
-
-
-

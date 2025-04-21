@@ -8,18 +8,18 @@ h2 {
 
 .table {
     margin-top: 20px;
-    max-width: 100%; /* Ensure tables use full width */
-    width: 100%; /* Stretch tables to full width */
+    max-width: 85%; /* Ensure tables use full width */
+    width: 80%; /* Stretch tables to full width */
 }
 
 form {
-    max-width: 100%; /* Ensure forms use full width */
+    max-width: 75%; /* Ensure forms use full width */
     margin-top: 20px;
 }
 
 .container-fluid {
-    padding-left: 1rem; /* Reduce padding for more screen usage */
-    padding-right: 1rem;
-    width: 95%; /* Utilize more screen width */
-    max-width: 100%; /* Ensure it stretches to full width */
+    padding-left: 3rem; /* Reduce padding for more screen usage */
+    padding-right: 3rem;
+    width: 85%; /* Utilize more screen width */
+    max-width: 90%; /* Ensure it stretches to full width */
 }

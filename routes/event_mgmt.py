@@ -251,7 +251,6 @@ def create_event(course_id):
         if template_id and template_id != "none":
             template = TemplateEvent.query.get(template_id)
             if template:
-                new_event.name = template.name
                 db.session.add(new_event)
                 db.session.commit()
 

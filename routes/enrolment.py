@@ -75,13 +75,21 @@ def enroll(school_id=None, program_id=None):
                             db.session.add(new_agenda)
 
                 db.session.commit()
-
         flash('School enrolled successfully!', 'success')
         return redirect(url_for('enrolment.manage_enrollment'))
+    else:
+        # GET method
+        if not school_id:
+            school_id = request.args.get('school_id')
+        if not program_id:
+            program_id = request.args.get('program_id')
 
     # GET method
     with current_app.app_context():
-        schools = School.query.options(selectinload(School.programs)).all()
+        if school_id:
+            schools = School.query.filter(School.id == school_id).all()
+        else:
+            schools = School.query.options(selectinload(School.programs)).all()
         programs = Program.query.all()
         template_courses = TemplateCourse.query.all()
 
