@@ -6,6 +6,7 @@ from flask_login import LoginManager, login_required, current_user, login_user
 from datetime import datetime, timedelta
 
 from utils import check_permission
+from dotenv import load_dotenv
 import os
 
 load_dotenv()  # Load environment variables from .env file
