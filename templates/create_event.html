@@ -9,7 +9,7 @@
         <div class="mb-3">
             <label for="template_id" class="form-label">Template (Optional)</label>
             <select class="form-select" id="template_id" name="template_id">
-                <option value="none">Blank Event</option>
+                <option value="none">-- No Template --</option>
                 {% for template in templates %}
                     <option value="{{ template.id }}">{{ template.name }}</option>
                 {% endfor %}

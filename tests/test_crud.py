@@ -4,9 +4,9 @@ import sqlalchemy
 from app import app as flask_app
 from models import db, User, Program, Course, Event, AgendaItem, School, TemplateCourse, TemplateEvent, \
     TemplateAgendaItem, Location, EventNote, AgendaItemNote
-from flask import Flask
+
 from datetime import date, time, timedelta, datetime
-from init_db import initialize_database
+
 
 @pytest.fixture(scope='module')
 def test_client():
@@ -203,3 +203,22 @@ def test_agenda_item_note_crud(test_client):
 
         assert AgendaItemNote.query.count() == 1
         assert note.hidden
+
+
+def test_location_crud(test_client):
+    with flask_app.app_context():
+        location = Location(name='Test Location', address='Test Address')
+        db.session.add(location)
+        db.session.commit()
+
+        assert Location.query.count() == 1
+        assert location.name == 'Test Location'
+        assert location.address == 'Test Address'
+
+        location.name = 'Updated Location'
+        db.session.commit()
+        assert Location.query.first().name == 'Updated Location'
+
+        db.session.delete(location)
+        db.session.commit()
+        assert Location.query.count() == 0

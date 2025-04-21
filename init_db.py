@@ -14,37 +14,32 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
-
-def check_database():
-    """Ensures the database is created and initialized before running the app."""
-    if not os.path.exists("instance/database.db"):
-        print("📦 No database found. Initializing...")
-        with app.app_context():
-            initialize_database()
-    else:
-        with app.app_context():
-            inspector = db.engine.inspect(db.engine)
-            if not inspector.has_table("school"):
-                print("⚠️ Table 'school' not found. Recreating database...")
-                initialize_database()
+#
+# def check_database():
+#     """Ensures the database is created and initialized before running the app."""
+#     if not os.path.exists("instance/database.db"):
+#         print("📦 No database found. Initializing...")
+#         with app.app_context():
+#             initialise_database()
+#     else:
+#         with app.app_context():
+#             inspector = db.engine.inspect(db.engine)
+#             if not inspector.has_table("school"):
+#                 print("⚠️ Table 'school' not found. Recreating database...")
+#                 initialise_database()
 
 
 # noinspection PyArgumentList
-def initialize_database():
+def initialise_database():
     """Drops existing tables, recreates them, and adds example template and live data."""
     with app.app_context():
-        if os.path.exists("instance/database.db"):
-            if "--noinput" not in sys.argv:
-                user_input = input("⚠️ Database already exists. Overwrite it? (yes/no): ").strip().lower()
-                if user_input not in ["yes", "y"]:
-                    print("✅ Keeping existing database. No changes made.")
-                    return
-            print("🛠 Dropping existing tables...")
-            db.drop_all()
+        print("🛠 Dropping existing tables...")
+        db.drop_all()
 
         print("📦 Creating new tables...")
         db.create_all()
 
+        # TODO: Check if /instance/schools.csv is present whether --schools-from-file is passed
         # Add Example Schools (first, since users will reference them)
         print("🏫 Adding example schools...")
         school1 = School(name="Springfield High", contact_name="John Doe", contact_email="john@school.com",
@@ -146,4 +141,11 @@ def initialize_database():
 
 
 if __name__ == '__main__':
-    initialize_database()
+    if os.path.exists("instance/database.db"):
+        if "--noinput" not in sys.argv:
+            user_input = input("⚠️ Database already exists. Overwrite it? (yes/no): ").strip().lower()
+            if user_input not in ["yes", "y"]:
+                print("✅ Keeping existing database. No changes made.")
+                sys.exit(0)
+        print("🛠 initialise_database...")
+        initialise_database()
