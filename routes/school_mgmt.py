@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, current_app, flash
 from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
+from math import ceil  # Add this import for pagination
 
 from models import db, School, User, Program, Course
 
@@ -32,9 +33,54 @@ def manage_schools():
 
     with current_app.app_context():
         users = User.query.all()
-        schools = db.session.query(School).options(joinedload(School.programs)).all()
+        schools_query = db.session.query(School).options(joinedload(School.programs))
 
-    return render_template('schools.html', schools=schools, users=users)
+        # Fetch distinct values for filters
+        all_types = db.session.query(School.type_of_establishment).distinct().all()
+        all_phases = db.session.query(School.phase_of_education).distinct().all()
+
+        # Apply filters
+        type_filter = request.args.get('type')
+        phase_filter = request.args.get('phase')
+        search_filter = request.args.get('search')
+
+        if type_filter:
+            schools_query = schools_query.filter(School.type_of_establishment == type_filter)
+        if phase_filter:
+            schools_query = schools_query.filter(School.phase_of_education == phase_filter)
+        if search_filter:
+            search_filter = search_filter.lower()
+            schools_query = schools_query.filter(
+                (School.name.ilike(f"%{search_filter}%")) |
+                (School.street.ilike(f"%{search_filter}%")) |
+                (School.town.ilike(f"%{search_filter}%")) |
+                (School.postcode.ilike(f"%{search_filter}%")) |
+                (School.head_name.ilike(f"%{search_filter}%")) |
+                (School.contact_name.ilike(f"%{search_filter}%")) |
+                (School.urn.ilike(f"%{search_filter}%")) |
+                (School.establishment_number.ilike(f"%{search_filter}%"))
+            )
+
+        # Pagination logic
+        page = int(request.args.get('page', 1))
+        per_page = 10  # Number of schools per page
+        total_schools = schools_query.count()
+        total_pages = ceil(total_schools / per_page)
+        schools = schools_query.offset((page - 1) * per_page).limit(per_page).all()
+
+    return render_template(
+        'schools.html',
+        schools=schools,
+        users=users,
+        page=page,
+        total_pages=total_pages,
+        pagination_range=range(max(1, page - 2), min(total_pages + 1, page + 3)),  # Limit to 5 pages around the current page
+        type_filter=type_filter,
+        phase_filter=phase_filter,
+        search_filter=search_filter,
+        all_types=[t[0] for t in all_types if t[0]],  # Extract non-null values
+        all_phases=[p[0] for p in all_phases if p[0]]  # Extract non-null values
+    )
 
 
 @bp.route('/schools/<int:school_id>/delete', methods=['GET'])
@@ -109,3 +155,7 @@ def manage_school_program(school_id, program_id):
         include_events=include_events,
         include_agenda_items=include_agenda_items
     )
+
+
+
+
