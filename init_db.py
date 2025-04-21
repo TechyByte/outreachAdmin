@@ -42,7 +42,7 @@ def initialise_database(schools_from_file=False):
 
         if schools_from_file:
             print("🏫 Adding schools from file...")
-            schools_file = "instance/schools.csv"
+            schools_file = "../schools.csv"
             if not os.path.exists(schools_file):
                 print(f"⚠️ File {schools_file} not found. Skipping school import.")
             else:
