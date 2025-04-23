@@ -74,7 +74,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a href="#" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#editSchoolModal{{ school.id }}">
+                        <a href="#" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editSchoolModal{{ school.id }}">
                             Edit
                         </a>
                         <a href="{{ url_for('enrolment.enroll', school_id=school.id) }}"
