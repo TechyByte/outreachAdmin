@@ -1,0 +1,80 @@
+<!-- Button to trigger modal -->
+<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#searchSchoolsModal">
+    Search Schools
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="searchSchoolsModal" tabindex="-1" aria-labelledby="searchSchoolsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="searchSchoolsModalLabel">Search Schools</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="school-filters-form">
+                    <div class="mb-3">
+                        <label for="search_filter" class="form-label">Search:</label>
+                        <input type="text" class="form-control" id="search_filter" name="search"
+                               placeholder="Enter at least 3 letters to search">
+                    </div>
+                </form>
+
+                <hr>
+
+                <h5>Matching Schools</h5>
+                <div id="matching-schools">
+                    <p class="text-muted">Enter at least 3 letters to see matching schools.</p>
+                </div>
+                <!-- Add a hidden input to store selected schools -->
+                <input type="hidden" id="selected_schools_input" name="selected_schools" value="">
+            </div>
+            <div class="modal-footer">
+                <!--<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>-->
+                <button type="button" class="btn btn-primary" id="apply-school-filter" data-bs-dismiss="modal">Apply Filter</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('search_filter').addEventListener('input', async (e) => {
+        const query = e.target.value.trim();
+        const matchingSchoolsDiv = document.getElementById('matching-schools');
+
+        if (query.length < 3) {
+            matchingSchoolsDiv.innerHTML = '<p class="text-muted">Enter at least 3 letters to see matching schools.</p>';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/schools/search?query=${encodeURIComponent(query)}`);
+            const schools = await response.json();
+
+            if (schools.length === 0) {
+                matchingSchoolsDiv.innerHTML = '<p class="text-muted">No matching schools found.</p>';
+            } else {
+                matchingSchoolsDiv.innerHTML = schools.map(school => `
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="school_${school.id}" name="selected_schools" value="${school.id}">
+                        <label class="form-check-label" for="school_${school.id}">
+                            ${school.name} (${school.urn})
+                        </label>
+                    </div>
+                `).join('');
+            }
+        } catch (error) {
+            matchingSchoolsDiv.innerHTML = '<p class="text-danger">Error fetching schools. Please try again later.</p>';
+        }
+    });
+
+    document.getElementById('apply-school-filter').addEventListener('click', () => {
+        const selectedSchools = Array.from(document.querySelectorAll('input[name="selected_schools"]:checked'))
+            .map(input => input.value);
+        const selectSchoolNames = Array.from(document.querySelectorAll('input[name="selected_schools"]:checked'))
+            .map(input => input.nextElementSibling.innerText);
+        document.getElementById('selected_schools_input').value = selectedSchools.join(',');
+        const params = new URLSearchParams();
+        selectedSchools.forEach(id => params.append('school', id));
+    });
+</script>
