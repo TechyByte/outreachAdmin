@@ -78,9 +78,6 @@ def compile_scss():
             with open(css_path, 'w') as css_file:
                 css_file.write(css_content)
 
-compile_scss()
-
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -97,6 +94,7 @@ app.register_blueprint(template_mgmt_bp)
 app.register_blueprint(config_mgmt_bp)
 
 if __name__ == '__main__':
+    compile_scss()
     app.run(debug=True)
 
 
