@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     params.append(select.name, option.value);
                 });
             });
-            params.append('n_days', 60); // Example: Pass n_days filter
+            params.append('n_days', 365); // Example: Pass n_days filter
 
             // Fetch events with filters
             fetch(`/schedule/events?${params.toString()}`)

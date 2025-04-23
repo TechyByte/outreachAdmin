@@ -9,6 +9,8 @@ from utils import check_permission
 from dotenv import load_dotenv
 import os
 
+import sass
+
 load_dotenv()  # Load environment variables from .env file
 
 from models import db, User, valid_user_roles
@@ -61,6 +63,22 @@ def short_time_filter(value):
         else:
             return f'{mod_minutes}m'
     return value
+
+
+# Compile SCSS to CSS using libsass
+def compile_scss():
+    scss_dir = os.path.join(app.root_path, 'static/scss')
+    css_dir = os.path.join(app.root_path, 'static/css')
+    os.makedirs(css_dir, exist_ok=True)
+    for scss_file in os.listdir(scss_dir):
+        if scss_file.endswith('.scss'):
+            scss_path = os.path.join(scss_dir, scss_file)
+            css_path = os.path.join(css_dir, scss_file.replace('.scss', '.css'))
+            css_content = sass.compile(filename=scss_path)  # Compile SCSS to CSS
+            with open(css_path, 'w') as css_file:
+                css_file.write(css_content)
+
+compile_scss()
 
 
 @app.route('/')
