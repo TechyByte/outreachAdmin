@@ -130,10 +130,10 @@ def edit_agenda_item(item_id):
 
         try:
             new_lecturer_id = int(request.form.get('lecturer_id'))
-            if new_lecturer_id:
+            if new_lecturer_id and new_lecturer_id != "0":
                 if new_lecturer_id != item.lecturer_id:
                     # Change in lecturer
-                    item.lecturer_id = new_lecturer_id
+                    item.lecturer_id = int(new_lecturer_id)
                     item.status = AgendaItemStatus.TENTATIVE
             else:
                 # No lecturer assigned
@@ -205,7 +205,7 @@ def confirm_agenda_item(item_id):
 
     db.session.commit()
     flash('Agenda item confirmed successfully.', 'success')
-    return redirect(url_for('event_mgmt.edit_agenda_item', item_id=item_id))
+    return redirect(request.referrer or url_for('event_mgmt.edit_agenda_item', item_id=item_id))
 
 
 @bp.route('/agenda_item/<int:item_id>/reject', methods=['POST'])
@@ -309,3 +309,25 @@ def create_agenda_item(event_id):
         return redirect(url_for('event_mgmt.edit_event', event_id=event_id))
 
     return render_template('create_agenda_item.html', event=event, lecturers=lecturers)
+
+
+@bp.route('/lecturers/search', methods=['GET'])
+@login_required
+def search_lecturers():
+    """
+    Endpoint to search for lecturers by name or username.
+    """
+    query = request.args.get('query', '').strip()
+    if len(query) < 3:
+        return [], 400  # Return bad request if query is too short
+
+    lecturers = User.query.filter(
+        ((User.role == 'lecturer') | (User.role == 'admin')) &
+        ((User.username.ilike(f'%{query}%')) | (User.display_name.ilike(f'%{query}%')))
+    ).all()
+
+    return [
+        {'id': lecturer.id, 'username': lecturer.username, 'display_name': lecturer.display_name}
+        for lecturer in lecturers
+    ]
+

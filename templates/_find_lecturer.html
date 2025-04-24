@@ -1,0 +1,17 @@
+<!-- Button to trigger modal -->
+{% if item.lecturer %}
+    <p>Selected Lecturer: {{ item.lecturer.display_name or item.lecturer.username }}</p>
+    <button type="button" class="btn btn-sm btn-outline-warning mb-3" data-bs-toggle="modal" data-bs-target="#findLecturerModal">
+        Reassign Lecturer
+    </button>
+{% else %}
+
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#findLecturerModal">
+        Assign Lecturer
+    </button>
+    <div id="selected-lecturer-display" class="mt-3"></div>
+{% endif %}
+
+<input type="hidden" name="lecturer_id" id="selected_lecturers_input" value="{{ item.lecturer_id }}">
+
+

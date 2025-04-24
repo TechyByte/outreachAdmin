@@ -15,14 +15,9 @@
         <label>Description: <textarea name="description"></textarea></label><br>
         <label>Time: <input type="time" name="time"></label><br>
         <label>Duration (minutes): <input type="number" name="duration"></label><br>
-        <label>Lecturer:
-            <select name="lecturer_id">
-                <option value="0">-- None --</option>
-                {% for lecturer in lecturers %}
-                    <option value="{{ lecturer.id }}">{{ lecturer.username }}</option>
-                {% endfor %}
-            </select>
-        </label><br>
+        <label>Lecturer:</label>
+        {% include '_find_lecturer.html' %}
+        <input type="hidden" name="lecturer_id" id="selected_lecturer_input"><br>
         <button type="submit">Create</button>
     </form>
 {% endblock %}
