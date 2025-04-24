@@ -64,8 +64,13 @@
                     <td>{{ school.phase_of_education }}</td>
                     <td>{{ school.street }}, {{ school.town }}, {{ school.postcode }}</td>
                     <td>{{ school.telephone }}</td>
-                    <td>{{ school.number_of_pupils }}</td>
-                    <td>{{ school.estimated_year_group_size }}</td>
+                    <td>
+                        <p data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
+                           title="Year group size: {{ school.estimated_year_group_size }}<br />
+                                Boys/Girls: {{ school.number_of_boys }}:{{ school.number_of_girls }}">{{ school.number_of_pupils }}
+                        </p>
+                    </td>
+                    <td></td>
                     <td>
                         {% if school.school_website %}
                             <a href="{{ school.school_website }}" target="_blank">Visit</a>

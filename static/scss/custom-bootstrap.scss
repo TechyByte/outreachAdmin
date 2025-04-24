@@ -1,5 +1,7 @@
 // Import Bootstrap's functions and variables
 @import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+
 
 // Define custom fonts
 $font-family-sans-serif: Arial, sans-serif;
@@ -7,14 +9,14 @@ $font-family-serif:      Georgia, "Times New Roman", Times, serif;
 $font-family-monospace:  Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 $font-family-base:       $font-family-sans-serif;
 
-@import "bootstrap/scss/variables";
+
 
 // Define custom brand colors
 $primary: #005EB8;
-$primary-contrast: #ffffff;
+$primary-contrast: #E8EDEE;
 
 $secondary: #768692;
-$secondary-contrast: #ffffff;
+$secondary-contrast: #E8EDEE;
 
 $info: #41B6E6;
 $info-contrast: #00A9CE;
