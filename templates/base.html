@@ -46,10 +46,11 @@
                         Admin Dashboard
                     </a>
                 </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
 
-
-                <li class="nav-item dropdown float-end">
-                    <a class="nav-link dropdown-toggle float-end" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <li class="nav-item dropdown ms-auto">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         {% if current_user.is_authenticated %}
                             <i class="bi-person-circle"></i>
                             {{ current_user.username }}
@@ -57,7 +58,7 @@
                             Account
                         {% endif %}
                     </a>
-                    <ul class="dropdown-menu float-end">
+                    <ul class="dropdown-menu dropdown-menu-end ms-auto">
                         {% if current_user.is_authenticated %}
                             <li>
                                 <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
