@@ -43,20 +43,13 @@
             <div class="accordion-item">
                 <h2 class="accordion-header">
                   <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#enroll_school" aria-expanded="true" aria-controls="enroll_school">
-                    Enroll a School in a Program
+                    Enroll in a Program
                   </button>
                 </h2>
                 <div id="enroll_school" class="accordion-collapse collapse" data-bs-parent="#enroll_actions">
                     <div class="accordion-body">
                         <form method="POST" action="{{ url_for('enrolment.enroll') }}">
-                            <div class="mb-3">
-                                <label for="school_id" class="form-label">Select School:</label>
-                                <select class="form-control" id="school_id" name="school_id" required>
-                                    {% for school in schools %}
-                                        <option value="{{ school.id }}">{{ school.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                            <input type="hidden" id="enroll_school_id" name="school_id" value="{{ schools[0].id }}">
                             <div class="mb-3">
                                 <label for="program_id" class="form-label">Select Program:</label>
                                 <select class="form-control" id="program_id" name="program_id" required>
@@ -82,20 +75,13 @@
             <div class="accordion-item">
                 <h2 class="accordion-header">
                   <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#unenroll_school" aria-expanded="true" aria-controls="unenroll_school">
-                    Unenroll a School from a Program
+                    Unenroll from a Program
                   </button>
                 </h2>
                 <div id="unenroll_school" class="accordion-collapse collapse" data-bs-parent="#unenroll_actions">
                     <div class="accordion-body">
                         <form method="POST" action="{{ url_for('enrolment.unenroll') }}">
-                            <div class="mb-3">
-                                <label for="unenroll_school_id" class="form-label">Select School:</label>
-                                <select class="form-control" id="unenroll_school_id" name="school_id" required>
-                                    {% for school in schools %}
-                                        <option value="{{ school.id }}">{{ school.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                            <input type="hidden" id="unenroll_school_id" name="school_id" value="{{ schools[0].id }}">
                             <div class="mb-3">
                                 <label for="unenroll_program_id" class="form-label">Select Program:</label>
                                 <select class="form-control" id="unenroll_program_id" name="program_id" required>
@@ -113,7 +99,6 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const schoolSelect = document.getElementById('school_id');
             const programSelect = document.getElementById('program_id');
             const courseSelect = document.getElementById('course_ids');
 
@@ -123,22 +108,19 @@
                 }
             }
 
-            schoolSelect.addEventListener('change', () => {
-                const schoolId = schoolSelect.value;
+            const schoolId = {{ schools[0].id }};
 
-                // Fetch filtered programs
-                fetch(`/_get_programs/${schoolId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        clearOptions(programSelect);
-                        data.forEach(program => {
-                            const opt = new Option(program.name, program.id);
-                            programSelect.add(opt);
-                        });
-                        programSelect.dispatchEvent(new Event('change')); // trigger update of courses
+            // Fetch filtered programs
+            fetch(`/_get_programs/${schoolId}`)
+                .then(res => res.json())
+                .then(data => {
+                    clearOptions(programSelect);
+                    data.forEach(program => {
+                        const opt = new Option(program.name, program.id);
+                        programSelect.add(opt);
                     });
-
-            });
+                    programSelect.dispatchEvent(new Event('change')); // trigger update of courses
+                });
 
             programSelect.addEventListener('change', () => {
                 const programId = programSelect.value;

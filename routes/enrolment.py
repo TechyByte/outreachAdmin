@@ -76,7 +76,7 @@ def enroll(school_id=None, program_id=None):
 
                 db.session.commit()
         flash('School enrolled successfully!', 'success')
-        return redirect(url_for('enrolment.manage_enrollment'))
+        return redirect(url_for('school_mgmt.manage_school_program', school_id=school_id, program_id=program_id))
     else:
         # GET method
         if not school_id:
@@ -133,7 +133,7 @@ def unenroll():
 
             db.session.commit()
     flash('School unenrolled successfully.', 'info')
-    return redirect(url_for('enrolment.manage_enrollment'))
+    return redirect(url_for('enrolment.enroll', school_id=school_id))
 
 
 @bp.route('/manage-enrollment')

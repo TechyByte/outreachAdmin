@@ -2,7 +2,7 @@
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url_for('enrolment.manage_enrollment') }}">Manage Enrollments</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('enrolment.enroll', school_id=school.id) }}">Manage Enrollments</a></li>
             <li class="breadcrumb-item"><a href="{{ url_for('school_mgmt.manage_school_program', school_id=event.school.id, program_id=event.course.program.id) }}">{{ event.school.name }} on {{ event.course.program.name }}</a></li>
             <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_course', course_id=event.course.id) }}">{{ event.course.name }}</a></li>
             <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}">{{ event.name }}</a></li>

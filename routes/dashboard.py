@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
 
-from models import User, School, AgendaItem, Event, Course, Program, Location
+from models import User, School, AgendaItem, Event, Course, Program, Location, valid_user_roles
 from utils import check_permission
 
 bp = Blueprint('dashboard', __name__)
@@ -18,7 +18,7 @@ def admin_dashboard():
         return redirect(url_for('auth.login'))
 
     users = User.query.all()
-    return render_template('admin_dashboard.html', users=users)
+    return render_template('admin_dashboard.html', users=users, valid_user_roles=valid_user_roles)
 
 
 @bp.route('/school-dashboard')

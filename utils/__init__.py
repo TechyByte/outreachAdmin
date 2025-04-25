@@ -30,7 +30,7 @@ def check_permission(action):
                         flash("User access is not configured. No permissions found for role 'user'", "danger")
                         return redirect(url_for("auth.login"))
             if not user_perms.get(action, False):
-                flash('Permission denied.')
+                flash('Permission denied.', 'danger')
                 return redirect(url_for('index'))
             return func(*args, **kwargs)
         wrapper.__name__ = func.__name__

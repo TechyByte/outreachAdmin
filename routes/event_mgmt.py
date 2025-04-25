@@ -22,7 +22,7 @@ def edit_course(course_id):
     if request.method == 'POST':
         course.name = request.form['name']
         db.session.commit()
-        flash('Course updated.')
+        flash('Course updated.', 'success')
         return redirect(url_for('dashboard.admin_dashboard'))
     return render_template('edit_course.html', course=course, school=school, program=program)
 
@@ -46,8 +46,8 @@ def edit_event(event_id):
         if len(request.form['date']) > 0:
             event.date = datetime.strptime(request.form['date'], '%Y-%m-%d')
         db.session.commit()
-        flash('Event updated.')
-        return redirect(url_for('dashboard.schedule'))
+        flash('Event updated.', 'success')
+        return redirect(request.referrer or url_for('dashboard.schedule'))
     return render_template('edit_event.html', event=event, course=course, notes=event.filtered_notes,
                            locations=locations,
                            can_add_note=check_permission('add_event_note'),
@@ -147,7 +147,7 @@ def edit_agenda_item(item_id):
         #         'status') in AgendaItemStatus.__members__ else None
         #
         db.session.commit()
-        flash('Agenda item updated.')
+        flash('Agenda item updated.', 'success')
         #return redirect(url_for('event_mgmt.edit_event', event_id=item.event_id))
     return render_template('edit_agenda_item.html', item=item, lecturers=lecturers, course=course, event=event,
                            AgendaItemStatus=AgendaItemStatus, notes=item.filtered_notes,

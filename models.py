@@ -92,7 +92,7 @@ class User(db.Model, UserMixin):
 
     @validates('configured_role')
     def validate_configured_role(self, key, value):
-        if value not in valid_user_roles:
+        if value is not None and value not in valid_user_roles:
             raise ValueError(f"Invalid configured_role: {value}. Allowed configured_roles are: {valid_user_roles}")
         return value
 

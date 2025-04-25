@@ -10,7 +10,9 @@
             <thead class="table-dark">
             <tr>
                 <th>Username</th>
-                <th>Role</th>
+                <th>Default Role</th>
+                <th>Configured Role</th>
+                <th>Computed Role</th>
                 <th>Actions</th>
             </tr>
             </thead>
@@ -18,20 +20,20 @@
             {% for user in users %}
                 <tr>
                     <td>{{ user.username }}</td>
+                    <td>{{ user.default_role }}</td>
                     <td>
                         <form method="POST" action="{{ url_for('user_mgmt.change_user_type') }}">
                             <input type="hidden" name="user_id" value="{{ user.id }}">
                             <select name="new_role" class="form-select d-inline w-auto">
-                                <option value="admin" {% if user.role == "admin" %}selected{% endif %}>Admin</option>
-                                <option value="lecturer" {% if user.role == "lecturer" %}selected{% endif %}>Lecturer
-                                </option>
-                                <option value="school_contact"
-                                        {% if user.role == "school_contact" %}selected{% endif %}>School Contact
-                                </option>
+                            <option value=None {% if not user.configured_role %}selected{% endif %}>None</option>
+                            {% for role in valid_user_roles %}
+                                <option value="{{ role }}" {% if user.configured_role == role %}selected{% endif %}>{{ role }}</option>
+                            {% endfor %}
                             </select>
                             <button type="submit" class="btn btn-primary btn-sm">Update</button>
                         </form>
                     </td>
+                    <td>{{ user.role }}</td>
                     <td>
                         {% if user.role != 'admin' %}
                             <form method="POST" action="{{ url_for('user_mgmt.delete_user') }}">

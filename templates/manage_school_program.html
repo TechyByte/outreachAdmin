@@ -3,7 +3,7 @@
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url_for('enrolment.manage_enrollment') }}">Manage Enrollments</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('enrolment.enroll', school_id=school.id) }}">Manage Enrollments</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ school.name }} on {{ program.name }}</li>
         </ol>
     </nav>
