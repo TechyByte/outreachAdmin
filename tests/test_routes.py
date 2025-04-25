@@ -57,12 +57,6 @@ def test_event_schedule(client):
     assert response.status_code == 200
 
 
-def test_enrolment_page(client):
-    login(client)
-    response = client.get("/manage-enrollment")
-    assert response.status_code == 200
-
-
 def test_program_create_form(client):
     login(client)
     response = client.post("/programs", data=dict(name="New Program"))

@@ -136,12 +136,3 @@ def unenroll():
     return redirect(url_for('enrolment.enroll', school_id=school_id))
 
 
-@bp.route('/manage-enrollment')
-@login_required
-def manage_enrollment():
-    """Displays schools and their enrolled programs."""
-    with current_app.app_context():
-        schools = db.session.query(School).options(selectinload(School.programs)).all()
-        programs = db.session.query(Program).options(selectinload(Program.courses)).all()
-
-    return render_template('enroll.html', schools=schools, programs=programs)
