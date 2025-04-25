@@ -1,23 +1,29 @@
-<li class="list-group-item">
-    <em>{{ event.name }}</em>
-    {% if event.location %}
-        <p>Location: {{ event.location.name }}</p>
-    {% else %}
-        <p><i>Location to be confirmed</i></p>
-    {% endif %}
-    {% if event.date %}
-        <p>Date: {{ event.date }}</p>
-    {% else %}
-        <p><i>Date to be confirmed</i></p>
-    {% endif %}
-    {% if event.agenda_items %}
-        <p>Agenda:</p>
-        <ul class="list-group mt-2">
-            {% for item in event.agenda_items %}
-                <li class="list-group-item">{{ item.time|short_time }} {{ item.title }}</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p><i>Agenda to be confirmed</i></p>
-    {% endif %}
-</li>
+{% if event.agenda_items %}
+    <table class="table table-striped table-borderless">
+{#        <thead class="table-dark">#}
+{#            <tr>#}
+{#                <th>Time</th>#}
+{#                <th>Title</th>#}
+{#                <th>Lecturer</th>#}
+{#                <th>Status</th>#}
+{#                <th>Actions</th>#}
+{#            </tr>#}
+{#        </thead>#}
+        <tbody>
+        {% for item in event.agenda_items %}
+            <tr>
+                <td>{{ item.time|short_time }}</td>
+                <td>{{ item.title }}</td>
+                <td>{{ item.lecturer.username if item.lecturer else 'Unassigned' }}</td>
+                <td style="color: {{ item.status.color }}">{{ item.status.value }}</td>
+                <td>
+                    <a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" class="btn btn-sm btn-primary">Edit</a>
+
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p><i>Agenda to be confirmed</i></p>
+{% endif %}
