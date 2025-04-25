@@ -2,7 +2,6 @@ import os
 import sys
 import csv  # Add this import for CSV handling
 
-
 from flask import Flask
 from werkzeug.security import generate_password_hash
 
@@ -50,7 +49,7 @@ def initialise_database(schools_from_file=False):
                 with open(schools_file, mode='r', encoding='latin1') as csvfile:
                     reader = csv.DictReader(csvfile)
                     for row in reader:
-                        if row['LA (name)'] == "Birmingham" and row['EstablishmentStatus (name)'] == "Open":
+                        if row['LA (name)'] == "Birmingham" and row['EstablishmentStatus (name)'] == "Open" and row['PhaseOfEducation (name)'] != "Nursery":
                             school = School(
                                 urn=row['URN'],
                                 la_code=row['LA (code)'],

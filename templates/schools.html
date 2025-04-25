@@ -57,49 +57,41 @@
             </thead>
             <tbody>
             {% for school in schools %}
-                {% if (not request.args.get('type') or school.type_of_establishment == request.args.get('type')) and
-                       (not request.args.get('phase') or school.phase_of_education == request.args.get('phase')) and
-                       (not request.args.get('search') or request.args.get('search').lower() in (
-                           school.name | lower,
-                           school.street | lower,
-                           school.town | lower,
-                           school.postcode | lower,
-                           school.head_name | lower,
-                           school.contact_name | lower,
-                           school.urn | lower,
-                           school.establishment_number | lower
-                       ) | join(' ')) %}
-                    <tr>
-                        <td>{{ school.urn }}</td>
-                        <td>{{ school.name }}</td>
-                        <td>{{ school.type_of_establishment }}</td>
-                        <td>{{ school.phase_of_education }}</td>
-                        <td>{{ school.street }}, {{ school.town }}, {{ school.postcode }}</td>
-                        <td>{{ school.telephone }}</td>
-                        <td>{{ school.number_of_pupils }}</td>
-                        <td>{{ school.estimated_year_group_size }}</td>
-                        <td>
-                            {% if school.school_website %}
-                                <a href="{{ school.school_website }}" target="_blank">Visit</a>
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="#" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#editSchoolModal{{ school.id }}">
-                                Edit
-                            </a>
-                            <a href="{{ url_for('enrolment.enroll', school_id=school.id) }}"
-                               class="btn btn-sm btn-primary">
-                                Enrolments
-                            </a>
-                            <a href="{{ url_for('school_mgmt.delete_school', school_id=school.id) }}"
-                               class="btn btn-sm btn-danger">
-                                Delete
-                            </a>
-                        </td>
-                    </tr>
-                {% endif %}
+                <tr>
+                    <td>{{ school.urn }}</td>
+                    <td>{{ school.name }}</td>
+                    <td>{{ school.type_of_establishment }}</td>
+                    <td>{{ school.phase_of_education }}</td>
+                    <td>{{ school.street }}, {{ school.town }}, {{ school.postcode }}</td>
+                    <td>{{ school.telephone }}</td>
+                    <td>
+                        <p data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true"
+                           title="Year group size: {{ school.estimated_year_group_size }}<br />
+                                Boys/Girls: {{ school.number_of_boys }}:{{ school.number_of_girls }}">{{ school.number_of_pupils }}
+                        </p>
+                    </td>
+                    <td></td>
+                    <td>
+                        {% if school.school_website %}
+                            <a href="{{ school.school_website }}" target="_blank">Visit</a>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="#" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editSchoolModal{{ school.id }}">
+                            Edit
+                        </a>
+                        <a href="{{ url_for('enrolment.enroll', school_id=school.id) }}"
+                           class="btn btn-sm btn-primary">
+                            Enrolments
+                        </a>
+                        <a href="{{ url_for('school_mgmt.delete_school', school_id=school.id) }}"
+                           class="btn btn-sm btn-danger">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
             {% endfor %}
             </tbody>
         </table>

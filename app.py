@@ -66,17 +66,20 @@ def short_time_filter(value):
 
 
 # Compile SCSS to CSS using libsass
+@app.before_request
 def compile_scss():
-    scss_dir = os.path.join(app.root_path, 'static/scss')
-    css_dir = os.path.join(app.root_path, 'static/css')
-    os.makedirs(css_dir, exist_ok=True)
-    for scss_file in os.listdir(scss_dir):
-        if scss_file.endswith('.scss'):
-            scss_path = os.path.join(scss_dir, scss_file)
-            css_path = os.path.join(css_dir, scss_file.replace('.scss', '.css'))
-            css_content = sass.compile(filename=scss_path)  # Compile SCSS to CSS
-            with open(css_path, 'w') as css_file:
-                css_file.write(css_content)
+    if "PYTEST_CURRENT_TEST" not in os.environ:
+        app.before_request_funcs[None].remove(compile_scss)
+        scss_dir = os.path.join(app.root_path, 'static/scss')
+        css_dir = os.path.join(app.root_path, 'static/css')
+        os.makedirs(css_dir, exist_ok=True)
+        for scss_file in os.listdir(scss_dir):
+            if scss_file.endswith('.scss'):
+                scss_path = os.path.join(scss_dir, scss_file)
+                css_path = os.path.join(css_dir, scss_file.replace('.scss', '.css'))
+                css_content = sass.compile(filename=scss_path)  # Compile SCSS to CSS
+                with open(css_path, 'w') as css_file:
+                    css_file.write(css_content)
 
 @app.route('/')
 def index():
@@ -93,8 +96,8 @@ app.register_blueprint(event_mgmt_bp)
 app.register_blueprint(template_mgmt_bp)
 app.register_blueprint(config_mgmt_bp)
 
+
 if __name__ == '__main__':
-    compile_scss()
     app.run(debug=True)
 
 

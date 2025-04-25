@@ -211,11 +211,13 @@ def add_template_agenda_item():
     agenda_title = request.form.get('agenda_title')
     agenda_time = request.form.get('agenda_time')
     agenda_time = datetime.strptime(agenda_time, '%H:%M').time()
+    lecturer_id = request.form.get('lecturer_id')
 
     with current_app.app_context():
         new_agenda = TemplateAgendaItem(title=agenda_title,
                                         template_event_id=event_id,
-                                        time=agenda_time
+                                        time=agenda_time,
+                                        lecturer_id=int(lecturer_id) if lecturer_id and lecturer_id != "0" else None
                                         )
         db.session.add(new_agenda)
         db.session.commit()

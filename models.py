@@ -68,6 +68,8 @@ class User(db.Model, UserMixin):
     configured_role = db.Column(db.String(20), nullable=True)
     o365_id = db.Column(db.String(100), unique=True, nullable=True)  # Office 365 unique identifier
     email_verified = db.Column(db.Boolean, default=False)  # Whether the email has been verified via SSO
+    display_name = db.Column(db.String(100), nullable=True)  # New field for display name
+    specialty = db.Column(db.String(200), nullable=True)  # New field for specialty
 
     @staticmethod
     def get_or_create_o365_user(o365_id, email, username=None):
@@ -90,7 +92,7 @@ class User(db.Model, UserMixin):
 
     @validates('configured_role')
     def validate_configured_role(self, key, value):
-        if value not in valid_user_roles:
+        if value is not None and value not in valid_user_roles:
             raise ValueError(f"Invalid configured_role: {value}. Allowed configured_roles are: {valid_user_roles}")
         return value
 
@@ -266,7 +268,7 @@ class Course(db.Model):
     def status(self):
         if all(event.status == EventStatus.UNSCHEDULED for event in self.events):
             return CourseStatus.UNSCHEDULED
-        elif any(event.status == EventStatus.PARTIALLY_SCHEDULED for event in self.events):
+        elif any(event.status in [EventStatus.UNSCHEDULED, EventStatus.PARTIALLY_SCHEDULED] for event in self.events):
             return CourseStatus.PARTIALLY_SCHEDULED
         elif all(event.status == EventStatus.FULLY_SCHEDULED for event in self.events):
             return CourseStatus.FULLY_SCHEDULED
@@ -417,3 +419,4 @@ class AgendaItem(db.Model):
         return AgendaItemNote.query.filter_by(agenda_item_id=self.id, hidden=False).order_by(AgendaItemNote.datetime.desc()).all()
 
  
+

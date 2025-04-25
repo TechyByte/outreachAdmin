@@ -38,12 +38,12 @@ def change_user_type():
         return redirect(url_for('dashboard.admin_dashboard'))
 
     user_id = request.form.get('user_id')
-    new_role = request.form.get('new_role')
+    new_role = request.form.get('new_role') if request.form.get('new_role') != "None" else None
 
     user = User.query.get(user_id)
 
     if user:
-        user.role = new_role
+        user.configured_role = new_role
         db.session.commit()
         flash(f"User role updated to {new_role}!", "success")
     else:

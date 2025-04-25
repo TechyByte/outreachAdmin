@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
 
-from models import User, School, AgendaItem, Event, Course, Program, Location
+from models import User, School, AgendaItem, Event, Course, Program, Location, valid_user_roles
 from utils import check_permission
 
 bp = Blueprint('dashboard', __name__)
@@ -18,7 +18,7 @@ def admin_dashboard():
         return redirect(url_for('auth.login'))
 
     users = User.query.all()
-    return render_template('admin_dashboard.html', users=users)
+    return render_template('admin_dashboard.html', users=users, valid_user_roles=valid_user_roles)
 
 
 @bp.route('/school-dashboard')
@@ -105,7 +105,7 @@ def schedule():
 @login_required
 def schedule_events():
     # Fetch filters from query parameters
-    school_ids = request.args.getlist('school')
+    school_ids = request.args.getlist('school')  # Fetch school filter
     lecturer_ids = request.args.getlist('lecturer')
     program_ids = request.args.getlist('program')
     course_ids = request.args.getlist('course')
@@ -115,11 +115,11 @@ def schedule_events():
     future = today + timedelta(days=n_days)
 
     # Base query
-    events_query = Event.query.join(Course).join(School).join(Location, isouter=True)
+    events_query = Event.query.join(Course).join(School)
 
     # Apply filters
     if school_ids:
-        events_query = events_query.filter(Event.school_id.in_(school_ids))
+        events_query = events_query.filter(Event.school_id.in_(school_ids))  # Apply school filter
     if lecturer_ids:
         events_query = events_query.join(Event.agenda_items).filter(AgendaItem.lecturer_id.in_(lecturer_ids))
     if program_ids:

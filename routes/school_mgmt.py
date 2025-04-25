@@ -157,5 +157,24 @@ def manage_school_program(school_id, program_id):
     )
 
 
+@bp.route('/schools/search', methods=['GET'])
+@login_required
+def search_schools():
+    """Handles AJAX requests for searching schools."""
+    query = request.args.get('query', '').strip().lower()
+    if len(query) < 3:
+        return []
 
+    schools = School.query.filter(
+        (School.name.ilike(f"%{query}%")) |
+        (School.street.ilike(f"%{query}%")) |
+        (School.town.ilike(f"%{query}%")) |
+        (School.postcode.ilike(f"%{query}%")) |
+        (School.head_name.ilike(f"%{query}%")) |
+        (School.contact_name.ilike(f"%{query}%")) |
+        (School.urn.ilike(f"%{query}%")) |
+        (School.establishment_number.ilike(f"%{query}%"))
+    ).all()
+
+    return [{'id': school.id, 'name': school.name, 'urn': school.urn} for school in schools]
 
