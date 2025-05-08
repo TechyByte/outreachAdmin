@@ -1,35 +1,31 @@
-<div class="">
-    <strong>{{ course.name }} - {{ course.school.name }}</strong>
-
-    <table class="table table-bordered">
-        <thead class="table-dark">
-            <tr>
-                <th>Event Name</th>
-                <th>Date</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Agenda</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for event in course.events %}
-            <tr>
-                            <td>{{ event.name }}</td>
-                            <td>{% if event.date %}
-                                    <p>Date: {{ event.date }}</p>
-                                {% else %}
-                                    <p><i>Date to be confirmed</i></p>
-                                {% endif %}</td>
-                            <td>{{ event.location.name if event.location else 'Unknown' }}</td>
-                            <td style="color: {{ event.status.color }}">{{ event.status.value }}</td>
-                            <td>{% include '_event_tree.html' with context %}</td>
-                            <td>
-                                <a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}" class="btn btn-sm btn-primary">Edit</a>
-                            </td>
-                        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+<table class="table table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>Event Name</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Agenda</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for event in course.events %}
+        <tr>
+                        <td>{{ event.name }}</td>
+                        <td>{% if event.date %}
+                                <p>Date: {{ event.date }}</p>
+                            {% else %}
+                                <p><i>Date to be confirmed</i></p>
+                            {% endif %}</td>
+                        <td>{{ event.location.name if event.location else 'Unknown' }}</td>
+                        <td style="color: {{ event.status.color }}">{{ event.status.value }}</td>
+                        <td >{% include '_event_tree.html' with context %}</td>
+                        <td>
+                            <a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}" class="btn btn-sm btn-primary">Edit</a>
+                        </td>
+                    </tr>
+    {% endfor %}
+    </tbody>
+</table>
 
