@@ -17,7 +17,7 @@ from sqlalchemy.orm import object_session
 import logging as logger
 logger.basicConfig(level=logger.DEBUG)
 logging = logger.getLogger(__name__)
-
+from jinja2 import Template  # Import Jinja2 for rendering templates
 
 db = SQLAlchemy()
 
@@ -39,6 +39,34 @@ school_program = db.Table('school_program',
                           db.Column('school_id', db.Integer, db.ForeignKey('school.id'), primary_key=True),
                           db.Column('program_id', db.Integer, db.ForeignKey('program.id'), primary_key=True)
                           )
+
+# Many-to-Many Relationship Between MailMergeTemplate and TemplateCourse
+mail_merge_template_template_course = db.Table(
+    'mail_merge_template_template_course',
+    db.Column('mail_merge_template_id', db.Integer, db.ForeignKey('mail_merge_template.id'), primary_key=True),
+    db.Column('template_course_id', db.Integer, db.ForeignKey('template_course.id'), primary_key=True)
+)
+
+# Many-to-Many Relationship Between MailMergeTemplate and TemplateEvent
+mail_merge_template_template_event = db.Table(
+    'mail_merge_template_template_event',
+    db.Column('mail_merge_template_id', db.Integer, db.ForeignKey('mail_merge_template.id'), primary_key=True),
+    db.Column('template_event_id', db.Integer, db.ForeignKey('template_event.id'), primary_key=True)
+)
+
+# Many-to-Many Relationship Between MailMergeTemplate and TemplateAgendaItem
+mail_merge_template_template_agenda_item = db.Table(
+    'mail_merge_template_template_agenda_item',
+    db.Column('mail_merge_template_id', db.Integer, db.ForeignKey('mail_merge_template.id'), primary_key=True),
+    db.Column('template_agenda_item_id', db.Integer, db.ForeignKey('template_agenda_item.id'), primary_key=True)
+)
+
+# Many-to-Many Relationship Between MailMergeTemplate and Program
+mail_merge_template_program = db.Table(
+    'mail_merge_template_program',
+    db.Column('mail_merge_template_id', db.Integer, db.ForeignKey('mail_merge_template.id'), primary_key=True),
+    db.Column('program_id', db.Integer, db.ForeignKey('program.id'), primary_key=True)
+)
 
 
 class Location(db.Model):
@@ -205,6 +233,11 @@ class Program(db.Model):
     schools = db.relationship('School', secondary=school_program, back_populates='programs')
     # ✅ Relationship with TemplateCourse (Many-to-Many)
     template_courses = db.relationship('TemplateCourse', secondary=program_template_course, back_populates='programs')
+    mail_merge_templates = db.relationship(
+        'MailMergeTemplate',
+        secondary=mail_merge_template_program,
+        back_populates='programs'
+    )
 
 
 class TemplateCourse(db.Model):
@@ -215,6 +248,11 @@ class TemplateCourse(db.Model):
     # program = db.relationship('Program', backref='template_courses', lazy=True)
     programs = db.relationship('Program', secondary=program_template_course, back_populates='template_courses')
     template_events = db.relationship('TemplateEvent', backref='template_course')
+    mail_merge_templates = db.relationship(
+        'MailMergeTemplate',
+        secondary=mail_merge_template_template_course,
+        back_populates='template_courses'
+    )
 
 
 class TemplateEvent(db.Model):
@@ -223,6 +261,11 @@ class TemplateEvent(db.Model):
     template_course_id = db.Column(db.Integer, db.ForeignKey('template_course.id'), nullable=False)
     template_agenda_items = db.relationship('TemplateAgendaItem', backref='template_event',
                                             order_by='TemplateAgendaItem.time.asc()')
+    mail_merge_templates = db.relationship(
+        'MailMergeTemplate',
+        secondary=mail_merge_template_template_event,
+        back_populates='template_events'
+    )
 
 
 class TemplateAgendaItem(db.Model):
@@ -234,6 +277,11 @@ class TemplateAgendaItem(db.Model):
     lecturer = db.relationship('User', backref='template_agenda_items')
     duration = db.Column(db.Interval, nullable=True)
     time = db.Column(db.Time, nullable=True)  # Time of day
+    mail_merge_templates = db.relationship(
+        'MailMergeTemplate',
+        secondary=mail_merge_template_template_agenda_item,
+        back_populates='template_agenda_items'
+    )
 
 
 class CourseStatus(PyEnum):
@@ -260,9 +308,12 @@ class Course(db.Model):
     name = db.Column(db.String(100), nullable=False)
     program_id = db.Column(db.Integer, db.ForeignKey('program.id'), nullable=False)
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
+    template_course_id = db.Column(db.Integer, db.ForeignKey('template_course.id'), nullable=True)  # Link to TemplateCourse
+
     program = db.relationship('Program', backref='courses')
     school = db.relationship('School', backref='courses')
-    events = db.relationship('Event', backref='course', order_by='Event.date.asc()', cascade='all, delete-orphan')
+    template_course = db.relationship('TemplateCourse', backref='courses')  # Relationship to TemplateCourse
+    events = db.relationship('Event', backref='linked_course', order_by='Event.date.asc()', cascade='all, delete-orphan')
 
     @property
     def status(self):
@@ -327,12 +378,13 @@ class Event(db.Model):
     name = db.Column(db.String(100), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=False)
+    template_event_id = db.Column(db.Integer, db.ForeignKey('template_event.id'), nullable=True)  # Link to TemplateEvent
+
     school = db.relationship('School', backref='events')
+    course = db.relationship('Course', backref='event_list')  # Use a unique backref name
+    template_event = db.relationship('TemplateEvent', backref='events')  # Relationship to TemplateEvent
 
     notes = db.relationship('EventNote', back_populates='event', order_by='EventNote.datetime.desc()')
-
-
-
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=True)  # Allow null if no location assigned
     location = db.relationship('Location', backref='events')
 
@@ -411,6 +463,8 @@ class AgendaItem(db.Model):
     time = db.Column(db.Time, nullable=True)
     duration = db.Column(db.Interval, nullable=True)
     description = db.Column(db.Text, nullable=True)
+    template_agenda_item_id = db.Column(db.Integer, db.ForeignKey('template_agenda_item.id'), nullable=True)  # Link to TemplateAgendaItem
+    template_agenda_item = db.relationship('TemplateAgendaItem', backref='agenda_items')  # Relationship to TemplateAgendaItem
 
     notes = db.relationship('AgendaItemNote', back_populates='agenda_item', order_by='AgendaItemNote.datetime.desc()')
 
@@ -418,5 +472,96 @@ class AgendaItem(db.Model):
     def filtered_notes(self):
         return AgendaItemNote.query.filter_by(agenda_item_id=self.id, hidden=False).order_by(AgendaItemNote.datetime.desc()).all()
 
- 
+
+class MailMergeTemplate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    recipient_type = db.Column(db.String(50), nullable=False)  # 'lecturer' or 'school_contact'
+
+    # Remove these redundant relationships
+    # template_course_id = db.Column(db.Integer, db.ForeignKey('template_course.id'), nullable=True)
+    # template_event_id = db.Column(db.Integer, db.ForeignKey('template_event.id'), nullable=True)
+    # template_agenda_item_id = db.Column(db.Integer, db.ForeignKey('template_agenda_item.id'), nullable=True)
+
+    # Many-to-Many Relationships
+    template_courses = db.relationship(
+        'TemplateCourse',
+        secondary=mail_merge_template_template_course,
+        back_populates='mail_merge_templates'
+    )
+    template_events = db.relationship(
+        'TemplateEvent',
+        secondary=mail_merge_template_template_event,
+        back_populates='mail_merge_templates'
+    )
+    template_agenda_items = db.relationship(
+        'TemplateAgendaItem',
+        secondary=mail_merge_template_template_agenda_item,
+        back_populates='mail_merge_templates'
+    )
+    programs = db.relationship(
+        'Program',
+        secondary=mail_merge_template_program,
+        back_populates='mail_merge_templates'
+    )
+
+    # Sendable statuses
+    sendable_statuses = db.Column(db.JSON, nullable=True)  # List of statuses when the template is sendable
+
+    def is_sendable(self, entity):
+        """
+        Check if the template is sendable based on the status of a live entity.
+        :param entity: A Program, Course, Event, or AgendaItem instance.
+        :return: Boolean indicating if the template is sendable.
+        """
+        if isinstance(entity, Program):
+            return entity in self.program.mail_merge_templates if self.program else False
+        elif isinstance(entity, Course):
+            return any(course in self.template_courses for course in entity.template_course.mail_merge_templates)
+        elif isinstance(entity, Event):
+            return any(event in self.template_events for event in entity.template_event.mail_merge_templates)
+        elif isinstance(entity, AgendaItem):
+            return any(item in self.template_agenda_items for item in entity.template_agenda_item.mail_merge_templates)
+        return False
+
+    def render_content(self, context):
+        """
+        Render the template content by replacing placeholders with actual values from the context.
+        :param context: A dictionary containing the context data (e.g., course, event, etc.).
+        :return: Rendered content as a string.
+        """
+        try:
+            template = Template(self.content)
+            return template.render(context)
+        except Exception as e:
+            logging.error(f"Error rendering template: {e}")
+            return self.content  # Return the original content if rendering fails
+
+
+class MailMergeTemplateSend(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    mail_merge_template_id = db.Column(db.Integer, db.ForeignKey('mail_merge_template.id'), nullable=False)
+    recipient_email = db.Column(db.String(255), nullable=False)
+    generated_content = db.Column(db.Text, nullable=False)
+    sent_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    # Relationships to link the sent mail to the relevant entity
+    program_id = db.Column(db.Integer, db.ForeignKey('program.id'), nullable=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=True)
+    agenda_item_id = db.Column(db.Integer, db.ForeignKey('agenda_item.id'), nullable=True)
+
+    mail_merge_template = db.relationship('MailMergeTemplate', backref='sent_mails')
+    program = db.relationship('Program', backref='sent_mails')
+    course = db.relationship('Course', backref='sent_mails')
+    event = db.relationship('Event', backref='sent_mails')
+    agenda_item = db.relationship('AgendaItem', backref='sent_mails')
+
+
+
+
+
+
+
 
