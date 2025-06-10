@@ -130,7 +130,7 @@ def schedule_events():
         events_query = events_query.filter(Event.location_id.in_(location_ids))
 
     # Date range filter
-    events_query = events_query.filter((Event.date >= today) | (Event.date == None), Event.date <= future)
+    events_query = events_query.filter((Event.date >= today - timedelta(days=31)) | (Event.date == None), (Event.date <= future) | (Event.date == None))
 
     events = events_query.options(joinedload(Event.agenda_items)).all()
 
@@ -138,11 +138,25 @@ def schedule_events():
     event_list = []
     for event in events:
         # Add the main event
+        if event.start_time:
+            start_time = event.start_time
+        elif event.date:
+            start_time = event.date.isoformat()
+        else:
+            start_time = None
+
+        if event.end_time:
+            end_time = event.end_time
+        elif event.date:
+            end_time = event.date.isoformat()
+        else:
+            end_time = None
+
         event_list.append({
             'id': f'event-{event.id}',
             'title': event.name,
-            'start': event.start_time.isoformat() if event.start_time else event.date.isoformat(),
-            'end': event.end_time.isoformat() if event.end_time else event.date.isoformat(),
+            'start': start_time,
+            'end': end_time,
             'location': event.location.name if event.location else 'N/A',
             'backgroundColor': event.status.color,
             'display': 'block',

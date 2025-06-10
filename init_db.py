@@ -154,14 +154,14 @@ def initialise_database(schools_from_file=False):
         school1.programs.append(program1)
 
         # Copy selected template courses
-        new_course = Course(name=template_course1.name, program_id=program1.id, school_id=school1.id)
+        new_course = Course(name=template_course1.name, program_id=program1.id, school_id=school1.id, template_course_id=template_course1.id)
         db.session.add(new_course)
         db.session.commit()
 
         # Copy events
         template_events = TemplateEvent.query.filter_by(template_course_id=template_course1.id).all()
         for template_event in template_events:
-            new_event = Event(name=template_event.name, course_id=new_course.id, school_id=school1.id)
+            new_event = Event(name=template_event.name, course_id=new_course.id, school_id=school1.id, template_event_id=template_event.id)
             db.session.add(new_event)
             db.session.commit()
 
@@ -173,7 +173,8 @@ def initialise_database(schools_from_file=False):
                                         lecturer_id=template_agenda.lecturer_id,
                                         time=template_agenda.time,
                                         duration=template_agenda.duration,
-                                        description=template_agenda.description)
+                                        description=template_agenda.description,
+                                        template_agenda_item_id=template_agenda.id)
                 db.session.add(new_agenda)
 
         db.session.commit()

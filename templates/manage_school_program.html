@@ -29,92 +29,18 @@
                         <td>
                             <a href="{{ url_for('event_mgmt.edit_course', course_id=course.id) }}" class="btn btn-sm btn-primary">Edit</a>
                             <a href="{{ url_for('event_mgmt.create_event', course_id=course.id) }}" class="btn btn-sm btn-success">Create Event</a>
+                            <a class="btn btn-sm btn-info" href="#course{{ course.id }}" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="{{ course.id }}">
+                                View Events
+                            </a>
                         </td>
                     </tr>
+                    <tr class="collapse" id="course{{ course.id }}"><td colspan="100%"><div>{% include "_course_tree.html" with context %}</div></td></tr>
                 {% endfor %}
             </tbody>
         </table>
-
-{#        <!-- Filters Section -->#}
-{#        <form method="get" class="mt-4">#}
-{#            <h4>Filters</h4>#}
-{#            <div class="form-check">#}
-{#                <input class="form-check-input" type="checkbox" name="include_events" id="include_events" value="true" {% if include_events %}checked{% endif %}>#}
-{#                <label class="form-check-label" for="include_events">Include Events</label>#}
-{#            </div>#}
-{#            <div class="form-check">#}
-{#                <input class="form-check-input" type="checkbox" name="include_agenda_items" id="include_agenda_items" value="true" {% if include_agenda_items %}checked{% endif %}>#}
-{#                <label class="form-check-label" for="include_agenda_items">Include Agenda Items</label>#}
-{#            </div>#}
-{#            <button type="submit" class="btn btn-primary mt-2">Apply Filters</button>#}
-{#        </form>#}
-
-        <!-- Events Section -->
-        {% if include_events %}
-            <h4 class="mt-4">Events</h4>
-            <table class="table table-bordered">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Event Name</th>
-                        <th>Date</th>
-                        <th>Location</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for course in courses %}
-                        {% for event in course.events %}
-                            <tr>
-                                <td>{{ event.name }}</td>
-                                <td>{{ event.date }}</td>
-                                <td>{{ event.location.name if event.location else 'Unknown' }}</td>
-                                <td style="color: {{ event.status.color }}">{{ event.status.value }}</td>
-                                <td>
-                                    <a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}" class="btn btn-sm btn-primary">Edit</a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% endif %}
-
-        <!-- Agenda Items Section -->
-        {% if include_agenda_items %}
-            <h4 class="mt-4">Agenda Items</h4>
-            <table class="table table-bordered">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Event</th>
-                        <th>Time</th>
-                        <th>Title</th>
-                        <th>Lecturer</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for course in courses %}
-                        {% for event in course.events %}
-                            {% for item in event.agenda_items %}
-                                <tr>
-                                    <td>{{ event.name }}</td>
-                                    <td>{{ item.time|short_time }}</td>
-                                    <td>{{ item.title }}</td>
-                                    <td>{{ item.lecturer.username if item.lecturer else 'Unassigned' }}</td>
-                                    <td style="color: {{ item.status.color }}">{{ item.status.value }}</td>
-                                    <td>
-                                        <a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" class="btn btn-sm btn-primary">Edit</a>
-
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% endif %}
+{#                {% for course in courses %}#}
+{#                    {% include "_course_tree.html" with context %}#}
+{#                {% endfor %}#}
     </div>
 {% endblock %}
 

@@ -52,26 +52,39 @@ def enroll(school_id=None, program_id=None):
                 # Copy selected template courses
                 for template_course_id in selected_course_ids:
                     template_course = TemplateCourse.query.get(template_course_id)
-                    new_course = Course(name=template_course.name, program_id=program.id, school_id=school.id)
+                    new_course = Course(
+                        name=template_course.name,
+                        program_id=program.id,
+                        school_id=school.id,
+                        template_course_id=template_course.id  # Populate the template_course_id field
+                    )
                     db.session.add(new_course)
                     db.session.commit()
 
                     # Copy events
                     template_events = TemplateEvent.query.filter_by(template_course_id=template_course.id).all()
                     for template_event in template_events:
-                        new_event = Event(name=template_event.name, course_id=new_course.id, school_id=school.id)
+                        new_event = Event(
+                            name=template_event.name,
+                            course_id=new_course.id,
+                            school_id=school.id,
+                            template_event_id=template_event.id  # Populate the template_event_id field
+                        )
                         db.session.add(new_event)
                         db.session.commit()
 
                         # Copy agenda items
                         template_agendas = TemplateAgendaItem.query.filter_by(template_event_id=template_event.id).all()
                         for template_agenda in template_agendas:
-                            new_agenda = AgendaItem(title=template_agenda.title,
-                                                    event_id=new_event.id,
-                                                    lecturer_id=template_agenda.lecturer_id,
-                                                    time=template_agenda.time,
-                                                    duration=template_agenda.duration,
-                                                    description=template_agenda.description)
+                            new_agenda = AgendaItem(
+                                title=template_agenda.title,
+                                event_id=new_event.id,
+                                lecturer_id=template_agenda.lecturer_id,
+                                time=template_agenda.time,
+                                duration=template_agenda.duration,
+                                description=template_agenda.description,
+                                template_agenda_item_id=template_agenda.id
+                            )
                             db.session.add(new_agenda)
 
                 db.session.commit()
@@ -134,5 +147,4 @@ def unenroll():
             db.session.commit()
     flash('School unenrolled successfully.', 'info')
     return redirect(url_for('enrolment.enroll', school_id=school_id))
-
 

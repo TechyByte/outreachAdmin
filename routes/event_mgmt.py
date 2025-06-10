@@ -33,7 +33,7 @@ def edit_course(course_id):
 @check_permission('edit_event')
 def edit_event(event_id):
     event = Event.query.get_or_404(event_id)
-    course = db.session.query(Course).get(event.course_id)
+    course = event.course  # Use the simplified course relationship
     school = School.query.get_or_404(course.school_id)
     program = Program.query.get_or_404(course.program_id)
     locations = db.session.query(Location).all()
@@ -106,7 +106,7 @@ def edit_agenda_item(item_id):
     lecturers = User.query.filter((User.role == 'lecturer') | (User.role == 'admin')).all()
 
     event = db.session.query(Event).get(item.event_id)
-    course = db.session.query(Course).get(event.course_id)  # Retrieve the course
+    course = event.course  # Use the simplified course relationship
     school = School.query.get_or_404(course.school_id)
     program = Program.query.get_or_404(course.program_id)
 
@@ -142,13 +142,8 @@ def edit_agenda_item(item_id):
         except ValueError:
             logging.debug('Invalid lecturer ID')
 
-        # if request.form.get('status') is not None:
-        #     item.status = request.form.get('status') if request.form.get(
-        #         'status') in AgendaItemStatus.__members__ else None
-        #
         db.session.commit()
         flash('Agenda item updated.', 'success')
-        #return redirect(url_for('event_mgmt.edit_event', event_id=item.event_id))
     return render_template('edit_agenda_item.html', item=item, lecturers=lecturers, course=course, event=event,
                            AgendaItemStatus=AgendaItemStatus, notes=item.filtered_notes,
                            can_add_note=can_add_note, can_archive_note=can_archive_note, can_view_note=can_view_note,
@@ -253,6 +248,7 @@ def create_event(course_id):
         if template_id and template_id != "none":
             template = TemplateEvent.query.get(template_id)
             if template:
+                new_event.template_event_id = template.id  # Populate the template_event_id field
                 db.session.add(new_event)
                 db.session.commit()
 
