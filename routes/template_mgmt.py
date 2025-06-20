@@ -493,6 +493,9 @@ def send_mail(template_id):
     event_id = request.form.get('event_id')
     agenda_item_id = request.form.get('agenda_item_id')
 
+    lecturer_email = None
+    school_email = None
+
     # Build the context based on the selected entity
     context = {}
     if program_id:
@@ -501,14 +504,23 @@ def send_mail(template_id):
         context['course'] = Course.query.get_or_404(course_id)
     if event_id:
         context['event'] = Event.query.get_or_404(event_id)
+        school_email = context['event'].school.contact_email
     if agenda_item_id:
         context['agenda_item'] = AgendaItem.query.get_or_404(agenda_item_id)
+        school_email = context['agenda_item'].event.school.contact_email
+        lecturer_email = context['agenda_item'].lecturer.email
 
     # Render the email content
     generated_content = template.render_content(context)
 
     recipient_email = request.form.get('recipient_email')
     if not recipient_email:
+        if template.recipient_type == 'lecturer' and lecturer_email:
+            recipient_email = lecturer_email
+        elif template.recipient_type == 'school_contact' and school_email:
+            recipient_email = school_email
+        else:
+            flash ("Invalid recipient type for template-entity - fix this error by specifying a recipient", "warning")
         flash("Recipient email is required!", "danger")
         return redirect(url_for('template_mgmt.comms_panel'))
 

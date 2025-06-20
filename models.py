@@ -215,7 +215,7 @@ class School(db.Model):
     contact_phone = db.Column(db.String(20), nullable=True)
     users = db.relationship('User', back_populates='school')
     programs = db.relationship('Program', secondary=school_program,
-                               back_populates='schools')  # backref=db.backref('schools', lazy='dynamic'))
+                               back_populates='schools')  # backref=db.backref('schools', lazy='dynamic'))  # TODO: back_populates "schools" to "school" ?
 
     @property
     def estimated_year_group_size(self):
@@ -224,6 +224,7 @@ class School(db.Model):
             if est_year_groups > 0:
                 return self.number_of_pupils // est_year_groups
         return ""
+
 
 
 class Program(db.Model):
@@ -398,13 +399,17 @@ class Event(db.Model):
 
     @property
     def status(self):
-        if all(item.lecturer is None for item in self.agenda_items) or not self.date:
-            return EventStatus.UNSCHEDULED
-        elif any(item.lecturer is not None for item in self.agenda_items) and any(item.lecturer is None for item in self.agenda_items):
-            return EventStatus.PARTIALLY_SCHEDULED
+        if any(item.lecturer is None for item in self.agenda_items) or not self.date:
+            # If any item is missing a lecturer or if the event does not have a date, consider the event unscheduled
+            return EventStatus.UNSCHEDULED  # Indicates that the event is missing a date or has items without lecturers
+        elif any(item.status == AgendaItemStatus.UNSCHEDULED for item in self.agenda_items) and any(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] for item in self.agenda_items):
+            # If any item is unscheduled and any item is tentative or confirmed, consider the event partially scheduled
+            return EventStatus.PARTIALLY_SCHEDULED  # Indicates that agenda items are not fully confirmed
         elif all(item.status == AgendaItemStatus.CONFIRMED for item in self.agenda_items):
+            # If all agenda items are confirmed, consider the event fully scheduled
             return EventStatus.FULLY_SCHEDULED
         elif all(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] for item in self.agenda_items):
+            # If all agenda items are either confirmed or tentative, consider the event tentatively scheduled
             return EventStatus.TENTATIVELY_SCHEDULED
         return EventStatus.UNKNOWN
 
@@ -412,6 +417,9 @@ class Event(db.Model):
     def start_time(self):
         if not self.date or not self.agenda_items:
             return None  # Return None if date or agenda_items is missing
+        for i in self.agenda_items:
+            if i.time is None:
+                return None
         first_item = min(self.agenda_items, key=lambda item: item.time)
         if first_item.time is None:
             return None
@@ -427,6 +435,28 @@ class Event(db.Model):
             return None
         end_time = datetime.combine(self.date, last_item.time) + last_item.duration + timedelta(minutes=15)
         return end_time
+
+
+    @property
+    def duration(self):
+        if not self.agenda_items:
+            return None
+
+        start = min([item for item in self.agenda_items if item.time], key=lambda item: item.time).time
+
+        end = max([item for item in self.agenda_items if item.time and item.duration], key=lambda item: item.time)
+
+        if end.time and end.duration:
+            end = (datetime.combine(datetime.today(), end.time) + end.duration).time()
+        else:
+            end = datetime.combine(datetime.today(), end.time).time()
+
+        if start and end:
+            # Calculate duration based on start and end times
+            start_datetime = datetime.combine(datetime.today(), start)
+            end_datetime = datetime.combine(datetime.today(), end)
+            return end_datetime - start_datetime
+        return None
 
 
 @event.listens_for(EventNote, 'before_delete')
@@ -473,6 +503,25 @@ class AgendaItem(db.Model):
         return AgendaItemNote.query.filter_by(agenda_item_id=self.id, hidden=False).order_by(AgendaItemNote.datetime.desc()).all()
 
 
+    @property
+    def height(self):
+        """
+        Calculate the height of the agenda item based on its duration.
+        :return: Height in pixels.
+        """
+        if self.duration:
+            # Assuming 1 minute = 2 pixels
+            return int(330 * self.duration.total_seconds() / self.event.duration.total_seconds())
+        return 33
+
+
+    @property
+    def color(self):
+        # Generate a distinct color code using a hash of the agenda item ID
+        hash_object = hashlib.md5(str(self.id).encode())
+        return f"#f{hash_object.hexdigest()[:4]}f"
+
+
 class MailMergeTemplate(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -508,6 +557,13 @@ class MailMergeTemplate(db.Model):
 
     # Sendable statuses
     sendable_statuses = db.Column(db.JSON, nullable=True)  # List of statuses when the template is sendable
+
+    @property
+    def is_live(self):
+        """
+        Determine if the template is live (linked to any programs, courses, events, or agenda items).
+        """
+        return bool(self.programs or self.template_courses or self.template_events or self.template_agenda_items)
 
     def is_sendable(self, entity):
         """

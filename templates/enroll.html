@@ -10,15 +10,18 @@
             <thead class="table-dark">
             <tr>
                 <th>School</th>
+                <th>Contact</th>
                 <th>Enrolled Programs</th>
             </tr>
             </thead>
             <tbody>
             {% for school in schools %}
-                <tr>
-                    <td>{{ school.name }}</td>
-                    <td>
-                        {% if school.programs %}
+                {% if school.programs %}
+                    <tr>
+                        <td>{{ school.name }}</td>
+                        <td>{{ school.contact_name }} ({{ school.contact_email }})</td>
+                        <td>
+
                             {% for program in school.programs %}
                                 <a href="{{ url_for('school_mgmt.manage_school_program', school_id=school.id, program_id=program.id) }}" class="badge bg-secondary">
                                 {{ program.name }}
@@ -28,16 +31,30 @@
                                         <a href="{{ url_for('event_mgmt.edit_course', course_id=course.id) }}" class="badge bg-primary">{{ course.name }}</a>
                                     {% endif %}
                                 {% endfor %}
+                                <!-- Display Unenroll button -->
+                                <form method="POST" action="{{ url_for('enrolment.unenroll') }}" class="d-inline">
+                                    <input type="hidden" name="school_id" value="{{ school.id }}">
+                                    <input type="hidden" name="program_id" value="{{ program.id }}">
+                                    <button type="submit" class="btn btn-danger btn-sm">Unenroll</button>
+                                </form>
                                 <br />
                             {% endfor %}
-                        {% else %}
-                            <span class="text-muted">Not enrolled in any programs</span>
-                        {% endif %}
-                    </td>
-                </tr>
+
+                        </td>
+                    </tr>
+                {% endif %}
             {% endfor %}
             </tbody>
         </table>
+
+        {% for school in schools %}
+            <ul class="list-group">
+                {% for course in school.courses %}
+                    {% include "_course_tree.html" with context %}
+                {% endfor %}
+            </ul>
+        {% endfor %}
+
 
         <div class="accordion" id="enroll_actions">
             <div class="accordion-item">

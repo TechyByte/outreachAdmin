@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
-    <h2>Create Event for {{ course.name }}</h2>
+    <h2>Create Event</h2>
+    <h3>{{ course.program.name }} - {{ course.school.name }} - {{ course.name }}</h3>
     <form method="post">
         <div class="mb-3">
             <label for="name" class="form-label">Event Name</label>

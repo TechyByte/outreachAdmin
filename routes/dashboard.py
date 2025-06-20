@@ -1,13 +1,105 @@
 from datetime import datetime, timedelta
+from sqlalchemy.sql import or_
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
 
-from models import User, School, AgendaItem, Event, Course, Program, Location, valid_user_roles
+from models import db, User, School, AgendaItem, Event, Course, Program, Location, valid_user_roles, MailMergeTemplateSend, \
+    AgendaItemStatus, EventStatus
 from utils import check_permission
 
 bp = Blueprint('dashboard', __name__)
+
+
+@bp.route('/')
+@login_required
+def home():
+    # Determine sendable but unsent emails
+    sendable_unsent_emails = []
+
+    # Check school_program entries
+    school_programs = db.session.query(School, Program).join(School.programs).all()
+    for school, program in school_programs:
+        for template in program.mail_merge_templates:
+            sent_records = MailMergeTemplateSend.query.filter_by(
+                mail_merge_template_id=template.id, program_id=program.id
+            ).all()
+            if not sent_records:
+                sendable_unsent_emails.append({
+                    'type': 'School Program',
+                    'name': f"{school.name} - {program.name}",
+                    'template': template,
+                    'program_id': program.id,
+                    'school_id': school.id
+                })
+
+    # Check courses
+    courses = Course.query.all()
+    for course in courses:
+        if course.template_course:
+            for template in course.template_course.mail_merge_templates:
+                sent_records = MailMergeTemplateSend.query.filter_by(
+                    mail_merge_template_id=template.id, course_id=course.id
+                ).all()
+                if not sent_records:
+                    sendable_unsent_emails.append({
+                        'type': 'Course',
+                        'name': course.name,
+                        'template': template,
+                        'course_id': course.id
+                    })
+
+    # Check events
+    events = Event.query.all()
+    for event in events:
+        if event.template_event:
+            for template in event.template_event.mail_merge_templates:
+                sent_records = MailMergeTemplateSend.query.filter_by(
+                    mail_merge_template_id=template.id, event_id=event.id
+                ).all()
+                if not sent_records:
+                    sendable_unsent_emails.append({
+                        'type': 'Event',
+                        'name': event.name,
+                        'template': template,
+                        'event_id': event.id
+                    })
+
+    # Check agenda items
+    agenda_items = AgendaItem.query.all()
+    for item in agenda_items:
+        if item.template_agenda_item:
+            for template in item.template_agenda_item.mail_merge_templates:
+                sent_records = MailMergeTemplateSend.query.filter_by(
+                    mail_merge_template_id=template.id, agenda_item_id=item.id
+                ).all()
+                if not sent_records:
+                    sendable_unsent_emails.append({
+                        'type': 'Agenda Item',
+                        'name': item.title,
+                        'template': template,
+                        'agenda_item_id': item.id
+                    })
+
+    # Fetch other data for the dashboard
+    unconfirmed_events = Event.query.filter(
+        or_(
+            Event.date.is_(None),  # Event has no date
+            Event.agenda_items.any(AgendaItem.lecturer_id.is_(None)),  # Any agenda item has no lecturer
+            Event.agenda_items.any(AgendaItem.status != AgendaItemStatus.CONFIRMED)  # Any agenda item is not confirmed
+        )
+    ).all()
+    tentative_agenda_items = AgendaItem.query.filter_by(status=AgendaItemStatus.TENTATIVE).all()
+    unscheduled_agenda_items = AgendaItem.query.filter_by(status=AgendaItemStatus.UNSCHEDULED).all()
+
+    return render_template(
+        'index.html',
+        sendable_unsent_emails=sendable_unsent_emails,
+        unconfirmed_events=unconfirmed_events,
+        tentative_agenda_items=tentative_agenda_items,
+        unscheduled_agenda_items=unscheduled_agenda_items
+    )
 
 
 @bp.route('/admin-dashboard')

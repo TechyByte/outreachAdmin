@@ -81,10 +81,6 @@ def compile_scss():
                 with open(css_path, 'w') as css_file:
                     css_file.write(css_content)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(dashboard_bp)
