@@ -3,19 +3,63 @@
 {% block content %}
     <div class="container mt-4">
         <h2>Manage Mail Merge Templates</h2>
-        <form method="POST">
-            {% include '_mail_merge_template_form.html' %}
-            <button type="submit" class="btn btn-primary">Create Template</button>
-        </form>
 
+        <!-- Button to trigger modal -->
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTemplateModal">
+            Create Template
+        </button>
+
+        <!-- Modal for creating a new template -->
+        <div class="modal fade" id="createTemplateModal" tabindex="-1" aria-labelledby="createTemplateModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createTemplateModalLabel">Create New Template</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST">
+                            {% include '_mail_merge_template_form.html' %}
+                            <button type="submit" class="btn btn-primary">Create Template</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table for existing templates -->
         <h3 class="mt-4">Existing Templates</h3>
-        <ul class="list-group">
-            {% for template in templates %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ template.name }}
-                    <a href="{{ url_for('template_mgmt.edit_mail_template', template_id=template.id) }}" class="btn btn-sm btn-warning">Edit</a>
-                </li>
-            {% endfor %}
-        </ul>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Content Preview</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for template in templates %}
+                    <tr>
+                        <td>{{ template.name }}</td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 200px;" title="{{ template.content }}">
+                                {{ template.content[:100] }}...
+                            </div>
+                        </td>
+                        <td>
+                            {% if template.is_live %}
+                                <span class="badge bg-success">Live</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Draft</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('template_mgmt.edit_mail_template', template_id=template.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 {% endblock %}

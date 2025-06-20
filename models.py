@@ -417,6 +417,9 @@ class Event(db.Model):
     def start_time(self):
         if not self.date or not self.agenda_items:
             return None  # Return None if date or agenda_items is missing
+        for i in self.agenda_items:
+            if i.time is None:
+                return None
         first_item = min(self.agenda_items, key=lambda item: item.time)
         if first_item.time is None:
             return None
@@ -554,6 +557,13 @@ class MailMergeTemplate(db.Model):
 
     # Sendable statuses
     sendable_statuses = db.Column(db.JSON, nullable=True)  # List of statuses when the template is sendable
+
+    @property
+    def is_live(self):
+        """
+        Determine if the template is live (linked to any programs, courses, events, or agenda items).
+        """
+        return bool(self.programs or self.template_courses or self.template_events or self.template_agenda_items)
 
     def is_sendable(self, entity):
         """

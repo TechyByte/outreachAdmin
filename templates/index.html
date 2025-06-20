@@ -1,8 +1,71 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="text-center mt-5">
-        <h1>Welcome to the School Management System</h1>
-        <p>Manage schools, programs, courses, and enrollments.</p>
-    </div>
+    {% if current_user.is_authenticated %}
+        <div class="container-fluid vh-100 d-flex flex-column">
+            <div class="row flex-grow-1">
+                <!-- Top Left: Sendable but unsent template emails -->
+                <div class="col-md-6 border p-3 overflow-auto">
+                    <h4>Sendable but Unsent Template Emails</h4>
+                    <ul>
+                        {% for email in sendable_unsent_emails %}
+                            <li>
+                                {{ email.name }} - {{ email.type }}
+                                <form method="POST" action="{{ url_for('template_mgmt.send_mail', template_id=email.template.id) }}" class="d-inline">
+                                    <input type="hidden" name="recipient_email" value="{{ email.recipient_email }}">
+                                    <button type="submit" name="action" value="mailto" class="btn btn-sm btn-info">Generate Mailto</button>
+{#                                    <button type="submit" name="action" value="send" class="btn btn-sm btn-success">Send via SSO</button>#}
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <!-- Top Right: Events not confirmed -->
+                <div class="col-md-6 border p-3 overflow-auto">
+                    <h4>Events Not Confirmed</h4>
+                    <ul>
+                        {% for event in unconfirmed_events %}
+                            <li>
+                                {{ event.name }} - {{ event.date }}
+                                <a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}" class="btn btn-sm btn-primary">Edit Event</a>
+                                <a href="{{ url_for('template_mgmt.comms_panel') }}" class="btn btn-sm btn-secondary">View Emails</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="row flex-grow-1">
+                <!-- Bottom Left: Tentatively scheduled agenda items -->
+                <div class="col-md-6 border p-3 overflow-auto">
+                    <h4>Tentatively Scheduled Agenda Items</h4>
+                    <ul>
+                        {% for item in tentative_agenda_items %}
+                            <li>
+                                {{ item.title }} - {{ item.time }}
+                                <a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" class="btn btn-sm btn-primary">Edit Agenda Item</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <!-- Bottom Right: Unscheduled agenda items -->
+                <div class="col-md-6 border p-3 overflow-auto">
+                    <h4>Unscheduled Agenda Items</h4>
+                    <ul>
+                        {% for item in unscheduled_agenda_items %}
+                            <li>
+                                {{ item.title }} - {{ item.description }}
+                                <a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" class="btn btn-sm btn-primary">Edit Agenda Item</a>
+                                <a href="{{ url_for('template_mgmt.comms_panel') }}" class="btn btn-sm btn-secondary">View Emails</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center mt-5">
+            <h1>Welcome to the School Management System</h1>
+            <p>Manage schools, programs, courses, and enrollments.</p>
+        </div>
+    {% endif %}
 {% endblock %}

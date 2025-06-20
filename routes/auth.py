@@ -20,7 +20,7 @@ def login():
             flash('Login successful!', 'success')
 
             if user.role == 'admin':
-                return redirect(url_for('dashboard.admin_dashboard'))
+                return redirect(url_for('dashboard.home'))
             elif user.role == 'lecturer':
                 return redirect(url_for('dashboard.lecturer_dashboard'))
             elif user.role == 'school_contact':
