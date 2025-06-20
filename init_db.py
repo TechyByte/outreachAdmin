@@ -49,7 +49,7 @@ def initialise_database(schools_from_file=False):
                 with open(schools_file, mode='r', encoding='latin1') as csvfile:
                     reader = csv.DictReader(csvfile)
                     for row in reader:
-                        if row['LA (name)'] == "Birmingham" and row['EstablishmentStatus (name)'] == "Open" and row['PhaseOfEducation (name)'] != "Nursery":
+                        if row['LA (name)'] == "Birmingham" and row['EstablishmentStatus (name)'] == "Open" and row['PhaseOfEducation (name)'] not in ["Nursery"] and row['TypeOfEstablishment (name)'] not in ["Pupil referral unit"]:
                             school = School(
                                 urn=row['URN'],
                                 la_code=row['LA (code)'],
