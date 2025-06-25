@@ -31,7 +31,7 @@ def check_permission(action):
 
                         return redirect(url_for("auth.login"))
             if not user_perms.get(action, False):
-                flash('Permission denied.', 'danger')
+                flash('Permission denied for user "{0}" performing action "{1}".'.format(current_user.username, action), 'danger')
                 return redirect(url_for('auth.login'))
             return func(*args, **kwargs)
         wrapper.__name__ = func.__name__
