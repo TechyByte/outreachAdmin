@@ -13,6 +13,10 @@
                                 {{ email.name }} - {{ email.type }}
                                 <form method="POST" action="{{ url_for('template_mgmt.send_mail', template_id=email.template.id) }}" class="d-inline">
                                     <input type="hidden" name="recipient_email" value="{{ email.recipient_email }}">
+                                    <input type="hidden" name="program_id" value="{{ email.program_id }}">
+                                    <input type="hidden" name="course_id" value="{{ email.course_id }}">
+                                    <input type="hidden" name="event_id" value="{{ email.event_id }}">
+                                    <input type="hidden" name="agenda_item_id" value="{{ email.agenda_item_id }}">
                                     <button type="submit" name="action" value="mailto" class="btn btn-sm btn-info">Generate Mailto</button>
 {#                                    <button type="submit" name="action" value="send" class="btn btn-sm btn-success">Send via SSO</button>#}
                                 </form>

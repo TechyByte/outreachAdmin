@@ -26,7 +26,7 @@
     {% if item.status.name != 'CONFIRMED' %}
     <form method="post" action="{{ url_for('event_mgmt.confirm_agenda_item', item_id=item.id) }}">
         <input type="hidden" name="agenda_item_id" value="{{ item.id }}">
-        <button type="submit" class="btn btn-success btn-sm">Force confirm</button>
+        <button type="submit" class="btn btn-success btn-sm">Discard changes and force confirm</button>
     </form>
     {% endif %}
     {% if item.lecturer or item.status.name == 'CONFIRMED' %}

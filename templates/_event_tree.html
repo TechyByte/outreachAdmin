@@ -12,7 +12,7 @@
         <tbody>
         {% for item in event.agenda_items %}
             <tr>
-                <td>{{ item.time|short_time }}</td>
+                <td>{{ item.time|short_time if item.time else 'tbc' }}</td>
                 <td>{{ item.title }}</td>
                 <td>{{ item.lecturer.username if item.lecturer else 'Unassigned' }}</td>
                 <td style="color: {{ item.status.color }}">{{ item.status.value }}</td>

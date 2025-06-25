@@ -2,7 +2,13 @@
 
 {% block content %}
     <div class="container mt-4">
-        <h2>Confirm Email Sent</h2>
+        <h2>Send Email</h2>
+        <div class="card mb-3">
+            <div class="card-header"><b>Draft</b><br />To: {{ recipient_email }}<br />Subject: {{ template.name }}</div>
+            <div class="card-body">
+                <pre style="white-space: pre-wrap;">{{ generated_content }}</pre>
+            </div>
+        </div>
         <p>Click the button below to open your email client and send the email. Once sent, confirm below.</p>
         <a href="{{ mailto_link }}" class="btn btn-primary" target="_blank">Open Email Client</a>
         <hr>

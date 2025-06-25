@@ -1,4 +1,3 @@
-
 <!-- Modal -->
 <div class="modal fade" id="findLecturerModal" tabindex="-1" aria-labelledby="findLecturerModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -65,10 +64,10 @@
         if (selectedLecturer) {
             document.getElementById('selected_lecturers_input').value = selectedLecturer.value;
 
-            // Display the selected lecturer's name and email
+            // Dispatch a custom event with the lecturer's info
             const lecturerLabel = selectedLecturer.nextElementSibling.innerText;
-            const selectedLecturerDisplay = document.getElementById('selected-lecturer-display');
-            selectedLecturerDisplay.innerHTML = `<p>Will assign ${lecturerLabel} on save</p>`;
+            const event = new CustomEvent('lecturer-selected', { detail: { id: selectedLecturer.value, name: lecturerLabel } });
+            window.dispatchEvent(event);
         }
     });
 </script>

@@ -1,7 +1,24 @@
-<!-- Button to trigger modal -->
-<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#searchSchoolsModal">
-    Search Schools
-</button>
+{% set selected_schools = selected_schools if selected_schools is defined else [] %}
+<div class="mb-2">
+    <button
+        type="button"
+        id="search-schools-btn"
+        class="btn {% if selected_schools and selected_schools|length > 0 %}btn-success{% else %}btn-primary{% endif %} mb-3"
+        data-bs-toggle="modal"
+        data-bs-target="#searchSchoolsModal"
+    >
+        {% if selected_schools and selected_schools|length > 0 %}
+            Change Schools
+        {% else %}
+            Search Schools
+        {% endif %}
+    </button>
+    <span id="selected-schools-display" class="ms-2 align-middle">
+        {% if selected_schools and selected_schools|length > 0 %}
+            <span class="badge bg-success">Selected: {{ selected_schools|join(', ') }}</span>
+        {% endif %}
+    </span>
+</div>
 
 <!-- Modal -->
 <div class="modal fade" id="searchSchoolsModal" tabindex="-1" aria-labelledby="searchSchoolsModalLabel" aria-hidden="true">
@@ -27,10 +44,9 @@
                     <p class="text-muted">Enter at least 3 letters to see matching schools.</p>
                 </div>
                 <!-- Add a hidden input to store selected schools -->
-                <input type="hidden" id="selected_schools_input" name="selected_schools" value="">
+                <input type="hidden" id="selected_schools_input" name="selected_schools" value="{{ selected_schools|join(',') }}">
             </div>
             <div class="modal-footer">
-                <!--<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>-->
                 <button type="button" class="btn btn-primary" id="apply-school-filter" data-bs-dismiss="modal">Apply Filter</button>
             </div>
         </div>
@@ -74,7 +90,27 @@
         const selectSchoolNames = Array.from(document.querySelectorAll('input[name="selected_schools"]:checked'))
             .map(input => input.nextElementSibling.innerText);
         document.getElementById('selected_schools_input').value = selectedSchools.join(',');
-        const params = new URLSearchParams();
-        selectedSchools.forEach(id => params.append('school', id));
+
+        // Update badge and button color
+        const schoolsDisplay = document.getElementById('selected-schools-display');
+        const searchSchoolsBtn = document.getElementById('search-schools-btn');
+        if (schoolsDisplay) {
+            if (selectSchoolNames.length > 0) {
+                schoolsDisplay.innerHTML = '<span class="badge bg-success">Selected: ' + selectSchoolNames.join(', ') + '</span>';
+            } else {
+                schoolsDisplay.innerHTML = '';
+            }
+        }
+        if (searchSchoolsBtn) {
+            if (selectedSchools.length > 0) {
+                searchSchoolsBtn.classList.remove('btn-primary');
+                searchSchoolsBtn.classList.add('btn-success');
+                searchSchoolsBtn.textContent = 'Change Schools';
+            } else {
+                searchSchoolsBtn.classList.remove('btn-success');
+                searchSchoolsBtn.classList.add('btn-primary');
+                searchSchoolsBtn.textContent = 'Search Schools';
+            }
+        }
     });
 </script>
