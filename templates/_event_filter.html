@@ -1,0 +1,105 @@
+<div class="row mb-3">
+  <div class="col-md-6">
+    {% include '_search_schools.html' %}
+  </div>
+  <div class="col-md-6">
+    {% include '_find_lecturer.html' %}
+  </div>
+</div>
+<div class="accordion mb-4" id="filterAccordion">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="filterAccordionHeading">
+      <button class="accordion-button collapsed d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#filterAccordionCollapse" aria-expanded="false" aria-controls="filterAccordionCollapse">
+        <span>
+          <i class="bi bi-funnel"></i> Filters
+        </span>
+        <span id="filter-summary" class="ms-3 small text-secondary"></span>
+      </button>
+    </h2>
+    <div id="filterAccordionCollapse" class="accordion-collapse collapse" aria-labelledby="filterAccordionHeading" data-bs-parent="#filterAccordion">
+      <div class="accordion-body">
+        <form id="filters-form" method="POST">
+          <div class="mb-3">
+            <label for="program" class="form-label">Program:</label>
+            <select name="program" id="program" class="form-select" multiple>
+              {% for program in programs %}
+                <option value="{{ program.id }}">{{ program.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="course" class="form-label">Course:</label>
+            <select name="course" id="course" class="form-select" multiple>
+              {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="location" class="form-label">Location:</label>
+            <select name="location" id="location" class="form-select" multiple>
+              {% for location in locations %}
+                <option value="{{ location.id }}">{{ location.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100" form="filters-form">
+            <i class="bi bi-funnel"></i> Apply Filters
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function getSelectedText(select) {
+        return Array.from(select.selectedOptions).map(opt => opt.text).join(', ');
+    }
+    function updateFilterSummary() {
+        const program = document.getElementById('program');
+        const course = document.getElementById('course');
+        const location = document.getElementById('location');
+        const schoolsInput = document.getElementById('selected_schools_input');
+        const lecturerInput = document.getElementById('selected_lecturers_input');
+        let summary = [];
+
+        // Program
+        if (program && program.selectedOptions.length > 0) {
+            summary.push(`<span class="badge bg-secondary">Program: ${getSelectedText(program)}</span>`);
+        }
+        // Course
+        if (course && course.selectedOptions.length > 0) {
+            summary.push(`<span class="badge bg-secondary">Course: ${getSelectedText(course)}</span>`);
+        }
+        // Location
+        if (location && location.selectedOptions.length > 0) {
+            summary.push(`<span class="badge bg-secondary">Location: ${getSelectedText(location)}</span>`);
+        }
+        document.getElementById('filter-summary').innerHTML = summary.join(' ');
+    }
+
+    // Update summary only when "Apply Filters" is clicked and close accordion
+    const applyFiltersBtn = document.querySelector('button[form="filters-form"]');
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', function(e) {
+            setTimeout(updateFilterSummary, 0);
+            // Close the accordion after applying filters
+            setTimeout(function() {
+                const collapse = document.getElementById('filterAccordionCollapse');
+                if (collapse && collapse.classList.contains('show')) {
+                    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapse);
+                    bsCollapse.hide();
+                }
+            }, 50);
+        });
+    }
+
+    // Custom events for schools/lecturer
+    window.addEventListener('schools-selected', updateFilterSummary);
+    window.addEventListener('lecturer-selected', updateFilterSummary);
+
+    // Initial summary
+    updateFilterSummary();
+});
+</script>

@@ -42,7 +42,7 @@ def home():
                 sent_records = MailMergeTemplateSend.query.filter_by(
                     mail_merge_template_id=template.id, course_id=course.id
                 ).all()
-                if not sent_records:
+                if not sent_records and course.status.name in template.sendable_statuses:
                     sendable_unsent_emails.append({
                         'type': 'Course',
                         'name': course.name,
@@ -58,7 +58,7 @@ def home():
                 sent_records = MailMergeTemplateSend.query.filter_by(
                     mail_merge_template_id=template.id, event_id=event.id
                 ).all()
-                if not sent_records:
+                if not sent_records and event.status.name in template.sendable_statuses:
                     sendable_unsent_emails.append({
                         'type': 'Event',
                         'name': event.name,
@@ -74,7 +74,7 @@ def home():
                 sent_records = MailMergeTemplateSend.query.filter_by(
                     mail_merge_template_id=template.id, agenda_item_id=item.id
                 ).all()
-                if not sent_records:
+                if not sent_records and item.status.name in template.sendable_statuses:
                     sendable_unsent_emails.append({
                         'type': 'Agenda Item',
                         'name': item.title,
@@ -104,6 +104,7 @@ def home():
 
 @bp.route('/admin-dashboard')
 @login_required
+@check_permission('admin_dashboard')
 def admin_dashboard():
     if current_user.role != 'admin':
         flash("Unauthorized access!", "danger")
@@ -138,14 +139,9 @@ def lecturer_dashboard():
     return render_template('lecturer_dashboard.html', agenda_items=agenda_items)
 
 
-@bp.route('/schedule')
+@bp.route('/schedule-table')
 @login_required
-def schedule():
-    # view = request.args.get('view', 'week')  # Default to 'week' view
-    n_days = int(request.args.get('n_days', 60))
-    today = datetime.today().date()
-    future = today + timedelta(days=n_days)
-
+def schedule_table():
     # Filters
     school_ids = request.args.getlist('school')
     lecturer_ids = request.args.getlist('lecturer')
@@ -153,10 +149,8 @@ def schedule():
     course_ids = request.args.getlist('course')
     location_ids = request.args.getlist('location')
 
-    # Base query
     events_query = Event.query.join(Course).join(School).join(Location, isouter=True)
 
-    # Apply filters
     if school_ids:
         events_query = events_query.filter(Event.school_id.in_(school_ids))
     if lecturer_ids:
@@ -168,23 +162,37 @@ def schedule():
     if location_ids:
         events_query = events_query.filter(Event.location_id.in_(location_ids))
 
-    # Date range filter
-    # events_query = events_query.filter((Event.date >= today) | (Event.date == None), Event.date <= future)
-
-
-    events = events_query.options(joinedload(Event.agenda_items)).all()
+    events = events_query.options(joinedload(Event.agenda_items)).order_by(Event.date.asc()).all()
 
     # Fetch filters data
     schools = School.query.all()
-    lecturers = User.query.all()
+    lecturers = User.query.filter(User.role.in_(['lecturer', 'admin'])).all()
     programs = Program.query.all()
-    courses = Course.query.all()
+    courses = Course.query.distinct(Course.name).all()
     locations = Location.query.all()
 
     return render_template(
-        'schedule.html',
+        'schedule_table.html',
         events=events,
-        # view=view,
+        schools=schools,
+        lecturers=lecturers,
+        programs=programs,
+        courses=courses,
+        locations=locations,
+    )
+
+
+@bp.route('/schedule-calendar')
+@login_required
+def schedule_calendar():
+    # Fetch filters data for the filter form
+    schools = School.query.all()
+    lecturers = User.query.filter(User.role.in_(['lecturer', 'admin'])).all()
+    programs = Program.query.all()
+    courses = Course.query.distinct(Course.name).all()
+    locations = Location.query.all()
+    return render_template(
+        'schedule_calendar.html',
         schools=schools,
         lecturers=lecturers,
         programs=programs,
@@ -233,39 +241,58 @@ def schedule_events():
         if event.start_time:
             start_time = event.start_time
         elif event.date:
-            start_time = event.date.isoformat()
+            start_time = event.date
         else:
             start_time = None
 
         if event.end_time:
             end_time = event.end_time
         elif event.date:
-            end_time = event.date.isoformat()
+            end_time = event.date
         else:
             end_time = None
 
         event_list.append({
             'id': f'event-{event.id}',
             'title': event.name,
-            'start': start_time,
-            'end': end_time,
+            'school': event.school.name,
+            'course': event.course.name,
+            'program': event.course.program.name,
+            'start': start_time.isoformat() if start_time else None,
+            'end': end_time.isoformat() if end_time else None,
             'location': event.location.name if event.location else 'N/A',
             'backgroundColor': event.status.color,
-            'display': 'block',
-            #'url': url_for('event_mgmt.edit_event', event_id=event.id),
+            'status': event.status.value,
+            'url': url_for('event_mgmt.edit_event', event_id=event.id),
         })
         # Add agenda items as overlapping events
         for item in event.agenda_items:
-            if item.time and item.duration:
+            item_duration_str = None
+            if event.date and item.time:
                 start_time = datetime.combine(event.date, item.time)
                 end_time = start_time + item.duration
-                event_list.append({
-                    'id': f'agenda-{item.id}',
-                    'title': f'{item.title}',
-                    'start': start_time.isoformat(),
-                    'end': end_time.isoformat(),
-                    'backgroundColor': item.status.color,
-                    #'url': url_for('event_mgmt.edit_agenda_item', item_id=item.id),
-                })
+                hours = item.duration.seconds // 3600
+                mod_minutes = (item.duration.seconds % 3600) // 60
+
+                if hours >= 1:
+                    item_duration_str = f'{hours}h {mod_minutes}m'
+                else:
+                    item_duration_str = f'{mod_minutes}m'
+            else:
+                start_time = end_time = None
+
+
+            event_list.append({
+                'id': f'agenda-{item.id}',
+                'title': f'{item.title}',
+                'start': start_time.isoformat() if start_time else None,
+                'end': end_time.isoformat() if end_time else None,
+                'duration': item_duration_str if item_duration_str else None,
+                'status' : item.status.value,
+                'lecturer': item.lecturer.username if item.lecturer else 'unassigned',
+                'eventId': f'event-{event.id}',  # Link to the main event
+                'backgroundColor': item.status.color,
+                'url': url_for('event_mgmt.edit_agenda_item', item_id=item.id),
+            })
     return event_list
 
