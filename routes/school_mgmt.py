@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, curren
 from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
 from math import ceil  # Add this import for pagination
+from utils import check_permission, has_permission
 
 from models import db, School, User, Program, Course
 
@@ -10,9 +11,10 @@ bp = Blueprint('school_mgmt', __name__)
 
 @bp.route('/schools', methods=['GET', 'POST'])
 @login_required
+@check_permission("view_school")
 def manage_schools():
     """Handles displaying and adding schools."""
-    if request.method == 'POST' and current_user.role == 'admin':  # Handle form submission
+    if request.method == 'POST' and has_permission("add_school"):  # Handle form submission
         name = request.form['name']
         contact_name = request.form['contact_name']
         contact_email = request.form['contact_email']
@@ -85,11 +87,8 @@ def manage_schools():
 
 @bp.route('/schools/<int:school_id>/delete', methods=['GET'])
 @login_required
+@check_permission("delete_school")
 def delete_school(school_id):
-    """Handles deleting a school."""
-    if current_user.role != 'admin':
-        return "Unauthorized", 403
-
     with current_app.app_context():
         school = School.query.get(school_id)
 
@@ -104,6 +103,7 @@ def delete_school(school_id):
 
 @bp.route('/school/<int:school_id>/update', methods=['POST'])
 @login_required
+@check_permission("edit_school")
 def update_school(school_id):
     school = School.query.get_or_404(school_id)
     school.name = request.form['name']
@@ -117,6 +117,7 @@ def update_school(school_id):
 
 @bp.route('/user/<int:user_id>/assign', methods=['POST'])
 @login_required
+@check_permission("edit_school")
 def assign_user(user_id):
     user = User.query.get_or_404(user_id)
     user.school_id = request.form['school_id']
@@ -127,6 +128,7 @@ def assign_user(user_id):
 
 @bp.route('/user/<int:user_id>/unassign', methods=['POST'])
 @login_required
+@check_permission("edit_school")
 def unassign_user(user_id):
     user = User.query.get_or_404(user_id)
     user.school_id = None
@@ -137,6 +139,8 @@ def unassign_user(user_id):
 
 @bp.route('/school/<int:school_id>/program/<int:program_id>', methods=['GET'])
 @login_required
+@check_permission("view_school")
+@check_permission("view_programs")
 def manage_school_program(school_id, program_id):
     """View and manage courses, events, and agenda items for a school-program."""
     school = School.query.get_or_404(school_id)
@@ -159,6 +163,7 @@ def manage_school_program(school_id, program_id):
 
 @bp.route('/schools/search', methods=['GET'])
 @login_required
+@check_permission("view_school")
 def search_schools():
     """Handles AJAX requests for searching schools."""
     query = request.args.get('query', '').strip().lower()

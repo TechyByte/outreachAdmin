@@ -19,9 +19,13 @@ admin:
   manage_email_templates: true
   view_school: true
   edit_school: true
+  add_school: true
+  delete_school: true
   view_programs: true
   manage_event_templates: true
   send_email: true
+  lecturer_dashboard: true
+  school_dashboard: true
 
 manager:
   view_schedule: true
@@ -43,9 +47,13 @@ manager:
   manage_email_templates: true
   view_school: true
   edit_school: true
+  add_school: true
+  delete_school: false
   view_programs: true
   manage_event_templates: true
   send_email: true
+  lecturer_dashboard: true
+  school_dashboard: true
 
 
 
@@ -66,6 +74,7 @@ lecturer:
   confirm_agenda_item: true
   reject_agenda_item: true
   create_event: false
+  lecturer_dashboard: true
 
 
 school_contact:
@@ -85,4 +94,5 @@ school_contact:
   confirm_agenda_item: false
   reject_agenda_item: false
   create_event: false
+  school_dashboard: true
 

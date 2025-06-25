@@ -116,11 +116,8 @@ def admin_dashboard():
 
 @bp.route('/school-dashboard')
 @login_required
+@check_permission('school_dashboard')
 def school_dashboard():
-    if current_user.role not in ['school_contact', 'admin']:
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('auth.login'))
-
     if current_user.school_id is None:
         schools = School.query.all()
     else:
@@ -130,17 +127,15 @@ def school_dashboard():
 
 @bp.route('/lecturer-dashboard')
 @login_required
+@check_permission('lecturer_dashboard')
 def lecturer_dashboard():
-    if current_user.role != 'lecturer' and current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('auth.login'))
-
     agenda_items = AgendaItem.query.filter_by(lecturer_id=current_user.id)  # Assigned agenda items
     return render_template('lecturer_dashboard.html', agenda_items=agenda_items)
 
 
 @bp.route('/schedule-table')
 @login_required
+@check_permission('view_schedule')
 def schedule_table():
     # Filters
     school_ids = request.args.getlist('school')
@@ -184,6 +179,7 @@ def schedule_table():
 
 @bp.route('/schedule-calendar')
 @login_required
+@check_permission('view_schedule')
 def schedule_calendar():
     # Fetch filters data for the filter form
     schools = School.query.all()
@@ -203,6 +199,7 @@ def schedule_calendar():
 
 @bp.route('/schedule/events')
 @login_required
+@check_permission('view_schedule')
 def schedule_events():
     # Fetch filters from query parameters
     school_ids = request.args.getlist('school')  # Fetch school filter
