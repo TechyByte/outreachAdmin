@@ -51,9 +51,15 @@ def test_template_listing(client):
     assert response.status_code == 200
 
 
-def test_event_schedule(client):
+def test_event_schedule_table(client):
     login(client)
-    response = client.get("/schedule")
+    response = client.get("/schedule-table")
+    assert response.status_code == 200
+
+
+def test_event_schedule_calendar(client):
+    login(client)
+    response = client.get("/schedule-calendar")
     assert response.status_code == 200
 
 
