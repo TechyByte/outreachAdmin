@@ -5,9 +5,13 @@ from flask_login import LoginManager, login_required, current_user, login_user
 
 from datetime import datetime, timedelta
 
-from utils import check_permission
+from utils import has_permission
 from dotenv import load_dotenv
 import os
+
+import logging as logger
+logger.basicConfig(level=logger.DEBUG)
+logging = logger.getLogger(__name__)
 
 import sass
 
@@ -44,7 +48,7 @@ db.init_app(app)  # Initialize db with the app
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'auth.login'
-
+app.jinja_env.globals['check_permission'] = has_permission
 
 @login_manager.user_loader
 def load_user(user_id):
