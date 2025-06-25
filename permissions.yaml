@@ -22,6 +22,7 @@ admin:
   add_school: true
   delete_school: true
   view_programs: true
+  add_program: true
   manage_event_templates: true
   send_email: true
   lecturer_dashboard: true
@@ -50,6 +51,7 @@ manager:
   add_school: true
   delete_school: false
   view_programs: true
+  add_program: true
   manage_event_templates: true
   send_email: true
   lecturer_dashboard: true
