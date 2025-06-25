@@ -20,14 +20,16 @@ def login():
             flash('Login successful!', 'success')
 
             if user.role == 'admin':
+                return redirect(url_for('dashboard.admin_dashboard'))
+            elif user.role == 'manager':
                 return redirect(url_for('dashboard.home'))
             elif user.role == 'lecturer':
                 return redirect(url_for('dashboard.lecturer_dashboard'))
             elif user.role == 'school_contact':
                 return redirect(url_for('dashboard.school_dashboard'))
             else:
-                flash('Unknown user role.', 'danger')
-                return redirect(url_for('auth.login'))
+                flash('Unknown user role.', 'warning')
+                return redirect(url_for('dashboard.home'))
 
         flash('Invalid credentials.', 'danger')
 

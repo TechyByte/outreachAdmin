@@ -28,11 +28,20 @@ def check_permission(action):
                         user_perms = perms.get("user", {})
                     except AttributeError:
                         flash("User access is not configured. No permissions found for role 'user'", "danger")
+
                         return redirect(url_for("auth.login"))
             if not user_perms.get(action, False):
                 flash('Permission denied.', 'danger')
-                return redirect(url_for('index'))
+                return redirect(url_for('auth.login'))
             return func(*args, **kwargs)
         wrapper.__name__ = func.__name__
         return wrapper
     return decorator
+
+# utils/__init__.py
+def has_permission(action):
+    if not current_user.is_authenticated:
+        user_perms = perms.get("guest", {})
+    else:
+        user_perms = perms.get(getattr(current_user, "role", "user"), {})
+    return user_perms.get(action, False)
