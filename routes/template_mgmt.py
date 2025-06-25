@@ -4,20 +4,18 @@ from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 from flask_login import login_required, current_user
 
+from utils import check_permission  # Import the permission check decorator
+
 from models import db, Program, TemplateCourse, TemplateEvent, TemplateAgendaItem, MailMergeTemplate, Event, AgendaItem, \
-    Course, User, School, MailMergeTemplateSend, CourseStatus, EventStatus, AgendaItemStatus  # Import the status enums
+    Course, User, School, MailMergeTemplateSend, CourseStatus, EventStatus, AgendaItemStatus
 
 bp = Blueprint('template_mgmt', __name__)
 
 
 @bp.route('/manage-templates', methods=['GET', 'POST'])
 @login_required
+@check_permission("manage_event_templates")
 def manage_templates():
-    """Allows admins to manage template courses and agenda items."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('auth.login'))
-
     program_id = request.args.get('program_id')
     course_id = request.args.get('course_id')
 
@@ -50,12 +48,9 @@ def manage_templates():
 
 @bp.route('/assign-template-course', methods=['POST'])
 @login_required
+@check_permission("manage_event_templates")
 def assign_template_course():
     """Assigns a template course to a program (Allows Multiple Assignments)."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('template_mgmt.manage_templates'))
-
     course_id = request.form.get('course_id')
     program_id = request.form.get('program_id')
 
@@ -72,13 +67,9 @@ def assign_template_course():
 
 
 @bp.route('/remove-template-course', methods=['POST'])
+@check_permission("manage_event_templates")
 @login_required
 def remove_template_course():
-    """Removes a template course from a specific program without deleting it."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('template_mgmt.manage_templates'))
-
     course_id = request.form.get('course_id')
     program_id = request.form.get('program_id')
 
@@ -96,12 +87,8 @@ def remove_template_course():
 
 @bp.route('/edit_agenda_item', methods=['POST'])
 @login_required
+@check_permission("manage_event_templates")
 def edit_agenda_item():
-    """Allows editing of template agenda items."""
-    if current_user.role not in ['admin', 'lecturer']:
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('template_mgmt.manage_templates'))
-
     agenda_item_id = request.form.get('agenda_item_id')
     new_title = request.form.get('new_title')
 
@@ -117,12 +104,8 @@ def edit_agenda_item():
 
 @bp.route('/edit-template-course/<int:course_id>', methods=['GET'])
 @login_required
+@check_permission("manage_event_templates")
 def edit_template_course(course_id):
-    """Displays the template course and allows editing of events & agenda items."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('auth.login'))
-
     with current_app.app_context():
         selected_course = TemplateCourse.query.get(course_id)
 
@@ -142,12 +125,8 @@ def edit_template_course(course_id):
 
 @bp.route('/add-template-event', methods=['POST'])
 @login_required
+@check_permission("manage_event_templates")
 def add_template_event():
-    """Adds a new template event to a course."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('template_mgmt.manage_templates'))
-
     course_id = request.form.get('course_id')
     event_name = request.form.get('event_name')
 
@@ -162,12 +141,8 @@ def add_template_event():
 
 @bp.route('/edit-template-event', methods=['POST'])
 @login_required
+@check_permission("manage_event_templates")
 def edit_template_event():
-    """Edits an existing template event."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('template_mgmt.manage_templates'))
-
     event_id = request.form.get('event_id')
     new_name = request.form.get('new_event_name')
 
@@ -183,12 +158,8 @@ def edit_template_event():
 
 @bp.route('/delete-template-event', methods=['POST'])
 @login_required
+@check_permission("manage_event_templates")
 def delete_template_event():
-    """Deletes a template event and its associated agenda items."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('template_mgmt.manage_templates'))
-
     event_id = request.form.get('event_id')
 
     with current_app.app_context():
@@ -203,11 +174,8 @@ def delete_template_event():
 
 @bp.route('/add-template-agenda-item', methods=['POST'])
 @login_required
+@check_permission("manage_event_templates")
 def add_template_agenda_item():
-    """Adds a new agenda item to a template event."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('template_mgmt.manage_templates'))
 
     event_id = request.form.get('event_id')
     agenda_title = request.form.get('agenda_title')
@@ -231,12 +199,8 @@ def add_template_agenda_item():
 
 @bp.route('/edit-template-agenda-item', methods=['POST'])
 @login_required
+@check_permission("manage_event_templates")
 def edit_template_agenda_item():
-    """Edits an existing template agenda item."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('template_mgmt.manage_templates'))
-
     agenda_item_id = request.form.get('agenda_item_id')
     new_title = request.form.get('new_agenda_title')
 
@@ -252,12 +216,8 @@ def edit_template_agenda_item():
 
 @bp.route('/delete-template-agenda-item', methods=['POST'])
 @login_required
+@check_permission("manage_event_templates")
 def delete_template_agenda_item():
-    """Deletes a template agenda item from a template event."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('template_mgmt.manage_templates'))
-
     agenda_item_id = request.form.get('agenda_item_id')
 
     with current_app.app_context():
@@ -275,12 +235,8 @@ def delete_template_agenda_item():
 
 @bp.route('/manage-mail-templates', methods=['GET', 'POST'])
 @login_required
+@check_permission("manage_email_templates")
 def manage_mail_templates():
-    """Allows admins to create and edit mail merge templates."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('auth.login'))
-
     templates = MailMergeTemplate.query.all()
     programs = Program.query.all()
     template_courses = TemplateCourse.query.all()
@@ -341,12 +297,8 @@ def manage_mail_templates():
 
 @bp.route('/edit-mail-template/<int:template_id>', methods=['GET', 'POST'])
 @login_required
+@check_permission("manage_email_templates")
 def edit_mail_template(template_id):
-    """Allows editing of a mail merge template."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('auth.login'))
-
     template = MailMergeTemplate.query.get_or_404(template_id)
     programs = Program.query.all()
     template_courses = TemplateCourse.query.all()
@@ -404,6 +356,7 @@ def edit_mail_template(template_id):
 
 @bp.route('/comms-panel', methods=['GET'])
 @login_required
+@check_permission("send_email")
 def comms_panel():
     """Displays sent and unsent email templates for school_program, courses, events, and agenda items."""
     if current_user.role != 'admin':
@@ -483,6 +436,7 @@ def comms_panel():
 
 @bp.route('/send-mail/<int:template_id>', methods=['POST'])
 @login_required
+@check_permission("send_email")
 def send_mail(template_id):
     """Generates a mailto link or sends an email using SSO/O365."""
     template = MailMergeTemplate.query.get_or_404(template_id)
@@ -508,7 +462,8 @@ def send_mail(template_id):
     if agenda_item_id:
         context['agenda_item'] = AgendaItem.query.get_or_404(agenda_item_id)
         school_email = context['agenda_item'].event.school.contact_email
-        lecturer_email = context['agenda_item'].lecturer.email
+        if context['agenda_item'].lecturer:
+            lecturer_email = context['agenda_item'].lecturer.email
 
     # Render the email content
     generated_content = template.render_content(context)
@@ -519,10 +474,12 @@ def send_mail(template_id):
             recipient_email = lecturer_email
         elif template.recipient_type == 'school_contact' and school_email:
             recipient_email = school_email
+        elif lecturer_email or school_email:
+            flash ("Unable to automatically determine recipient email address", "warning")
+            return redirect(url_for('template_mgmt.comms_panel'))
         else:
-            flash ("Invalid recipient type for template-entity - fix this error by specifying a recipient", "warning")
-        flash("Recipient email is required!", "danger")
-        return redirect(url_for('template_mgmt.comms_panel'))
+            flash("Recipient email is required!", "danger")
+            return redirect(url_for('template_mgmt.comms_panel'))
 
     if request.form.get('action') == 'mailto':
         mailto_link = f"mailto:{recipient_email}?subject={template.name}&body={generated_content}"
@@ -536,7 +493,8 @@ def send_mail(template_id):
             program_id=program_id,
             course_id=course_id,
             event_id=event_id,
-            agenda_item_id=agenda_item_id
+            agenda_item_id=agenda_item_id,
+            template=template
         )
 
     elif request.form.get('action') == 'send':
@@ -548,7 +506,8 @@ def send_mail(template_id):
             program_id=program_id,
             course_id=course_id,
             event_id=event_id,
-            agenda_item_id=agenda_item_id
+            agenda_item_id=agenda_item_id,
+            template=template
         )
         # db.session.add(sent_mail)
         # db.session.commit()
@@ -562,6 +521,7 @@ def send_mail(template_id):
 
 @bp.route('/confirm-mail-sent', methods=['POST'])
 @login_required
+@check_permission("send_email")
 def confirm_mail_sent():
     """Handles confirmation of email sent after generating a mailto link."""
     template_id = request.form.get('template_id')
