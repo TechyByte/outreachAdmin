@@ -27,6 +27,10 @@ admin:
   send_email: true
   lecturer_dashboard: true
   school_dashboard: true
+  manage_locations: true
+  create_user: true
+  edit_user: true
+  delete_user: true
 
 manager:
   view_schedule: true
@@ -56,7 +60,11 @@ manager:
   send_email: true
   lecturer_dashboard: true
   school_dashboard: true
-
+  manage_locations: true
+  create_user: true
+  edit_user: true
+  admin_dashboard: true
+  delete_user: true
 
 
 lecturer:

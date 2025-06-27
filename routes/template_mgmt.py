@@ -354,15 +354,21 @@ def edit_mail_template(template_id):
     )
 
 
+@bp.route('/delete-mail-template/<int:template_id>', methods=['POST'])
+@login_required
+@check_permission("manage_email_templates")
+def delete_mail_template(template_id):
+    template = MailMergeTemplate.query.get_or_404(template_id)
+    db.session.delete(template)
+    db.session.commit()
+    flash("Mail merge template deleted.", "success")
+    return redirect(url_for('template_mgmt.manage_mail_templates'))
+
+
 @bp.route('/comms-panel', methods=['GET'])
 @login_required
 @check_permission("send_email")
 def comms_panel():
-    """Displays sent and unsent email templates for school_program, courses, events, and agenda items."""
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('auth.login'))
-
     templates_status = []
 
     # Check school_program entries
@@ -380,7 +386,8 @@ def comms_panel():
                 'template': template,
                 'sent': bool(sent_records),
                 'program_id': program.id,
-                'school_id': school.id
+                'school_id': school.id,
+                'school': school
             })
 
     # Check courses
@@ -396,7 +403,8 @@ def comms_panel():
                     'name': course.name,
                     'template': template,
                     'sent': bool(sent_records),
-                    'course_id': course.id
+                    'course_id': course.id,
+                    'school': course.school,
                 })
 
     # Check events
@@ -412,7 +420,9 @@ def comms_panel():
                     'name': event.name,
                     'template': template,
                     'sent': bool(sent_records),
-                    'event_id': event.id
+                    'event_id': event.id,
+                    'event': event,
+                    'school': event.school
                 })
 
     # Check agenda items
@@ -428,7 +438,9 @@ def comms_panel():
                     'name': item.title,
                     'template': template,
                     'sent': bool(sent_records),
-                    'agenda_item_id': item.id
+                    'agenda_item_id': item.id,
+                    'event': item.event,
+                    'school': item.event.school
                 })
 
     return render_template('comms_panel.html', templates_status=templates_status)
@@ -437,15 +449,19 @@ def comms_panel():
 @bp.route('/send-mail/<int:template_id>', methods=['POST'])
 @login_required
 @check_permission("send_email")
-def send_mail(template_id):
+def send_mail(template_id, program_id=None, course_id=None, event_id=None, agenda_item_id=None):
     """Generates a mailto link or sends an email using SSO/O365."""
     template = MailMergeTemplate.query.get_or_404(template_id)
 
-    # Determine the relevant entity (program, course, event, or agenda item)
-    program_id = request.form.get('program_id')
-    course_id = request.form.get('course_id')
-    event_id = request.form.get('event_id')
-    agenda_item_id = request.form.get('agenda_item_id')
+    # Determine the relevant entity if not provided as arguments (program, course, event, or agenda item)
+    if not program_id:
+        program_id = request.form.get('program_id')
+    if not course_id:
+        course_id = request.form.get('course_id')
+    if not event_id:
+        event_id = request.form.get('event_id')
+    if not agenda_item_id:
+        agenda_item_id = request.form.get('agenda_item_id')
 
     lecturer_email = None
     school_email = None
@@ -478,11 +494,12 @@ def send_mail(template_id):
             flash ("Unable to automatically determine recipient email address", "warning")
             return redirect(url_for('template_mgmt.comms_panel'))
         else:
-            flash("Recipient email is required!", "danger")
+            flash("No recipient found!", "danger")
             return redirect(url_for('template_mgmt.comms_panel'))
 
     if request.form.get('action') == 'mailto':
-        mailto_link = f"mailto:{recipient_email}?subject={template.name}&body={generated_content}"
+        mailto_generated_content = generated_content.replace('\r\n', '%0D%0A').replace('\n', '%0D%0A').replace('\r', '%0D%0A')
+        mailto_link = f"mailto:{recipient_email}?subject={template.name}&body={mailto_generated_content}"
         flash("Please confirm whether the email was sent.", "info")
         return render_template(
             'confirm_mail_sent.html',
@@ -545,10 +562,16 @@ def confirm_mail_sent():
     db.session.add(sent_mail)
     db.session.commit()
     flash("Email marked as sent successfully!", "success")
-    return redirect(url_for('template_mgmt.comms_panel'))
+
+    if agenda_item_id:
+        return redirect(url_for('event_mgmt.edit_agenda_item', item_id=agenda_item_id))
+    if event_id:
+        return redirect(url_for('event_mgmt.edit_event', event_id=event_id))
+    if course_id:
+        return redirect(url_for('course_mgmt.edit_course', course_id=course_id))
+    if program_id:
+        return redirect(url_for('programme_mgmt.manage_programs', program_id=program_id))
 
 
-
-
-
+    return redirect(url_for('auth.index'))  # Redirect to a suitable page after confirmation
 
