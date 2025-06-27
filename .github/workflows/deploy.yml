@@ -34,9 +34,8 @@ jobs:
           O365_TENANT_ID: ${{ vars.O365_TENANT_ID }}
       run: |
         ssh $LOCAL_USERNAME@$PUBLIC_IPV4 << 'EOF'
-          echo "env: $ENV_NAME"
-          echo "db uri: $SQLALCHEMY_DATABASE_URI"
-          echo "o365 client: $O365_CLIENT_ID"
+          echo "env: ${{ env.ENV_NAME }}"
+          echo "db uri: ${{ env.SQLALCHEMY_DATABASE_URI }}"
           cd ~/apps/outreachAdmin
           git pull origin $ENV_NAME
           if [ ! -d "venv" ]; then python3 -m venv venv; fi
