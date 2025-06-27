@@ -7,7 +7,8 @@
             <thead>
                 <tr>
                     <th>Type</th>
-                    <th>Name</th>
+                    <th>School</th>
+                    <th>Related Entity</th>
                     <th>Template</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -17,6 +18,7 @@
                 {% for item in templates_status %}
                     <tr>
                         <td>{{ item.type }}</td>
+                        <td>{{ item.school.name }}</td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.template.name }}</td>
                         <td>

@@ -16,6 +16,7 @@ from sqlalchemy.event import Events
 from sqlalchemy.orm import object_session
 
 from jinja2 import Template  # Import Jinja2 for rendering templates
+from flask import render_template_string
 
 import logging
 logger = logging.getLogger(__name__)
@@ -404,6 +405,15 @@ class Event(db.Model):
     def filtered_notes(self):
         return EventNote.query.filter_by(event_id=self.id, hidden=False).order_by(EventNote.datetime.desc()).all()
 
+
+    @property
+    def address(self):
+        if self.location.is_school:
+            return self.school.address
+        else:
+            return self.location.address if self.location and self.location.is_fixed else None
+
+
     @property
     def status(self):
         if self.date and self.date < datetime.today().date():
@@ -592,18 +602,13 @@ class MailMergeTemplate(db.Model):
             return any(item in self.template_agenda_items for item in entity.template_agenda_item.mail_merge_templates)
         return False
 
+
     def render_content(self, context):
-        """
-        Render the template content by replacing placeholders with actual values from the context.
-        :param context: A dictionary containing the context data (e.g., course, event, etc.).
-        :return: Rendered content as a string.
-        """
         try:
-            template = Template(self.content)
-            return template.render(context)
+            return render_template_string(self.content, **context)
         except Exception as e:
             logger.error(f"Error rendering template: {e}")
-            return self.content  # Return the original content if rendering fails
+            return self.content
 
 
 class MailMergeTemplateSend(db.Model):

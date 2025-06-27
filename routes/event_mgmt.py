@@ -1,4 +1,5 @@
 import logging as logger
+
 logging = logger.getLogger(__name__)
 from datetime import datetime, timedelta
 
@@ -6,7 +7,7 @@ from flask import Blueprint, request, flash, redirect, url_for, render_template
 from flask_login import login_required, current_user
 
 from models import Event, db, AgendaItem, User, Course, AgendaItemStatus, EventNote, AgendaItemNote, Location, \
-    valid_user_roles, School, Program, TemplateEvent
+    valid_user_roles, School, Program, TemplateEvent, MailMergeTemplate, MailMergeTemplateSend
 from utils import check_permission
 
 bp = Blueprint('event_mgmt', __name__)
@@ -38,6 +39,23 @@ def edit_event(event_id):
     program = Program.query.get_or_404(course.program_id)
     locations = db.session.query(Location).all()
 
+    # Mail merge template logic for event-level templates
+    relevant_templates = MailMergeTemplate.query.filter(
+        MailMergeTemplate.template_events.any(id=event.template_event_id)
+    ).all()
+    sent_template_ids = set(
+        t.mail_merge_template_id for t in MailMergeTemplateSend.query.filter_by(event_id=event.id).all()
+    )
+    mail_merge_templates = []
+    for tmpl in relevant_templates:
+        if tmpl.id in sent_template_ids:
+            status = 'sent'
+        elif tmpl.sendable_statuses and event.status.name in tmpl.sendable_statuses:
+            status = 'sendable'
+        else:
+            status = 'unsendable'
+        mail_merge_templates.append({'template': tmpl, 'status': status})
+
     if request.method == 'POST':
         event.name = request.form['name']
         if len(request.form['location']) > 0:
@@ -53,7 +71,8 @@ def edit_event(event_id):
                            can_add_note=check_permission('add_event_note'),
                            can_archive_note=check_permission('archive_event_note'),
                            can_view_note=check_permission('view_event_note'),
-                           school=school, program=program)
+                           school=school, program=program,
+                           mail_merge_templates=mail_merge_templates)
 
 @bp.route('/event/<int:event_id>/notes', methods=['GET', 'POST'])
 @check_permission('view_event_note')
@@ -114,6 +133,28 @@ def edit_agenda_item(item_id):
     can_archive_note = check_permission('archive_agenda_item_note')
     can_view_note = check_permission('view_agenda_item_note')
 
+    # --- Mail Merge Template Logic ---
+    # Find all relevant templates (only one of these will be non-empty per template)
+    relevant_templates = MailMergeTemplate.query.filter(
+        MailMergeTemplate.template_agenda_items.any(id=item.id)
+    ).all()
+
+    # Find all sent templates for this agenda item
+    sent_template_ids = set(
+        t.mail_merge_template_id for t in MailMergeTemplateSend.query.filter_by(agenda_item_id=item.id).all()
+    )
+
+    # Determine status for each template
+    mail_merge_templates = []
+    for tmpl in relevant_templates:
+        if tmpl.id in sent_template_ids:
+            status = 'sent'
+        elif tmpl.sendable_statuses and item.status.name in tmpl.sendable_statuses:
+            status = 'sendable'
+        else:
+            status = 'unsendable'
+        mail_merge_templates.append({'template': tmpl, 'status': status})
+
     if request.method == 'POST':
         item.title = request.form['title']
         item.description = request.form['description']
@@ -147,7 +188,8 @@ def edit_agenda_item(item_id):
     return render_template('edit_agenda_item.html', item=item, lecturers=lecturers, course=course, event=event,
                            AgendaItemStatus=AgendaItemStatus, notes=item.filtered_notes,
                            can_add_note=can_add_note, can_archive_note=can_archive_note, can_view_note=can_view_note,
-                           school=school, program=program)
+                           school=school, program=program,
+                           mail_merge_templates=mail_merge_templates)
 
 
 @bp.route('/agenda_item/<int:agenda_item_id>/notes', methods=['GET', 'POST'])
@@ -217,6 +259,19 @@ def reject_agenda_item(item_id):
         content=f"Agenda item rejected by {current_user.username}."
     )
     db.session.add(note)
+    # "unsend" any sent emails
+    for email in item.sent_mails:
+        note = AgendaItemNote(
+            agenda_item_id=item_id,
+            user_id=current_user.id,
+            datetime=datetime.now(),
+            content=f"Recall previous email sent on {email.sent_at} to {email.recipient_email}."
+        )
+
+        db.session.delete(email)
+        db.session.add(note)
+
+
     db.session.commit()
     flash('Agenda item rejected successfully.', 'success')
     return redirect(url_for('event_mgmt.edit_agenda_item', item_id=item_id))
@@ -317,7 +372,7 @@ def search_lecturers():
         return [], 400  # Return bad request if query is too short
 
     lecturers = User.query.filter(
-        ((User.role == 'lecturer') | (User.role == 'admin')) &
+        ((User.role == 'lecturer') | (User.role == 'admin') | (User.role == "manager")) &
         ((User.username.ilike(f'%{query}%')) | (User.display_name.ilike(f'%{query}%')))
     ).all()
 
@@ -325,4 +380,3 @@ def search_lecturers():
         {'id': lecturer.id, 'username': lecturer.username, 'display_name': lecturer.display_name}
         for lecturer in lecturers
     ]
-

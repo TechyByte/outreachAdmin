@@ -55,6 +55,15 @@ def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 
+import json
+
+@app.template_filter('escapejs')
+def escapejs_filter(value):
+    if value is None:
+        return ''
+    return json.dumps(value)[1:-1]  # Removes the surrounding quotes
+
+
 @app.template_filter('short_time')
 def short_time_filter(value):
     if isinstance(value, (time, datetime)):

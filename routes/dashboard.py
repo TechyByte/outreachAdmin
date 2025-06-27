@@ -31,7 +31,8 @@ def home():
                     'name': f"{school.name} - {program.name}",
                     'template': template,
                     'program_id': program.id,
-                    'school_id': school.id
+                    'school_id': school.id,
+                    'school': school
                 })
 
     # Check courses
@@ -47,7 +48,8 @@ def home():
                         'type': 'Course',
                         'name': course.name,
                         'template': template,
-                        'course_id': course.id
+                        'course_id': course.id,
+                        'school': course.school
                     })
 
     # Check events
@@ -63,7 +65,8 @@ def home():
                         'type': 'Event',
                         'name': event.name,
                         'template': template,
-                        'event_id': event.id
+                        'event_id': event.id,
+                        'school': event.school
                     })
 
     # Check agenda items
@@ -79,7 +82,8 @@ def home():
                         'type': 'Agenda Item',
                         'name': item.title,
                         'template': template,
-                        'agenda_item_id': item.id
+                        'agenda_item_id': item.id,
+                        'school': item.event.school
                     })
 
     # Fetch other data for the dashboard
@@ -106,10 +110,6 @@ def home():
 @login_required
 @check_permission('admin_dashboard')
 def admin_dashboard():
-    if current_user.role != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for('auth.login'))
-
     users = User.query.all()
     return render_template('admin_dashboard.html', users=users, valid_user_roles=valid_user_roles)
 
