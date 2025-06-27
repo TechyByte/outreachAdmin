@@ -100,6 +100,7 @@ class User(db.Model, UserMixin):
     email_verified = db.Column(db.Boolean, default=False)  # Whether the email has been verified via SSO
     display_name = db.Column(db.String(100), nullable=True)  # New field for display name
     specialty = db.Column(db.String(200), nullable=True)  # New field for specialty
+    test = db.Column(db.String(100), nullable=True)  # Example field for testing purposes
 
     @staticmethod
     def get_or_create_o365_user(o365_id, email, username=None):
