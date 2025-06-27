@@ -34,16 +34,16 @@ jobs:
           O365_TENANT_ID: ${{ vars.O365_TENANT_ID }}
       run: |
         ssh $LOCAL_USERNAME@$PUBLIC_IPV4 << 'EOF'
+          cd ~/apps/outreachAdmin
+          git pull origin $ENV_NAME
+          if [ ! -d "venv" ]; then python3 -m venv venv; fi
+          source venv/bin/activate
           export SECRET_KEY=$SECRET_KEY
           export SQLALCHEMY_DATABASE_URI=$SQLALCHEMY_DATABASE_URI
           export O365_CLIENT_ID=$O365_CLIENT_ID
           export O365_CLIENT_SECRET=$O365_CLIENT_SECRET
           export O365_TENANT_ID=$O365_TENANT_ID
           export FLASK_APP=app.py
-          cd ~/apps/outreachAdmin
-          git pull origin $ENV_NAME
-          if [ ! -d "venv" ]; then python3 -m venv venv; fi
-          source venv/bin/activate
           pip install -r requirements.txt
           echo $SQLALCHEMY_DATABASE_URI
           flask db upgrade
