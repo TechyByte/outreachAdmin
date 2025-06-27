@@ -121,17 +121,18 @@ with open(extra_schools_file, mode='r', encoding='latin1') as csvfile:
 
         if best_match and highest_score > 75:
             if highest_score < 90:
-                print(f"Closest match for [Amy] {row['School name']}: [Gov] {best_match['EstablishmentName']} with score {highest_score}")
+                pass
+                #print(f"Closest match for [Amy] {row['School name']}: [Gov] {best_match['EstablishmentName']} with score {highest_score}")
                 #print(f"Second best match: [Gov] {second_best_match['EstablishmentName']}")
             else:
                 #print(f"Matched [Amy] {row['School name']}: [Gov] {best_match['EstablishmentName']} with score {highest_score}")
-                pass
 
-            with app.app_context():
-                db.session.query(School).filter(School.id == best_match["id"]).update({"contact_name": row['School contact'],
-                                                                                    "contact_email": row['Contact email'],
-                                                                                    "contact_phone": row['Telephone number']})
-                db.session.commit()
-                #print("Updated school:", best_match['EstablishmentName'])
+                with app.app_context():
+                    if len(row['School contact']) > 1:
+                        db.session.query(School).filter(School.id == best_match["id"]).update({"contact_name": row['School contact'],
+                                                                                            "contact_email": row['Contact email'],
+                                                                                            "contact_phone": row['Telephone number']})
+                        db.session.commit()
+                        print("Updated school:", best_match['EstablishmentName'])
         else:
             print(f"No match found for {row['School name']}")

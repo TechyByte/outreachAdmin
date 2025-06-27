@@ -45,6 +45,9 @@ jobs:
           export O365_TENANT_ID=${{ env.O365_TENANT_ID }}
           export FLASK_APP=app.py
           pip install -r requirements.txt
-          flask db upgrade
+          # Ensure migrations folder exists and is initialized
+          if [ -d "migrations" ]; then
+            flask db upgrade;
+          fi
           sudo /bin/systemctl restart outreach.service
         EOF
