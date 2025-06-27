@@ -2,9 +2,15 @@
 
 {% block content %}
     <div class="container mt-4">
-        <h2>Confirm Email Sent</h2>
+        <h2>Send Email</h2>
+        <div class="card mb-3">
+            <div class="card-header"><b>Draft</b><br />To: {{ recipient_email }}<br />Subject: {{ template.name }}</div>
+            <div class="card-body">
+                <pre style="white-space: pre-wrap;">{{ generated_content|safe }}</pre>
+            </div>
+        </div>
         <p>Click the button below to open your email client and send the email. Once sent, confirm below.</p>
-        <a href="{{ mailto_link }}" class="btn btn-primary" target="_blank">Open Email Client</a>
+        <a href="{{ mailto_link|safe }}" class="btn btn-primary" target="_blank">Open Email Client</a>
         <hr>
         <form method="POST" action="{{ url_for('template_mgmt.confirm_mail_sent') }}">
             <input type="hidden" name="template_id" value="{{ template_id }}">
@@ -15,7 +21,7 @@
             <input type="hidden" name="event_id" value="{{ event_id }}">
             <input type="hidden" name="agenda_item_id" value="{{ agenda_item_id }}">
             <button type="submit" class="btn btn-success">Confirm Email Sent</button>
-            <a href="{{ url_for('template_mgmt.comms_panel') }}" class="btn btn-secondary">Cancel</a>
+            <a href="{{ request.referrer }}" class="btn btn-secondary">Cancel</a>
         </form>
     </div>
 {% endblock %}

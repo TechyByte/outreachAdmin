@@ -14,11 +14,11 @@
         <tr>
                         <td>{{ event.name }}</td>
                         <td>{% if event.date %}
-                                <p>Date: {{ event.date }}</p>
+                                <p>{{ event.date }}</p>
                             {% else %}
-                                <p><i>Date to be confirmed</i></p>
+                                <p><i>tbc</i></p>
                             {% endif %}</td>
-                        <td>{{ event.location.name if event.location else 'Unknown' }}</td>
+                        <td>{{ event.location.name if event.location else 'tbc' }}</td>
                         <td style="color: {{ event.status.color }}">{{ event.status.value }}</td>
                         <td >{% include '_event_tree.html' with context %}</td>
                         <td>

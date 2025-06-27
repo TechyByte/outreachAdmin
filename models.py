@@ -14,10 +14,12 @@ from sqlalchemy.sql import case  # Import case for hybrid property expression
 
 from sqlalchemy.event import Events
 from sqlalchemy.orm import object_session
-import logging as logger
-logger.basicConfig(level=logger.DEBUG)
-logging = logger.getLogger(__name__)
+
 from jinja2 import Template  # Import Jinja2 for rendering templates
+from flask import render_template_string
+
+import logging
+logger = logging.getLogger(__name__)
 
 db = SQLAlchemy()
 
@@ -147,7 +149,7 @@ class User(db.Model, UserMixin):
 
     @hybrid_property
     def role(self):
-        logging.debug(f"Configured role: {self.configured_role}, Default role: {self.default_role}")
+        logger.debug(f"Configured role: {self.configured_role}, Default role: {self.default_role}")
         if self.configured_role in valid_user_roles:
             return self.configured_role
         if self.default_role in valid_user_roles:
@@ -291,6 +293,7 @@ class CourseStatus(PyEnum):
     FULLY_SCHEDULED = "Fully Scheduled"
     TENTATIVELY_SCHEDULED = "Tentatively Scheduled"
     UNKNOWN = "Unknown"
+    ARCHIVED = "Archived"
 
     @property
     def color(self):
@@ -299,7 +302,8 @@ class CourseStatus(PyEnum):
             CourseStatus.PARTIALLY_SCHEDULED: "#ffa500",
             CourseStatus.FULLY_SCHEDULED: "#008000",
             CourseStatus.TENTATIVELY_SCHEDULED: "#0000ff",
-            CourseStatus.UNKNOWN: "#808080"
+            CourseStatus.UNKNOWN: "#808080",
+            CourseStatus.ARCHIVED: "#808080"
         }.get(self, "#000000")
 
 
@@ -318,6 +322,8 @@ class Course(db.Model):
 
     @property
     def status(self):
+        if all(event.status == EventStatus.ARCHIVED for event in self.events):
+            return CourseStatus.ARCHIVED
         if all(event.status == EventStatus.UNSCHEDULED for event in self.events):
             return CourseStatus.UNSCHEDULED
         elif any(event.status in [EventStatus.UNSCHEDULED, EventStatus.PARTIALLY_SCHEDULED] for event in self.events):
@@ -362,6 +368,7 @@ class EventStatus(PyEnum):
     FULLY_SCHEDULED = "Fully Scheduled"
     TENTATIVELY_SCHEDULED = "Tentatively Scheduled"
     UNKNOWN = "Unknown"
+    ARCHIVED = "Archived"
 
     @property
     def color(self):
@@ -370,7 +377,8 @@ class EventStatus(PyEnum):
             EventStatus.PARTIALLY_SCHEDULED: "#ffa500",
             EventStatus.FULLY_SCHEDULED: "#008000",
             EventStatus.TENTATIVELY_SCHEDULED: "#0000ff",
-            EventStatus.UNKNOWN: "#808080"
+            EventStatus.UNKNOWN: "#808080",
+            EventStatus.ARCHIVED: "#808080"
         }.get(self, "#000000")
 
 
@@ -397,8 +405,21 @@ class Event(db.Model):
     def filtered_notes(self):
         return EventNote.query.filter_by(event_id=self.id, hidden=False).order_by(EventNote.datetime.desc()).all()
 
+
+    @property
+    def address(self):
+        if self.location.is_school:
+            return self.school.address
+        else:
+            return self.location.address if self.location and self.location.is_fixed else None
+
+
     @property
     def status(self):
+        if self.date and self.date < datetime.today().date():
+            # If the event date is in the past, consider it archived
+            return EventStatus.ARCHIVED
+
         if any(item.lecturer is None for item in self.agenda_items) or not self.date:
             # If any item is missing a lecturer or if the event does not have a date, consider the event unscheduled
             return EventStatus.UNSCHEDULED  # Indicates that the event is missing a date or has items without lecturers
@@ -581,18 +602,13 @@ class MailMergeTemplate(db.Model):
             return any(item in self.template_agenda_items for item in entity.template_agenda_item.mail_merge_templates)
         return False
 
+
     def render_content(self, context):
-        """
-        Render the template content by replacing placeholders with actual values from the context.
-        :param context: A dictionary containing the context data (e.g., course, event, etc.).
-        :return: Rendered content as a string.
-        """
         try:
-            template = Template(self.content)
-            return template.render(context)
+            return render_template_string(self.content, **context)
         except Exception as e:
-            logging.error(f"Error rendering template: {e}")
-            return self.content  # Return the original content if rendering fails
+            logger.error(f"Error rendering template: {e}")
+            return self.content
 
 
 class MailMergeTemplateSend(db.Model):

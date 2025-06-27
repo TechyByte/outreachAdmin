@@ -1,41 +1,81 @@
 {% extends 'base.html' %}
 {% block content %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url_for('enrolment.enroll', school_id=school.id) }}">Manage Enrollments</a></li>
-            <li class="breadcrumb-item"><a href="{{ url_for('school_mgmt.manage_school_program', school_id=school.id, program_id=program.id) }}">{{ school.name }} on {{ program.name }}</a></li>
-            <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_course', course_id=course.id) }}">{{ course.name }}</a></li>
-            <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}">{{ event.name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ item.title }}</li>
-        </ol>
-    </nav>
-    <h2>Edit Agenda Item</h2>
-    <form method="post" action="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}">
-        <label>Title: <input type="text" name="title" value="{{ item.title }}"></label><br>
-        <label>Description: <textarea name="description">{{ item.description }}</textarea></label><br>
-        <label>Time: <input type="time" name="time" value="{{ item.time }}"></label><br>
-        <label>Duration (minutes): <input type="number" name="duration" value="{% if item.duration %}{{ item.duration.seconds // 60 }}{% else %}0{% endif %}"></label><br />
-        <label>Lecturer:</label>
-        {% include '_find_lecturer.html' %}
-        <br>
-        <p>Status:
-            {{ item.status.name }}
-        </p><br>
-        <button type="submit" class="btn btn-primary">Save</button>
-    </form>
-    {% if item.status.name != 'CONFIRMED' %}
-    <form method="post" action="{{ url_for('event_mgmt.confirm_agenda_item', item_id=item.id) }}">
-        <input type="hidden" name="agenda_item_id" value="{{ item.id }}">
-        <button type="submit" class="btn btn-success btn-sm">Force confirm</button>
-    </form>
-    {% endif %}
-    {% if item.lecturer or item.status.name == 'CONFIRMED' %}
-        <form method="post" action="{{ url_for('event_mgmt.reject_agenda_item', item_id=item.id) }}">
-            <input type="hidden" name="agenda_item_id" value="{{ item.id }}">
-            <button type="submit" class="btn btn-danger btn-sm">{% if item.lecturer %}Remove lecturer{% else %}Revert to unscheduled{% endif %}</button>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('enrolment.enroll', school_id=school.id) }}">Manage Enrollments</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('school_mgmt.manage_school_program', school_id=school.id, program_id=program.id) }}">{{ school.name }} on {{ program.name }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_course', course_id=course.id) }}">{{ course.name }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}">{{ event.name }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ item.title }}</li>
+    </ol>
+</nav>
+<h2>Edit Agenda Item</h2>
+<div class="row">
+    <!-- Left: Edit Form -->
+    <div class="col-md-4">
+        <form method="post" action="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}">
+            <label>Title: <input type="text" name="title" value="{{ item.title }}"></label><br>
+            <label>Description: <textarea name="description">{{ item.description }}</textarea></label><br>
+            <label>Time: <input type="time" name="time" value="{{ item.time }}"></label><br>
+            <label>Duration (minutes): <input type="number" name="duration" value="{% if item.duration %}{{ item.duration.seconds // 60 }}{% else %}0{% endif %}"></label><br />
+            <label>Lecturer:</label>
+            {% include '_find_lecturer.html' %}
+            <br>
+            <p>Status:
+                {{ item.status.name }}
+            </p><br>
+            <button type="submit" class="btn btn-primary">Save</button>
         </form>
-    {% endif %}
-    {% if can_view_note %}
-    {% include 'agenda_item_notes.html' with context %}
-    {% endif %}
+        {% if item.status.name != 'CONFIRMED' %}
+        <form method="post" action="{{ url_for('event_mgmt.confirm_agenda_item', item_id=item.id) }}">
+            <input type="hidden" name="agenda_item_id" value="{{ item.id }}">
+            <button type="submit" class="btn btn-success btn-sm">Discard changes and force confirm</button>
+        </form>
+        {% endif %}
+        {% if item.lecturer or item.status.name == 'CONFIRMED' %}
+            <form method="post" action="{{ url_for('event_mgmt.reject_agenda_item', item_id=item.id) }}">
+                <input type="hidden" name="agenda_item_id" value="{{ item.id }}">
+                <button type="submit" class="btn btn-danger btn-sm">{% if item.lecturer %}Remove lecturer{% else %}Revert to unscheduled{% endif %}</button>
+            </form>
+        {% endif %}
+    </div>
+    <!-- Middle: Notes -->
+    <div class="col-md-4">
+        {% if can_view_note %}
+            {% include 'agenda_item_notes.html' with context %}
+        {% endif %}
+    </div>
+    <!-- Right: Mail Merge Templates Panel -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <strong>Mail Merge Templates</strong>
+            </div>
+            <div class="card-body">
+                {% if mail_merge_templates %}
+                    <ul>
+                        {% for entry in mail_merge_templates %}
+                            <li>
+                            {{ entry.template.name }}
+                            {% if entry.status == 'sent' %}
+                                <span class="badge bg-secondary">Sent</span>
+                            {% elif entry.status == 'sendable' %}
+                                <form method="post" action="{{ url_for('template_mgmt.send_mail', template_id=entry.template.id) }}" style="display:inline;">
+                                    <input type="hidden" name="agenda_item_id" value="{{ item.id }}">
+                                    <button type="submit" name="action" value="mailto"  class="btn btn-sm btn-primary">Send</button>
+                                </form>
+                                <span class="badge bg-success">Sendable</span>
+                            {% else %}
+                                <span class="badge bg-dark-subtle">Unsendable</span>
+                            {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No relevant templates.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

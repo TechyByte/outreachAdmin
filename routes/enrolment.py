@@ -12,6 +12,9 @@ bp = Blueprint('enrolment', __name__)
 # AJAX endpoints
 
 @bp.route('/_get_programs/<int:school_id>')
+@login_required
+@check_permission('view_programs')
+@check_permission('view_school')
 def get_programs_for_school(school_id):
     school = School.query.get_or_404(school_id)
     enrolled_ids = {p.id for p in school.programs}
@@ -20,6 +23,8 @@ def get_programs_for_school(school_id):
 
 
 @bp.route('/_get_template_courses/<int:program_id>')
+@login_required
+@check_permission('view_programs')
 def get_template_courses(program_id):
     courses = TemplateCourse.query \
         .join(program_template_course) \

@@ -18,24 +18,37 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
+                {% if check_permission("view_school") %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('school_mgmt.manage_schools') }}">Schools</a>
                 </li>
+                {% endif %}
+                {% if check_permission("view_programs") %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('programme_mgmt.manage_programs') }}">
                         Programs
                     </a>
                 </li>
+                {% endif %}
+                {%  if check_permission("view_schedule") %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('dashboard.schedule') }}">
+                    <a class="nav-link" href="{{ url_for('dashboard.schedule_table') }}">
                         Schedule
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('dashboard.schedule_calendar') }}">
+                        Calendar
+                    </a>
+                </li>
+                {% endif %}
+                {% if check_permission("manage_email_templates") %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('template_mgmt.manage_mail_templates') }}">
                         Email Templates
                     </a>
                 </li>
+                {% endif %}
 {#                <li class="nav-item">#}
 {#                    <a class="nav-link" href="{{ url_for('dashboard.lecturer_dashboard') }}">#}
 {#                        Lecturer Dashboard#}
@@ -46,11 +59,20 @@
 {#                        School Dashboard#}
 {#                    </a>#}
 {#                </li>#}
+                {% if check_permission("admin_dashboard") %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('dashboard.admin_dashboard') }}">
                         Admin Dashboard
                     </a>
                 </li>
+                {% endif %}
+                {% if check_permission("manage_locations") %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('config_mgmt.location') }}">
+                        Locations
+                    </a>
+                </li>
+                {% endif %}
             </ul>
             <ul class="navbar-nav ms-auto">
 
@@ -117,3 +139,4 @@
 {% include('modal/find_lecturer.html') %}
 </body>
 </html>
+

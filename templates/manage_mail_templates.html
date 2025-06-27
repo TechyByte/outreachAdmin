@@ -32,9 +32,11 @@
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>Subject</th>
                     <th>Content Preview</th>
                     <th>Status</th>
+                    <th>Recipient</th>
+                    <th>Criteria</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -43,8 +45,8 @@
                     <tr>
                         <td>{{ template.name }}</td>
                         <td>
-                            <div class="text-truncate" style="max-width: 200px;" title="{{ template.content }}">
-                                {{ template.content[:100] }}...
+                            <div class="text-truncate" style="max-width: 300px;" title="{{ template.content }}">
+                                {{ template.content[:200] }}...
                             </div>
                         </td>
                         <td>
@@ -55,7 +57,32 @@
                             {% endif %}
                         </td>
                         <td>
+                        {{ template.recipient_type|replace('_', ' ')|title }}
+                        </td>
+                        <td>
+                            {% set criteria = [] %}
+                            {% if template.programs %}
+                                <div><b>Programs:</b> {{ template.programs|map(attribute='name')|join(', ') }}</div>
+                            {% endif %}
+                            {% if template.template_courses %}
+                                <div><b>Template Courses:</b> {{ template.template_courses|map(attribute='name')|join(', ') }}</div>
+                            {% endif %}
+                            {% if template.template_events %}
+                                <div><b>Template Events:</b> {{ template.template_events|map(attribute='name')|join(', ') }}</div>
+                            {% endif %}
+                            {% if template.template_agenda_items %}
+                                <div><b>Template Agenda Items:</b> {{ template.template_agenda_items|map(attribute='title')|join(', ') }}</div>
+                            {% endif %}
+                            {% if template.sendable_statuses %}
+                                <div><b>Statuses:</b> {{ template.sendable_statuses|join(', ') }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
                             <a href="{{ url_for('template_mgmt.edit_mail_template', template_id=template.id) }}" class="btn btn-sm btn-warning">Edit</a>
+
+                            <form method="POST" action="{{ url_for('template_mgmt.delete_mail_template', template_id=template.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this template?');">
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 {% endfor %}

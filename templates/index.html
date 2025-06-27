@@ -10,10 +10,14 @@
                     <ul>
                         {% for email in sendable_unsent_emails %}
                             <li>
-                                {{ email.name }} - {{ email.type }}
+                                {{ email.name }} - {{ email.type }} - {{ email.school.name }}
                                 <form method="POST" action="{{ url_for('template_mgmt.send_mail', template_id=email.template.id) }}" class="d-inline">
                                     <input type="hidden" name="recipient_email" value="{{ email.recipient_email }}">
-                                    <button type="submit" name="action" value="mailto" class="btn btn-sm btn-info">Generate Mailto</button>
+                                    <input type="hidden" name="program_id" value="{{ email.program_id }}">
+                                    <input type="hidden" name="course_id" value="{{ email.course_id }}">
+                                    <input type="hidden" name="event_id" value="{{ email.event_id }}">
+                                    <input type="hidden" name="agenda_item_id" value="{{ email.agenda_item_id }}">
+                                    <button type="submit" name="action" value="mailto" class="btn btn-sm btn-info">✉️</button>
 {#                                    <button type="submit" name="action" value="send" class="btn btn-sm btn-success">Send via SSO</button>#}
                                 </form>
                             </li>
@@ -26,9 +30,9 @@
                     <ul>
                         {% for event in unconfirmed_events %}
                             <li>
-                                {{ event.name }} - {{ event.date }}
-                                <a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}" class="btn btn-sm btn-primary">Edit Event</a>
-                                <a href="{{ url_for('template_mgmt.comms_panel') }}" class="btn btn-sm btn-secondary">View Emails</a>
+                                {{ event.school.name }} - {{ event.name }} - {{ event.date }}
+                                <a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}" class="btn btn-sm btn-primary"><span style="font-size:1.2em;">&#9998;</span></a>
+                                <!--<a href="{{ url_for('template_mgmt.comms_panel') }}" class="btn btn-sm btn-secondary">View Emails</a>-->
                             </li>
                         {% endfor %}
                     </ul>
@@ -41,8 +45,7 @@
                     <ul>
                         {% for item in tentative_agenda_items %}
                             <li>
-                                {{ item.title }} - {{ item.time }}
-                                <a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" class="btn btn-sm btn-primary">Edit Agenda Item</a>
+                                <a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" class="">{{ item.title }}</a> - {{ item.event.date }} {{ item.time|short_time }} - {{ item.lecturer.username }}
                             </li>
                         {% endfor %}
                     </ul>
@@ -53,9 +56,9 @@
                     <ul>
                         {% for item in unscheduled_agenda_items %}
                             <li>
-                                {{ item.title }} - {{ item.description }}
-                                <a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" class="btn btn-sm btn-primary">Edit Agenda Item</a>
-                                <a href="{{ url_for('template_mgmt.comms_panel') }}" class="btn btn-sm btn-secondary">View Emails</a>
+                                {{ item.event.school.name }} - {{ item.title }} - {{ item.event.location.name }}
+                                <a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" class="btn btn-sm btn-primary"><span style="font-size:1.2em;">&#9998;</span></a>
+                                <!--<a href="{{ url_for('template_mgmt.comms_panel') }}" class="btn btn-sm btn-secondary">View Emails</a>-->
                             </li>
                         {% endfor %}
                     </ul>

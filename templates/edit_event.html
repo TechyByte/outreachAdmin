@@ -8,24 +8,64 @@
             <li class="breadcrumb-item active" aria-current="page">{{ event.name }}</li>
         </ol>
     </nav>
-    <h2>Edit Event</h2>
-    <form method="post">
-        <label>Name: <input type="text" name="name" value="{{ event.name }}"></label><br>
-        <label>Location:
-            <select name="location">
-                {% for loc in locations %}
-                    <option value="{{ loc.id }}" {% if event.location_id == loc.id %}selected{% endif %}>
-                        {{ loc.name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </label><br>
-        <label>Date: <input type="date" name="date" value="{{ event.date }}"></label><br>
-        <button type="submit">Save</button>
-    </form>
-    <a href="{{ url_for('event_mgmt.create_agenda_item', event_id=event.id) }}" class="btn btn-primary">Add Agenda Item</a>
-    {% include '_edit_agenda.html' with context %}
-    {% if can_view_note %}
-    {% include 'event_notes.html' with context %}
-    {% endif %}
+    <h2>Edit {{ event.status.value }} Event</h2>
+    <div class="row">
+        <!-- Left: Event Info/Edit Form -->
+        <div class="col-md-4">
+            <form method="post">
+                <label>Name: <input type="text" name="name" value="{{ event.name }}"></label><br>
+                <label>Location:
+                    <select name="location">
+                        {% for loc in locations %}
+                            <option value="{{ loc.id }}" {% if event.location_id == loc.id %}selected{% endif %}>
+                                {{ loc.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </label><br>
+                <label>Date: <input type="date" name="date" value="{{ event.date }}"></label><br>
+                <button type="submit">Save</button>
+            </form>
+            <a href="{{ url_for('event_mgmt.create_agenda_item', event_id=event.id) }}" class="btn btn-primary">Add Agenda Item</a>
+            {% include '_edit_agenda.html' with context %}
+        </div>
+        <!-- Middle: Notes -->
+        <div class="col-md-4">
+            {% if can_view_note %}
+                {% include 'event_notes.html' with context %}
+            {% endif %}
+        </div>
+        <!-- Right: Mail Merge Templates Panel -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <strong>Mail Merge Templates</strong>
+                </div>
+                <div class="card-body">
+                    {% if mail_merge_templates %}
+                        <ul>
+                            {% for entry in mail_merge_templates %}
+                                <li>
+                                    {{ entry.template.name }}
+                                    {% if entry.status == 'sent' %}
+                                        <span class="badge bg-secondary">Sent</span>
+                                    {% elif entry.status == 'sendable' %}
+                                        <form method="post" action="{{ url_for('template_mgmt.send_mail', template_id=entry.template.id) }}" style="display:inline;">
+                                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                                            <button type="submit" name="action" value="mailto" class="btn btn-sm btn-primary">Send</button>
+                                        </form>
+                                        <span class="badge bg-success">Sendable</span>
+                                    {% else %}
+                                        <span class="badge bg-dark-subtle">Unsendable</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No relevant templates.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

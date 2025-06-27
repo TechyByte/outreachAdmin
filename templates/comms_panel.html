@@ -7,7 +7,8 @@
             <thead>
                 <tr>
                     <th>Type</th>
-                    <th>Name</th>
+                    <th>School</th>
+                    <th>Related Entity</th>
                     <th>Template</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -17,6 +18,7 @@
                 {% for item in templates_status %}
                     <tr>
                         <td>{{ item.type }}</td>
+                        <td>{{ item.school.name }}</td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.template.name }}</td>
                         <td>
@@ -34,7 +36,7 @@
                                     <input type="hidden" name="event_id" value="{{ item.event_id }}">
                                     <input type="hidden" name="agenda_item_id" value="{{ item.agenda_item_id }}">
                                     <div class="mb-2">
-                                        <input type="email" name="recipient_email" class="form-control" placeholder="Recipient Email" required>
+                                        <input type="email" name="recipient_email" class="form-control" placeholder="Recipient Email" required value="{{ item.recipient_email }}">
                                     </div>
                                     <button type="submit" name="action" value="mailto" class="btn btn-sm btn-info">Generate Mailto</button>
                                     <button type="submit" name="action" value="send" class="btn btn-sm btn-success">Send via SSO</button>

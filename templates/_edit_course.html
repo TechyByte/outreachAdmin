@@ -2,13 +2,13 @@
 {% for event in course.events %}
     <li>
         <strong>
-            {%  if event.status.value == 'Fully Scheduled' %}
+            {{ event.status.value }}
+
+            - {%  if event.date %}
                 {{ event.date }}
             {%  else %}
                 <i>Date to be confirmed</i>
             {%  endif %}
-
-            - {{ event.status.value }}
 
             - {{ event.name }}</strong> ({%  if not event.location %}
                 <i>Location to be confirmed</i>
