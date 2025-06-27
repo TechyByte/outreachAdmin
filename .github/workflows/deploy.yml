@@ -44,6 +44,7 @@ jobs:
           if [ ! -d "venv" ]; then python3 -m venv venv; fi
           source venv/bin/activate
           pip install -r requirements.txt
-          SQLALCHEMY_DATABASE_URI=$SQLALCHEMY_DATABASE_URI flask db upgrade
+          echo $SQLALCHEMY_DATABASE_URI
+          flask db upgrade
           sudo /bin/systemctl restart outreach.service
         EOF
