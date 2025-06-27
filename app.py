@@ -2,6 +2,7 @@ from datetime import time, datetime
 
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_required, current_user, login_user
+from flask_migrate import Migrate
 
 from datetime import datetime, timedelta
 
@@ -44,6 +45,8 @@ if app.config['USE_O365']:
 
 
 db.init_app(app)  # Initialize db with the app
+
+migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
