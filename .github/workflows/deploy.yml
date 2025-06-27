@@ -34,6 +34,9 @@ jobs:
           O365_TENANT_ID: ${{ vars.O365_TENANT_ID }}
       run: |
         ssh $LOCAL_USERNAME@$PUBLIC_IPV4 << 'EOF'
+          echo $ENV_NAME
+          echo $SQLALCHEMY_DATABASE_URI
+          echo $O365_CLIENT_ID
           cd ~/apps/outreachAdmin
           git pull origin $ENV_NAME
           if [ ! -d "venv" ]; then python3 -m venv venv; fi
@@ -45,8 +48,7 @@ jobs:
           export O365_TENANT_ID=$O365_TENANT_ID
           export FLASK_APP=app.py
           pip install -r requirements.txt
-          echo $ENV_NAME
-          echo $SQLALCHEMY_DATABASE_URI
+
           flask db upgrade
           sudo /bin/systemctl restart outreach.service
         EOF
