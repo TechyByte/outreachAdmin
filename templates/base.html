@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>School Management</title>
+    <title>Outreach Management</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom-bootstrap.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
@@ -12,7 +12,7 @@
 <body>
 <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="/">Home</a>
+        <a title="Strategic Utility for Supporting Population Engagement, Navigation and Direction" class="navbar-brand" href="/">Home</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -59,10 +59,10 @@
 {#                        School Dashboard#}
 {#                    </a>#}
 {#                </li>#}
-                {% if check_permission("admin_dashboard") %}
+                {% if check_permission("user_list") %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('dashboard.admin_dashboard') }}">
-                        Admin Dashboard
+                    <a class="nav-link" href="{{ url_for('user_mgmt.user_list') }}">
+                        People
                     </a>
                 </li>
                 {% endif %}
@@ -139,4 +139,3 @@
 {% include('modal/find_lecturer.html') %}
 </body>
 </html>
-

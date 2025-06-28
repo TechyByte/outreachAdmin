@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 from sqlalchemy.sql import or_
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, url_for, request
 from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
 
-from models import db, User, School, AgendaItem, Event, Course, Program, Location, valid_user_roles, MailMergeTemplateSend, \
-    AgendaItemStatus, EventStatus
+from models import db, User, School, AgendaItem, Event, Course, Program, Location, MailMergeTemplateSend, \
+    AgendaItemStatus
 from utils import check_permission
 
 bp = Blueprint('dashboard', __name__)
@@ -104,14 +104,6 @@ def home():
         tentative_agenda_items=tentative_agenda_items,
         unscheduled_agenda_items=unscheduled_agenda_items
     )
-
-
-@bp.route('/admin-dashboard')
-@login_required
-@check_permission('admin_dashboard')
-def admin_dashboard():
-    users = User.query.all()
-    return render_template('admin_dashboard.html', users=users, valid_user_roles=valid_user_roles)
 
 
 @bp.route('/school-dashboard')

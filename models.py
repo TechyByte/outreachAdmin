@@ -250,7 +250,7 @@ class TemplateCourse(db.Model):
     #
     # program = db.relationship('Program', backref='template_courses', lazy=True)
     programs = db.relationship('Program', secondary=program_template_course, back_populates='template_courses')
-    template_events = db.relationship('TemplateEvent', backref='template_course')
+    template_events = db.relationship('TemplateEvent', backref='template_course', order_by='TemplateEvent.sequence.asc()')
     mail_merge_templates = db.relationship(
         'MailMergeTemplate',
         secondary=mail_merge_template_template_course,
@@ -262,6 +262,9 @@ class TemplateEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     template_course_id = db.Column(db.Integer, db.ForeignKey('template_course.id'), nullable=False)
+    sequence = db.Column(db.Integer, nullable=True, default=0)  # Add this line to store event order
+    default_location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=True)
+    default_location = db.relationship('Location', backref='template_events', foreign_keys=[default_location_id])
     template_agenda_items = db.relationship('TemplateAgendaItem', backref='template_event',
                                             order_by='TemplateAgendaItem.time.asc()')
     mail_merge_templates = db.relationship(
@@ -451,7 +454,7 @@ class Event(db.Model):
     def end_time(self):
         if not self.date or not self.agenda_items:
             return None
-        last_item = max(self.agenda_items, key=lambda item: item.time)
+        last_item = max([item for item in self.agenda_items if item.time], key=lambda item: item.time)
         if last_item.duration is None:
             return None
         end_time = datetime.combine(self.date, last_item.time) + last_item.duration + timedelta(minutes=15)
@@ -629,11 +632,3 @@ class MailMergeTemplateSend(db.Model):
     course = db.relationship('Course', backref='sent_mails')
     event = db.relationship('Event', backref='sent_mails')
     agenda_item = db.relationship('AgendaItem', backref='sent_mails')
-
-
-
-
-
-
-
-

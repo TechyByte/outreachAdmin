@@ -1,0 +1,60 @@
+<div class="modal fade" id="editSchoolModal{{ school.id }}" tabindex="-1" aria-labelledby="editSchoolModalLabel{{ school.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editSchoolModalLabel{{ school.id }}">Edit School: {{ school.name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Form for editing school details -->
+                    <form method="POST" action="{{ url_for('school_mgmt.update_school', school_id=school.id) }}">
+                        <div class="mb-3">
+                            <label for="name{{ school.id }}" class="form-label">School Name:</label>
+                            <input type="text" class="form-control" id="name{{ school.id }}" name="name" value="{{ school.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contact_name{{ school.id }}" class="form-label">Contact Name:</label>
+                            <input type="text" class="form-control" id="contact_name{{ school.id }}" name="contact_name" value="{{ school.contact_name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contact_email{{ school.id }}" class="form-label">Contact Email:</label>
+                            <input type="email" class="form-control" id="contact_email{{ school.id }}" name="contact_email" value="{{ school.contact_email }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contact_phone{{ school.id }}" class="form-label">Contact Phone:</label>
+                            <input type="text" class="form-control" id="contact_phone{{ school.id }}" name="contact_phone" value="{{ school.contact_phone }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Save Changes</button>
+                    </form>
+
+                    <hr>
+
+                    <!-- Section for managing user assignments -->
+                    <h5>Manage Users</h5>
+                    <ul class="list-group">
+                        {% for user in users %}
+                            {%  if user.school_id == school.id or not user.school_id %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>{{ user.username }} (
+                                            {% if user.email %}{{ user.email }}{% else %}Email missing{% endif %}
+                                        )</span>
+                                    {% if user.school_id == school.id %}
+                                        <!-- Unassign user -->
+                                        <form method="POST" action="{{ url_for('school_mgmt.unassign_user', user_id=user.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-danger btn-sm">Unassign</button>
+                                        </form>
+                                    {% else %}
+                                        <!-- Assign user -->
+                                        <form method="POST" action="{{ url_for('school_mgmt.assign_user', user_id=user.id) }}" class="d-inline">
+                                            <input type="hidden" name="school_id" value="{{ school.id }}">
+                                            <button type="submit" class="btn btn-success btn-sm">Assign</button>
+                                        </form>
+                                    {% endif %}
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>

@@ -13,7 +13,6 @@
 <div class="mb-3">
     <label for="template_type" class="form-label">Template Type</label>
     <select class="form-select" id="template_type" name="template_type" required onchange="updateTemplateTypeFields()">
-        <option value="program" {% if template and template.programs %}selected{% endif %}>Program</option>
         <option value="template_course" {% if template and template.template_courses %}selected{% endif %}>Template Course</option>
         <option value="template_event" {% if template and template.template_events %}selected{% endif %}>Template Event</option>
         <option value="template_agenda_item" {% if template and template.template_agenda_items %}selected{% endif %}>Template Agenda Item</option>
@@ -23,14 +22,6 @@
     <label for="sendable_statuses" class="form-label">Sendable Statuses</label>
     <select class="form-select" id="sendable_statuses" name="sendable_statuses" multiple>
         <!-- Status options will be dynamically updated based on the selected template type -->
-    </select>
-</div>
-<div class="mb-3 d-none" id="program_field">
-    <label for="program_ids" class="form-label">Assign to Programs</label>
-    <select class="form-select" id="program_ids" name="program_ids" multiple>
-        {% for program in programs %}
-            <option value="{{ program.id }}" {% if template and program in template.programs %}selected{% endif %}>{{ program.name }}</option>
-        {% endfor %}
     </select>
 </div>
 <div class="mb-3 d-none" id="template_course_field">

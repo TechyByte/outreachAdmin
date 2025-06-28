@@ -7,6 +7,7 @@
                 <!-- Top Left: Sendable but unsent template emails -->
                 <div class="col-md-6 border p-3 overflow-auto">
                     <h4>Sendable but Unsent Template Emails</h4>
+                    <hr>
                     <ul>
                         {% for email in sendable_unsent_emails %}
                             <li>
@@ -21,12 +22,14 @@
 {#                                    <button type="submit" name="action" value="send" class="btn btn-sm btn-success">Send via SSO</button>#}
                                 </form>
                             </li>
+                            <hr>
                         {% endfor %}
                     </ul>
                 </div>
                 <!-- Top Right: Events not confirmed -->
                 <div class="col-md-6 border p-3 overflow-auto">
                     <h4>Events Not Confirmed</h4>
+                    <hr>
                     <ul>
                         {% for event in unconfirmed_events %}
                             <li>
@@ -34,6 +37,7 @@
                                 <a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}" class="btn btn-sm btn-primary"><span style="font-size:1.2em;">&#9998;</span></a>
                                 <!--<a href="{{ url_for('template_mgmt.comms_panel') }}" class="btn btn-sm btn-secondary">View Emails</a>-->
                             </li>
+                            <hr>
                         {% endfor %}
                     </ul>
                 </div>
@@ -42,17 +46,20 @@
                 <!-- Bottom Left: Tentatively scheduled agenda items -->
                 <div class="col-md-6 border p-3 overflow-auto">
                     <h4>Tentatively Scheduled Agenda Items</h4>
+                    <hr>
                     <ul>
                         {% for item in tentative_agenda_items %}
                             <li>
                                 <a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" class="">{{ item.title }}</a> - {{ item.event.date }} {{ item.time|short_time }} - {{ item.lecturer.username }}
                             </li>
+                            <hr>
                         {% endfor %}
                     </ul>
                 </div>
                 <!-- Bottom Right: Unscheduled agenda items -->
                 <div class="col-md-6 border p-3 overflow-auto">
                     <h4>Unscheduled Agenda Items</h4>
+                    <hr>
                     <ul>
                         {% for item in unscheduled_agenda_items %}
                             <li>
@@ -60,6 +67,7 @@
                                 <a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" class="btn btn-sm btn-primary"><span style="font-size:1.2em;">&#9998;</span></a>
                                 <!--<a href="{{ url_for('template_mgmt.comms_panel') }}" class="btn btn-sm btn-secondary">View Emails</a>-->
                             </li>
+                            <hr>
                         {% endfor %}
                     </ul>
                 </div>

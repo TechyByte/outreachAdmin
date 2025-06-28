@@ -15,8 +15,10 @@
     <div class="col-md-4">
         <form method="post" action="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}">
             <label>Title: <input type="text" name="title" value="{{ item.title }}"></label><br>
-            <label>Description: <textarea name="description">{{ item.description }}</textarea></label><br>
-            <label>Time: <input type="time" name="time" value="{{ item.time }}"></label><br>
+            {% if item.event.date %}on {{ item.event.date }} at{% else %}<span class="badge bg-warning">Event has no date</span>{% endif %}
+            <input type="time" name="time" value="{{ item.time }}" {% if not item.event.date %}readonly{% endif %}><br>
+            <label>Description: <textarea class="form-control" placeholder="empty" name="description">{% if item.description %}{{ item.description }}{% endif %}</textarea></label><br>
+
             <label>Duration (minutes): <input type="number" name="duration" value="{% if item.duration %}{{ item.duration.seconds // 60 }}{% else %}0{% endif %}"></label><br />
             <label>Lecturer:</label>
             {% include '_find_lecturer.html' %}
