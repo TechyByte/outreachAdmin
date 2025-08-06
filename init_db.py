@@ -108,7 +108,9 @@ def initialise_database(schools_from_file=False):
 
         user1 = User(username="user", password=generate_password_hash("password"))
 
-        db.session.add_all([admin, school_contact1, school_contact2, user1])
+        amy = User(username="amy", password=generate_password_hash("GeorgeIsTheBest!"), configured_role="manager",)
+
+        db.session.add_all([admin, school_contact1, school_contact2, user1, amy])
         db.session.commit()
 
         # Add Example Programs
