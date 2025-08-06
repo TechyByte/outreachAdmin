@@ -24,7 +24,7 @@ def edit_course(course_id):
         course.name = request.form['name']
         db.session.commit()
         flash('Course updated.', 'success')
-        return redirect(url_for('dashboard.admin_dashboard'))
+        return redirect(url_for('user_mgmt.user_list'))
     return render_template('edit_course.html', course=course, school=school, program=program)
 
 
@@ -133,27 +133,6 @@ def edit_agenda_item(item_id):
     can_archive_note = check_permission('archive_agenda_item_note')
     can_view_note = check_permission('view_agenda_item_note')
 
-    # --- Mail Merge Template Logic ---
-    # Find all relevant templates (only one of these will be non-empty per template)
-    relevant_templates = MailMergeTemplate.query.filter(
-        MailMergeTemplate.template_agenda_items.any(id=item.id)
-    ).all()
-
-    # Find all sent templates for this agenda item
-    sent_template_ids = set(
-        t.mail_merge_template_id for t in MailMergeTemplateSend.query.filter_by(agenda_item_id=item.id).all()
-    )
-
-    # Determine status for each template
-    mail_merge_templates = []
-    for tmpl in relevant_templates:
-        if tmpl.id in sent_template_ids:
-            status = 'sent'
-        elif tmpl.sendable_statuses and item.status.name in tmpl.sendable_statuses:
-            status = 'sendable'
-        else:
-            status = 'unsendable'
-        mail_merge_templates.append({'template': tmpl, 'status': status})
 
     if request.method == 'POST':
         item.title = request.form['title']
@@ -179,12 +158,57 @@ def edit_agenda_item(item_id):
             else:
                 # No lecturer assigned
                 item.lecturer_id = None
-                item.status = AgendaItemStatus.UNSCHEDULED
+                if item.time:
+                    item.status = AgendaItemStatus.TENTATIVE
+                else:
+                    item.status = AgendaItemStatus.UNSCHEDULED
         except ValueError:
             logging.debug('Invalid lecturer ID')
 
         db.session.commit()
         flash('Agenda item updated.', 'success')
+    db.session.flush()
+    # --- Mail Merge Template Logic ---
+    # Find all relevant templates (only one of these will be non-empty per template)
+    relevant_templates = MailMergeTemplate.query.filter(
+        MailMergeTemplate.template_agenda_items.any(id=item.id)
+    ).all()
+
+    # Find all sent templates for this agenda item
+    sent_template_ids = set(
+        t.mail_merge_template_id for t in MailMergeTemplateSend.query.filter_by(agenda_item_id=item.id).all()
+    )
+
+    # Determine status for each template
+    mail_merge_templates = []
+    for tmpl in relevant_templates:
+        if tmpl.id in sent_template_ids:
+            status = 'sent'
+            last_sent = MailMergeTemplateSend.query.filter_by(
+                agenda_item_id=item.id,
+                mail_merge_template_id=tmpl.id
+            ).first()
+            sent_date_time = last_sent.sent_at
+            recipient_email = last_sent.recipient_email
+        elif tmpl.sendable_statuses and item.status.name in tmpl.sendable_statuses:
+            status = 'sendable'
+            sent_date_time = None
+            recipient_email = None
+        else:
+            status = 'unsendable'
+            last_sent = MailMergeTemplateSend.query.filter_by(
+                agenda_item_id=item.id,
+                mail_merge_template_id=tmpl.id
+            ).first()
+            if last_sent:
+                sent_date_time = last_sent.sent_at
+                recipient_email = last_sent.recipient_email
+            else:
+                sent_date_time = None
+                recipient_email = None
+
+        mail_merge_templates.append({'template': tmpl, 'status': status, 'sent_date_time': sent_date_time, 'recipient_email': recipient_email})
+
     return render_template('edit_agenda_item.html', item=item, lecturers=lecturers, course=course, event=event,
                            AgendaItemStatus=AgendaItemStatus, notes=item.filtered_notes,
                            can_add_note=can_add_note, can_archive_note=can_archive_note, can_view_note=can_view_note,

@@ -88,5 +88,8 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% if not templates %}
+            <p class="text-muted">No templates available. Create a new template to get started.</p>
+        {% endif %}
     </div>
 {% endblock %}

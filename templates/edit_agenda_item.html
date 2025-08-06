@@ -15,8 +15,10 @@
     <div class="col-md-4">
         <form method="post" action="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}">
             <label>Title: <input type="text" name="title" value="{{ item.title }}"></label><br>
-            <label>Description: <textarea name="description">{{ item.description }}</textarea></label><br>
-            <label>Time: <input type="time" name="time" value="{{ item.time }}"></label><br>
+            {% if item.event.date %}on {{ item.event.date }} at{% else %}<span class="badge bg-warning">Event has no date</span>{% endif %}
+            <input type="time" name="time" value="{{ item.time }}" {% if not item.event.date %}readonly{% endif %}><br>
+            <label>Description: <textarea class="form-control" placeholder="empty" name="description">{% if item.description %}{{ item.description }}{% endif %}</textarea></label><br>
+
             <label>Duration (minutes): <input type="number" name="duration" value="{% if item.duration %}{{ item.duration.seconds // 60 }}{% else %}0{% endif %}"></label><br />
             <label>Lecturer:</label>
             {% include '_find_lecturer.html' %}
@@ -57,8 +59,13 @@
                         {% for entry in mail_merge_templates %}
                             <li>
                             {{ entry.template.name }}
+                            {% if entry.template.recipient_type == 'lecturer' %}
+                                <span class="badge bg-info" title="{% if entry.recipient_email %}{{ entry.recipient_email }}{% endif %}">Lecturer</span>
+                            {% elif entry.template.recipient_type == 'school_contact' %}
+                                <span class="badge bg-info" title="{% if entry.recipient_email %}{{ entry.recipient_email }}{% endif %}">School Contact</span>
+                            {% endif %}
                             {% if entry.status == 'sent' %}
-                                <span class="badge bg-secondary">Sent</span>
+                                <span class="badge bg-secondary" title="{% if entry.sent_date_time %}{{ entry.sent_date_time }}{% endif %}">Sent</span>
                             {% elif entry.status == 'sendable' %}
                                 <form method="post" action="{{ url_for('template_mgmt.send_mail', template_id=entry.template.id) }}" style="display:inline;">
                                     <input type="hidden" name="agenda_item_id" value="{{ item.id }}">

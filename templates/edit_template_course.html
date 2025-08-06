@@ -4,91 +4,295 @@
     <div class="container mt-4">
         <h2 class="text-center">Edit Template Course</h2>
 
-        <h4 class="mt-4">Course: {{ selected_course.name }}</h4>
-
-        <!-- Add New Event -->
-        <form method="POST" action="{{ url_for('template_mgmt.add_template_event') }}">
-            <input type="hidden" name="course_id" value="{{ selected_course.id }}">
-            <div class="input-group mb-3">
-                <input type="text" name="event_name" class="form-control" placeholder="New Event Name" required>
-                <button type="submit" class="btn btn-success">Add Event</button>
-            </div>
-        </form>
-
         <div class="card mt-3">
             <div class="card-header">
-                <h5>Events & Agenda Items</h5>
+                <h4 class="mt-4">Course: {{ selected_course.name }}</h4>
             </div>
             <div class="card-body">
-                <ul class="list-group">
-                    {% for event in selected_course.template_events %}
-                        <li class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <strong>{{ event.name }}</strong>
-                                <div>
-                                    <!-- Edit Event Name -->
-                                    <form method="POST" action="{{ url_for('template_mgmt.edit_template_event') }}"
-                                          class="d-inline">
-                                        <input type="hidden" name="event_id" value="{{ event.id }}">
-                                        <input type="text" name="new_event_name" value="{{ event.name }}"
-                                               class="form-control d-inline w-auto" required>
-                                        <button type="submit" class="btn btn-warning btn-sm">Rename</button>
-                                    </form>
+                   <!-- Add New Event -->
+                    <form method="POST" action="{{ url_for('template_mgmt.add_template_event') }}">
+                        <input type="hidden" name="course_id" value="{{ selected_course.id }}">
+                        <div class="input-group mb-3">
+                            <input type="text" name="event_name" class="form-control" placeholder="New Event Name" required>
+                            <button type="submit" class="btn btn-success">Add Event</button>
+                        </div>
+                    </form>
 
-                                    <!-- Delete Event -->
-                                    <form method="POST" action="{{ url_for('template_mgmt.delete_template_event') }}"
-                                          class="d-inline">
-                                        <input type="hidden" name="event_id" value="{{ event.id }}">
-                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                    </form>
+                <form method="POST" action="{{ url_for('template_mgmt.reorder_template_events') }}" id="reorder-events-form">
+                    <ul class="list-group" id="event-list">
+                        {% for event in selected_course.template_events %}
+                            <li class="list-group-item" data-event-id="{{ event.id }}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ event.name }}</strong>
+                                        {% if event.default_location %}
+                                            <span class="badge bg-info">{{ event.default_location.name }}</span>
+                                        {% else %}
+                                            <span class="badge bg-dark-subtle">No Default Location</span>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <!-- Reorder Buttons -->
+                                        <button type="button" class="btn btn-outline-secondary btn-sm move-up" title="Move Up">↑</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm move-down" title="Move Down">↓</button>
+                                        <!-- Action Buttons for popups -->
+                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal-{{ event.id }}">Edit</button>
+                                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteEventModal-{{ event.id }}">Delete</button>
+                                        <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#locationEventModal-{{ event.id }}">Set Location</button>
+                                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAgendaModal-{{ event.id }}">Add Agenda Item</button>
+                                    </div>
                                 </div>
-                            </div>
+                                <!-- Display Agenda Items (unchanged) -->
+                                <ul class="list-group mt-2">
+                                    {% for agenda_item in event.template_agenda_items %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span><em>{{ agenda_item.time | short_time }}</em> {{ agenda_item.title }}</span>
+                                            <div>
+                                                <!-- Edit Agenda Item Popup -->
+                                                <button type="button" class="btn btn-info btn-sm edit-agenda-btn" data-bs-toggle="modal" data-bs-target="#editAgendaModal"
+                                                    data-id="{{ agenda_item.id }}"
+                                                    data-title="{{ agenda_item.title|e }}"
+                                                    data-time="{{ agenda_item.time }}"
+                                                    data-duration="{{ agenda_item.duration }}"
+                                                    data-description="{{ agenda_item.description|e }}"
+                                                    data-lecturer="{{ agenda_item.lecturer_id }}">
+                                                    Edit
+                                                </button>
+                                                <!-- Delete Agenda Item Button -->
+                                                <!-- Delete Agenda Item Button -->
+                                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteAgendaItemModal-{{ agenda_item.id }}">Delete</button>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <input type="hidden" name="event_order" id="event-order-input">
+                    <input type="hidden" name="course_id" value="{{ selected_course.id }}">
+                    <button type="submit" hidden class="btn btn-primary mt-3">Save Order</button>
+                </form>
 
-                            <!-- Add New Agenda Item -->
-                            <form method="POST" action="{{ url_for('template_mgmt.add_template_agenda_item') }}">
-                                <input type="hidden" name="event_id" value="{{ event.id }}">
-                                <div class="input-group mt-2">
-                                    <input type="text" name="agenda_title" class="form-control"
-                                           placeholder="New Agenda Item" required>
-                                    <input type="time" name="agenda_time" class="form-control" required>
-                                    <button type="submit" class="btn btn-primary">Add</button>
-                                </div>
-                            </form>
-
-                            <!-- Display Agenda Items -->
-                            <ul class="list-group mt-2">
-                                {% for agenda_item in event.template_agenda_items %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <span><em>{{ agenda_item.time | short_time }}</em> {{ agenda_item.title }}</span>
-                                        <div>
-                                            <!-- Edit Agenda Item -->
-                                            <form method="POST"
-                                                  action="{{ url_for('template_mgmt.edit_template_agenda_item') }}"
-                                                  class="d-inline">
-                                                <input type="hidden" name="agenda_item_id" value="{{ agenda_item.id }}">
-                                                <input type="text" name="new_agenda_title"
-                                                       value="{{ agenda_item.title }}"
-                                                       class="form-control d-inline w-auto" required>
-                                                <button type="submit" class="btn btn-warning btn-sm">Rename</button>
-                                            </form>
-
-                                            <!-- Delete Agenda Item -->
-                                            <form method="POST"
-                                                  action="{{ url_for('template_mgmt.delete_template_agenda_item') }}"
-                                                  class="d-inline">
-                                                <input type="hidden" name="agenda_item_id" value="{{ agenda_item.id }}">
-                                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                            </form>
-                                        </div>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-
-                        </li>
-                    {% endfor %}
-                </ul>
+                <!-- Event Modals -->
+                {% for event in selected_course.template_events %}
+                <!-- Edit Event Modal -->
+                <div class="modal fade" id="editEventModal-{{ event.id }}" tabindex="-1" aria-labelledby="editEventModalLabel-{{ event.id }}" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <form method="POST" action="{{ url_for('template_mgmt.edit_template_event') }}">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="editEventModalLabel-{{ event.id }}">Edit Event Name</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <input type="hidden" name="event_id" value="{{ event.id }}">
+                          <input type="text" name="new_event_name" value="{{ event.name }}" class="form-control" required>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                          <button type="submit" class="btn btn-warning">Save</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                <!-- Delete Event Modal -->
+                <div class="modal fade" id="deleteEventModal-{{ event.id }}" tabindex="-1" aria-labelledby="deleteEventModalLabel-{{ event.id }}" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <form method="POST" action="{{ url_for('template_mgmt.delete_template_event') }}">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="deleteEventModalLabel-{{ event.id }}">Delete Event</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <input type="hidden" name="event_id" value="{{ event.id }}">
+                          <p>Are you sure you want to delete <strong>{{ event.name }}</strong>?</p>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                          <button type="submit" class="btn btn-danger">Delete</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                <!-- Set Location Modal -->
+                <div class="modal fade" id="locationEventModal-{{ event.id }}" tabindex="-1" aria-labelledby="locationEventModalLabel-{{ event.id }}" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <form method="POST" action="{{ url_for('template_mgmt.update_template_event_location') }}">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="locationEventModalLabel-{{ event.id }}">Set Default Location</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <input type="hidden" name="event_id" value="{{ event.id }}">
+                          <select name="default_location_id" class="form-select">
+                            <option value="">No Default Location</option>
+                            {% for loc in locations %}
+                              <option value="{{ loc.id }}" {% if event.default_location_id == loc.id %}selected{% endif %}>{{ loc.name }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                          <button type="submit" class="btn btn-info">Save</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                <!-- Add Agenda Item Modal -->
+                <div class="modal fade" id="addAgendaModal-{{ event.id }}" tabindex="-1" aria-labelledby="addAgendaModalLabel-{{ event.id }}" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <form method="POST" action="{{ url_for('template_mgmt.add_template_agenda_item') }}">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="addAgendaModalLabel-{{ event.id }}">Add Agenda Item</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <input type="hidden" name="event_id" value="{{ event.id }}">
+                          <div class="mb-3">
+                            <label for="agenda_title_{{ event.id }}" class="form-label">Title</label>
+                            <input type="text" name="agenda_title" id="agenda_title_{{ event.id }}" class="form-control" placeholder="New Agenda Item" required>
+                          </div>
+                          <div class="mb-3">
+                            <label for="agenda_time_{{ event.id }}" class="form-label">Time</label>
+                            <input type="time" name="agenda_time" id="agenda_time_{{ event.id }}" class="form-control">
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                          <button type="submit" class="btn btn-primary">Add</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
+
+        <!-- Edit Agenda Item Modal -->
+        <div class="modal fade" id="editAgendaModal" tabindex="-1" aria-labelledby="editAgendaModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editAgendaModalLabel">Edit Agenda Item</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('template_mgmt.edit_template_agenda_item_popup') }}">
+                        <div class="modal-body">
+                            <input type="hidden" name="agenda_item_id" id="modal-agenda-id">
+                            <div class="mb-3">
+                                <label for="modal-agenda-title" class="form-label">Title</label>
+                                <input type="text" class="form-control" name="new_agenda_title" id="modal-agenda-title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="modal-agenda-time" class="form-label">Default Time</label>
+                                <input type="time" class="form-control" name="agenda_time" id="modal-agenda-time">
+                            </div>
+                            <div class="mb-3">
+                                <label for="modal-agenda-duration" class="form-label">Duration (minutes)</label>
+                                <input type="number" class="form-control" name="agenda_duration" id="modal-agenda-duration" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="modal-agenda-description" class="form-label">Description</label>
+                                <textarea class="form-control" name="agenda_description" id="modal-agenda-description"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="modal-agenda-lecturer" class="form-label">Default Lecturer</label>
+                                <select class="form-select" name="agenda_lecturer" id="modal-agenda-lecturer">
+                                    <option value="">None</option>
+                                    {% for lecturer in lecturers %}
+                                        <option value="{{ lecturer.id }}">{{ lecturer.display_name or lecturer.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agenda Item Delete Modals -->
+        {% for event in selected_course.template_events %}
+            {% for agenda_item in event.template_agenda_items %}
+            <div class="modal fade" id="deleteAgendaItemModal-{{ agenda_item.id }}" tabindex="-1" aria-labelledby="deleteAgendaItemModalLabel-{{ agenda_item.id }}" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form method="POST" action="{{ url_for('template_mgmt.delete_template_agenda_item') }}">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="deleteAgendaItemModalLabel-{{ agenda_item.id }}">Delete Agenda Item</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <input type="hidden" name="agenda_item_id" value="{{ agenda_item.id }}">
+                      <p>Are you sure you want to delete <strong>{{ agenda_item.title }}</strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+        {% endfor %}
+
+        <script>
+        // Reorder events with up/down buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const eventList = document.getElementById('event-list');
+            const saveOrderButton = document.querySelector('#reorder-events-form button[type="submit"]');
+            if (eventList) {
+                eventList.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('move-up') || e.target.classList.contains('move-down')) {
+                        const li = e.target.closest('li');
+                        saveOrderButton.hidden = false;
+                        if (e.target.classList.contains('move-up') && li.previousElementSibling) {
+                            li.parentNode.insertBefore(li, li.previousElementSibling);
+                        } else if (e.target.classList.contains('move-down') && li.nextElementSibling) {
+                            li.parentNode.insertBefore(li.nextElementSibling, li);
+                        }
+                        // Update hidden input with new order
+                        updateEventOrderInput();
+                    }
+                });
+            }
+            function updateEventOrderInput() {
+                const order = Array.from(eventList.children).map(li => li.getAttribute('data-event-id'));
+                document.getElementById('event-order-input').value = order.join(',');
+            }
+            // On form submit, update order
+            const reorderForm = document.getElementById('reorder-events-form');
+            if (reorderForm) {
+                reorderForm.addEventListener('submit', function() {
+                    updateEventOrderInput();
+                });
+            }
+        });
+        // Populate agenda item modal with data
+        document.addEventListener('DOMContentLoaded', function() {
+            const editAgendaModal = document.getElementById('editAgendaModal');
+            editAgendaModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                document.getElementById('modal-agenda-id').value = button.getAttribute('data-id');
+                document.getElementById('modal-agenda-title').value = button.getAttribute('data-title');
+                document.getElementById('modal-agenda-time').value = button.getAttribute('data-time');
+                document.getElementById('modal-agenda-duration').value = button.getAttribute('data-duration');
+                document.getElementById('modal-agenda-description').value = button.getAttribute('data-description');
+                document.getElementById('modal-agenda-lecturer').value = button.getAttribute('data-lecturer');
+            });
+        });
+        </script>
 
         <a href="{{ url_for('template_mgmt.manage_templates', program_id=selected_program.id if selected_program else '') }}"
            class="btn btn-secondary mt-3">

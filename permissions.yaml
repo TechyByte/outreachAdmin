@@ -15,7 +15,7 @@ admin:
   confirm_agenda_item: true
   reject_agenda_item: true
   create_event: true
-  admin_dashboard: true
+  user_list: true
   manage_email_templates: true
   view_school: true
   edit_school: true
@@ -63,7 +63,7 @@ manager:
   manage_locations: true
   create_user: true
   edit_user: true
-  admin_dashboard: true
+  user_list: true
   delete_user: true
 
 

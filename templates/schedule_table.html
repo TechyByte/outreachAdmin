@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
+<div class="container mt-4">
 <h2>Schedule (Table View)</h2>
 
 <!-- Filters (no wrapping form) -->
@@ -65,4 +66,5 @@
     </tbody>
 </table>
     <script src="{{ url_for('static', filename='js/schedule.js') }}"></script>
+</div>
 {% endblock %}

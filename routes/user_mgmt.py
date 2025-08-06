@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, url_for, request, flash, render_template
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 
-from models import db, User
+from models import db, User, valid_user_roles
 from utils import check_permission
 
 bp = Blueprint('user_mgmt', __name__)
@@ -19,20 +19,19 @@ def delete_user():
     if user:
         if user.configured_role == 'admin' and current_user.role != 'admin':
             flash("You do not have permission to delete an admin user.", "danger")
-            return redirect(url_for('dashboard.admin_dashboard'))
+            return redirect(url_for('user_mgmt.user_list'))
         if user.id == current_user.id:
             flash("You cannot delete your own account.", "danger")
-            return redirect(url_for('dashboard.admin_dashboard'))
+            return redirect(url_for('user_mgmt.user_list'))
         db.session.delete(user)
         db.session.commit()
         flash("User deleted successfully!", "success")
     else:
         flash("User not found.", "danger")
 
-    return redirect(url_for('dashboard.admin_dashboard'))
+    return redirect(url_for('user_mgmt.user_list'))
 
 
-# 🔹 Create a New User (Admin Only)
 @bp.route('/create_user', methods=['POST'])
 @login_required
 @check_permission('create_user')
@@ -47,18 +46,18 @@ def create_user():
 
     if current_user.role != 'admin' and request.form.get('configured_role') == 'admin':
         flash("Non-admin may not edit admin account!", "danger")
-        return redirect(url_for('dashboard.admin_dashboard'))
+        return redirect(url_for('user_mgmt.user_list'))
 
     if not username or not email or not password:
         flash("Username, email, and password are required.", "danger")
-        return redirect(url_for('dashboard.admin_dashboard'))
+        return redirect(url_for('user_mgmt.user_list'))
 
     if User.query.filter_by(username=username).first():
         flash("Username already exists.", "danger")
-        return redirect(url_for('dashboard.admin_dashboard'))
+        return redirect(url_for('user_mgmt.user_list'))
     if User.query.filter_by(email=email).first():
         flash("Email already exists.", "danger")
-        return redirect(url_for('dashboard.admin_dashboard'))
+        return redirect(url_for('user_mgmt.user_list'))
 
     user = User(
         username=username,
@@ -71,10 +70,9 @@ def create_user():
     db.session.add(user)
     db.session.commit()
     flash("User created successfully!", "success")
-    return redirect(url_for('dashboard.admin_dashboard'))
+    return redirect(url_for('user_mgmt.user_list'))
 
 
-# 🔹 Edit User Details (Admin Only)
 @bp.route('/edit_user', methods=['POST'])
 @login_required
 @check_permission('edit_user')
@@ -84,11 +82,11 @@ def edit_user():
 
     if not user:
         flash("User not found.", "danger")
-        return redirect(url_for('dashboard.admin_dashboard'))
+        return redirect(url_for('user_mgmt.user_list'))
 
     if current_user.role != 'admin' and (user.configured_role == 'admin' or request.form.get('configured_role') == 'admin'):
         flash("Non-admin may not edit admin account!", "danger")
-        return redirect(url_for('dashboard.admin_dashboard'))
+        return redirect(url_for('user_mgmt.user_list'))
 
     # Only update fields that are allowed
     user.display_name = request.form.get('display_name')
@@ -97,4 +95,12 @@ def edit_user():
     user.configured_role = request.form.get('configured_role') or None
     db.session.commit()
     flash("User updated successfully!", "success")
-    return redirect(url_for('dashboard.admin_dashboard'))
+    return redirect(url_for('user_mgmt.user_list'))
+
+
+@bp.route('/user-list')
+@login_required
+@check_permission('user_list')
+def user_list():
+    users = User.query.all()
+    return render_template('user_list.html', users=users, valid_user_roles=valid_user_roles)

@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 from flask_login import login_required, current_user
@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 from utils import check_permission  # Import the permission check decorator
 
 from models import db, Program, TemplateCourse, TemplateEvent, TemplateAgendaItem, MailMergeTemplate, Event, AgendaItem, \
-    Course, User, School, MailMergeTemplateSend, CourseStatus, EventStatus, AgendaItemStatus
+    Course, User, School, MailMergeTemplateSend, CourseStatus, EventStatus, AgendaItemStatus, Location
 
 bp = Blueprint('template_mgmt', __name__)
 
@@ -119,7 +119,9 @@ def edit_template_course(course_id):
         return render_template(
             "edit_template_course.html",
             selected_course=selected_course,
-            selected_program=selected_program
+            selected_program=selected_program,
+            locations=Location.query.all(),
+            lecturers= User.query.filter((User.configured_role == 'lecturer') | (User.configured_role == 'manager')).all(),
         )
 
 
@@ -133,6 +135,12 @@ def add_template_event():
     with current_app.app_context():
         new_event = TemplateEvent(name=event_name, template_course_id=course_id)
         db.session.add(new_event)
+        db.session.flush()  # Get new_agenda.id before commit
+
+        # Associate with all mail merge templates that apply to all agenda items
+        all_templates = MailMergeTemplate.query.filter_by(apply_to_all_events=True).all()
+        for template in all_templates:
+            template.template_events.append(new_event)
         db.session.commit()
 
     flash("New event added successfully!", "success")
@@ -149,11 +157,12 @@ def edit_template_event():
     with current_app.app_context():
         event = TemplateEvent.query.get(event_id)
         if event:
+            course_id = event.template_course_id
             event.name = new_name
             db.session.commit()
 
     flash("Event updated successfully!", "success")
-    return redirect(url_for('template_mgmt.edit_template_course', course_id=event.template_course_id))
+    return redirect(url_for('template_mgmt.edit_template_course', course_id=course_id))
 
 
 @bp.route('/delete-template-event', methods=['POST'])
@@ -180,16 +189,23 @@ def add_template_agenda_item():
     event_id = request.form.get('event_id')
     agenda_title = request.form.get('agenda_title')
     agenda_time = request.form.get('agenda_time')
-    agenda_time = datetime.strptime(agenda_time, '%H:%M').time()
+    if agenda_time:
+        agenda_time = datetime.strptime(agenda_time, '%H:%M').time()
     lecturer_id = request.form.get('lecturer_id')
 
     with current_app.app_context():
         new_agenda = TemplateAgendaItem(title=agenda_title,
                                         template_event_id=event_id,
-                                        time=agenda_time,
+                                        time=agenda_time if agenda_time else None,
                                         lecturer_id=int(lecturer_id) if lecturer_id and lecturer_id != "0" else None
                                         )
         db.session.add(new_agenda)
+        db.session.flush()  # Get new_agenda.id before commit
+
+        # Associate with all mail merge templates that apply to all agenda items
+        all_templates = MailMergeTemplate.query.filter_by(apply_to_all_agenda_items=True).all()
+        for template in all_templates:
+            template.template_agenda_items.append(new_agenda)
         db.session.commit()
 
     flash("New agenda item added successfully!", "success")
@@ -259,18 +275,32 @@ def manage_mail_templates():
         )
 
         # Assign based on selected type
-        if template_type == 'program':
-            program_ids = request.form.getlist('program_ids')
-            new_template.programs = Program.query.filter(Program.id.in_(program_ids)).all()
-        elif template_type == 'template_course':
+        if template_type == 'template_course':
             template_course_ids = request.form.getlist('template_course_ids')
-            new_template.template_courses = TemplateCourse.query.filter(TemplateCourse.id.in_(template_course_ids)).all()
+            if 'all' in template_course_ids:
+                new_template.template_courses = TemplateCourse.query.all()
+                new_template.apply_to_all_courses = True
+            else:
+                new_template.template_courses = TemplateCourse.query.filter(
+                    TemplateCourse.id.in_(template_course_ids)).all()
+                new_template.apply_to_all_courses = False
         elif template_type == 'template_event':
             template_event_ids = request.form.getlist('template_event_ids')
-            new_template.template_events = TemplateEvent.query.filter(TemplateEvent.id.in_(template_event_ids)).all()
+            if 'all' in template_event_ids:
+                new_template.template_events = TemplateEvent.query.all()
+                new_template.apply_to_all_events = True
+            else:
+                new_template.template_events = TemplateEvent.query.filter(
+                    TemplateEvent.id.in_(template_event_ids)).all()
+                new_template.apply_to_all_events = False
         elif template_type == 'template_agenda_item':
             template_agenda_item_ids = request.form.getlist('template_agenda_item_ids')
-            new_template.template_agenda_items = TemplateAgendaItem.query.filter(TemplateAgendaItem.id.in_(template_agenda_item_ids)).all()
+            if 'all' in template_agenda_item_ids:
+                new_template.template_agenda_items = TemplateAgendaItem.query.all()
+                new_template.apply_to_all_agenda_items = True
+            else:
+                new_template.template_agenda_items = TemplateAgendaItem.query.filter(TemplateAgendaItem.id.in_(template_agenda_item_ids)).all()
+                new_template.apply_to_all_agenda_items = False
 
         db.session.add(new_template)
         db.session.commit()
@@ -340,6 +370,21 @@ def edit_mail_template(template_id):
     course_statuses = {key: value.name for key, value in CourseStatus.__members__.items()}
     event_statuses = {key: value.name for key, value in EventStatus.__members__.items()}
     agenda_item_statuses = {key: value.name for key, value in AgendaItemStatus.__members__.items()}
+
+    all_agenda_items = TemplateAgendaItem.query.all()
+    template.apply_to_all_agenda_items = (
+        set(template.template_agenda_items) == set(all_agenda_items) and len(all_agenda_items) > 0
+    )
+
+    all_events = TemplateEvent.query.all()
+    template.apply_to_all_events = (
+            set(template.template_events) == set(all_events) and len(all_events) > 0
+    )
+
+    all_courses = TemplateCourse.query.all()
+    template.apply_to_all_courses = (
+            set(template.template_courses) == set(all_courses) and len(all_courses) > 0
+    )
 
     return render_template(
         'edit_mail_template.html',
@@ -468,33 +513,64 @@ def send_mail(template_id, program_id=None, course_id=None, event_id=None, agend
 
     # Build the context based on the selected entity
     context = {}
-    if program_id:
-        context['program'] = Program.query.get_or_404(program_id)
-    if course_id:
-        context['course'] = Course.query.get_or_404(course_id)
-    if event_id:
-        context['event'] = Event.query.get_or_404(event_id)
-        school_email = context['event'].school.contact_email
     if agenda_item_id:
         context['agenda_item'] = AgendaItem.query.get_or_404(agenda_item_id)
         school_email = context['agenda_item'].event.school.contact_email
         if context['agenda_item'].lecturer:
             lecturer_email = context['agenda_item'].lecturer.email
 
+    if event_id:
+        context['event'] = Event.query.get_or_404(event_id)
+        school_email = context['event'].school.contact_email
+    elif agenda_item_id:
+        context['event'] = context['agenda_item'].event
+        school_email = context['event'].school.contact_email
+        event = context['event'].id
+
+    if course_id:
+        context['course'] = Course.query.get_or_404(course_id)
+        school_email = context['course'].school.contact_email
+
+    elif event_id:
+        context['course'] = context['event'].course
+        school_email = context['course'].school.contact_email
+        course_id = context['course'].id
+
+    if program_id:
+        context['program'] = Program.query.get_or_404(program_id)
+        school_email = context['program'].school.contact_email
+    elif course_id:
+        context['program'] = context['course'].program
+
+    if not school_email and template.recipient_type == 'school_contact':
+        flash("No school contact email address found.", "warning")
+        return redirect(request.referrer)
+    if not lecturer_email and template.recipient_type == 'lecturer':
+        flash("No lecturer email address found. Is one assigned to the agenda item?", "warning")
+        return redirect(request.referrer)
+
     # Render the email content
     generated_content = template.render_content(context)
 
     recipient_email = request.form.get('recipient_email')
     if not recipient_email:
-        if template.recipient_type == 'lecturer' and lecturer_email:
-            recipient_email = lecturer_email
-        elif template.recipient_type == 'school_contact' and school_email:
-            recipient_email = school_email
+        if template.recipient_type == 'lecturer':
+            if lecturer_email:
+                recipient_email = lecturer_email
+            else:
+                flash("No lecturer email address found in context.", "warning")
+                return redirect(url_for('template_mgmt.comms_panel'))
+        elif template.recipient_type == 'school_contact':
+            if school_email:
+                recipient_email = school_email
+            else:
+                flash("No school contact email address found in context.", "warning")
+                return redirect(url_for('template_mgmt.comms_panel'))
         elif lecturer_email or school_email:
-            flash ("Unable to automatically determine recipient email address", "warning")
+            flash (f"Unable to determine {template.recipient_type} email address given context.", "warning")
             return redirect(url_for('template_mgmt.comms_panel'))
         else:
-            flash("No recipient found!", "danger")
+            flash("No possible recipients found! Ensure that the lecturer, school or school contact have emails assigned.", "danger")
             return redirect(url_for('template_mgmt.comms_panel'))
 
     if request.form.get('action') == 'mailto':
@@ -523,8 +599,7 @@ def send_mail(template_id, program_id=None, course_id=None, event_id=None, agend
             program_id=program_id,
             course_id=course_id,
             event_id=event_id,
-            agenda_item_id=agenda_item_id,
-            template=template
+            agenda_item_id=agenda_item_id
         )
         # db.session.add(sent_mail)
         # db.session.commit()
@@ -568,10 +643,114 @@ def confirm_mail_sent():
     if event_id:
         return redirect(url_for('event_mgmt.edit_event', event_id=event_id))
     if course_id:
-        return redirect(url_for('course_mgmt.edit_course', course_id=course_id))
-    if program_id:
-        return redirect(url_for('programme_mgmt.manage_programs', program_id=program_id))
+        return redirect(url_for('event_mgmt.edit_course', course_id=course_id))
 
 
     return redirect(url_for('auth.index'))  # Redirect to a suitable page after confirmation
 
+
+@bp.route('/reorder-template-events', methods=['POST'])
+@login_required
+@check_permission("manage_event_templates")
+def reorder_template_events():
+    course_id = request.args.get('course_id') or request.form.get('course_id')
+    event_order = request.form.get('event_order')
+    if not event_order:
+        flash("No event order provided.", "warning")
+        return redirect(url_for('template_mgmt.edit_template_course', course_id=course_id))
+    event_ids = [int(eid) for eid in event_order.split(',') if eid]
+    with current_app.app_context():
+        events = TemplateEvent.query.filter(TemplateEvent.id.in_(event_ids)).all()
+        id_to_event = {e.id: e for e in events}
+        for idx, eid in enumerate(event_ids):
+            event = id_to_event.get(eid)
+            if event:
+                event.sequence = idx
+        db.session.commit()
+    flash("Event order updated!", "success")
+    return redirect(url_for('template_mgmt.edit_template_course', course_id=course_id))
+
+
+@bp.route('/edit-template-agenda-item-popup', methods=['POST'])
+@login_required
+@check_permission("manage_event_templates")
+def edit_template_agenda_item_popup():
+    agenda_item_id = request.form.get('agenda_item_id')
+    new_title = request.form.get('new_agenda_title')
+    agenda_time = request.form.get('agenda_time')[:5] if request.form.get('agenda_time') else None  # Get only HH:MM part
+    agenda_duration = request.form.get('agenda_duration')
+    agenda_description = request.form.get('agenda_description')
+    agenda_lecturer = request.form.get('agenda_lecturer')
+    with current_app.app_context():
+        agenda_item = TemplateAgendaItem.query.get(agenda_item_id)
+        if agenda_item:
+            agenda_item.title = new_title
+            agenda_item.time = datetime.strptime(agenda_time, '%H:%M').time() if agenda_time else None
+            agenda_item.duration = timedelta(minutes=int(agenda_duration)) if agenda_duration else None
+            agenda_item.description = agenda_description
+            agenda_item.lecturer_id = int(agenda_lecturer) if agenda_lecturer and agenda_lecturer != "0" else None
+            db.session.commit()
+            flash("Agenda item updated!", "success")
+            return redirect(url_for('template_mgmt.edit_template_course', course_id=agenda_item.template_event.template_course_id))
+    flash("Agenda item not found!", "danger")
+    return redirect(url_for('template_mgmt.manage_templates'))
+
+
+@bp.route('/update-template-event-location', methods=['POST'])
+@login_required
+@check_permission("manage_event_templates")
+def update_template_event_location():
+    event_id = request.form.get('event_id')
+    default_location_id = request.form.get('default_location_id')
+    with current_app.app_context():
+        event = TemplateEvent.query.get(event_id)
+        if event:
+            event.default_location_id = int(default_location_id) if default_location_id else None
+            db.session.commit()
+            flash("Event location updated!", "success")
+            return redirect(url_for('template_mgmt.edit_template_course', course_id=event.template_course_id))
+    flash("Event not found!", "danger")
+    return redirect(url_for('template_mgmt.manage_templates'))
+
+
+@bp.route('/delete-template-course', methods=['POST'])
+@login_required
+@check_permission("manage_event_templates")
+def delete_template_course():
+    course_id = request.form.get('course_id')
+    with current_app.app_context():
+        course = TemplateCourse.query.get(course_id)
+        if course:
+            # Cascade delete all template_events for this course
+            for event in list(course.template_events):
+                for agenda_item in list(event.template_agenda_items):
+                    db.session.delete(agenda_item)
+                db.session.delete(event)
+            db.session.delete(course)
+            db.session.commit()
+            flash("Template course deleted successfully!", "danger")
+        else:
+            flash("Template course not found!", "warning")
+    return redirect(url_for('template_mgmt.manage_templates'))
+
+
+@bp.route('/create-template-course', methods=['POST'])
+@login_required
+@check_permission("manage_event_templates")
+def create_template_course():
+    course_name = request.form.get('course_name')
+    if not course_name:
+        flash("Course name is required!", "danger")
+        return redirect(url_for('template_mgmt.manage_templates'))
+    new_course = TemplateCourse(name=course_name)
+    db.session.add(new_course)
+    db.session.flush()  # Get new_agenda.id before commit
+
+    # Associate with all mail merge templates that apply to all agenda items
+    all_templates = MailMergeTemplate.query.filter_by(apply_to_all_courses=True).all()
+    for template in all_templates:
+        template.template_courses.append(new_course)
+    db.session.commit()
+
+    flash("Template course created!", "success")
+    return redirect(url_for('template_mgmt.edit_template_course', course_id=new_course.id))

@@ -13,7 +13,6 @@
 <div class="mb-3">
     <label for="template_type" class="form-label">Template Type</label>
     <select class="form-select" id="template_type" name="template_type" required onchange="updateTemplateTypeFields()">
-        <option value="program" {% if template and template.programs %}selected{% endif %}>Program</option>
         <option value="template_course" {% if template and template.template_courses %}selected{% endif %}>Template Course</option>
         <option value="template_event" {% if template and template.template_events %}selected{% endif %}>Template Event</option>
         <option value="template_agenda_item" {% if template and template.template_agenda_items %}selected{% endif %}>Template Agenda Item</option>
@@ -25,17 +24,10 @@
         <!-- Status options will be dynamically updated based on the selected template type -->
     </select>
 </div>
-<div class="mb-3 d-none" id="program_field">
-    <label for="program_ids" class="form-label">Assign to Programs</label>
-    <select class="form-select" id="program_ids" name="program_ids" multiple>
-        {% for program in programs %}
-            <option value="{{ program.id }}" {% if template and program in template.programs %}selected{% endif %}>{{ program.name }}</option>
-        {% endfor %}
-    </select>
-</div>
 <div class="mb-3 d-none" id="template_course_field">
     <label for="template_course_ids" class="form-label">Assign to Template Courses</label>
     <select class="form-select" id="template_course_ids" name="template_course_ids" multiple>
+        <option value="all" {% if template and template.apply_to_all_courses %}selected{% endif %}>All Template Courses</option>
         {% for course in template_courses %}
             <option value="{{ course.id }}" {% if template and course in template.template_courses %}selected{% endif %}>{{ course.name }}</option>
         {% endfor %}
@@ -44,6 +36,10 @@
 <div class="mb-3 d-none" id="template_event_field">
     <label for="template_event_ids" class="form-label">Assign to Template Events</label>
     <select class="form-select" id="template_event_ids" name="template_event_ids" multiple>
+        <option value="all" {% if template and template.apply_to_all_events %}selected{% endif %}>All Template Events</option>
+        {% if template and template.template_events %}
+            <option value="none" {% if not template.template_events %}selected{% endif %}>None</option>
+        {% endif %}
         {% for event in template_events %}
             <option value="{{ event.id }}" {% if template and event in template.template_events %}selected{% endif %}>{{ event.name }}</option>
         {% endfor %}
@@ -52,6 +48,7 @@
 <div class="mb-3 d-none" id="template_agenda_item_field">
     <label for="template_agenda_item_ids" class="form-label">Assign to Template Agenda Items</label>
     <select class="form-select" id="template_agenda_item_ids" name="template_agenda_item_ids" multiple>
+        <option value="all" {% if template and template.apply_to_all_agenda_items %}selected{% endif %}>All Template Agenda Items</option>
         {% for agenda_item in template_agenda_items %}
             <option value="{{ agenda_item.id }}" {% if template and agenda_item in template.template_agenda_items %}selected{% endif %}>{{ agenda_item.title }}</option>
         {% endfor %}
@@ -100,7 +97,6 @@
         const type = document.getElementById('template_type').value;
 
         // Update visibility of fields
-        document.getElementById('program_field').classList.toggle('d-none', type !== 'program');
         document.getElementById('template_course_field').classList.toggle('d-none', type !== 'template_course');
         document.getElementById('template_event_field').classList.toggle('d-none', type !== 'template_event');
         document.getElementById('template_agenda_item_field').classList.toggle('d-none', type !== 'template_agenda_item');

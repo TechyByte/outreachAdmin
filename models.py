@@ -100,7 +100,6 @@ class User(db.Model, UserMixin):
     email_verified = db.Column(db.Boolean, default=False)  # Whether the email has been verified via SSO
     display_name = db.Column(db.String(100), nullable=True)  # New field for display name
     specialty = db.Column(db.String(200), nullable=True)  # New field for specialty
-    test = db.Column(db.String(100), nullable=True)  # Example field for testing purposes
 
     @staticmethod
     def get_or_create_o365_user(o365_id, email, username=None):
@@ -251,7 +250,7 @@ class TemplateCourse(db.Model):
     #
     # program = db.relationship('Program', backref='template_courses', lazy=True)
     programs = db.relationship('Program', secondary=program_template_course, back_populates='template_courses')
-    template_events = db.relationship('TemplateEvent', backref='template_course')
+    template_events = db.relationship('TemplateEvent', backref='template_course', order_by='TemplateEvent.sequence.asc()')
     mail_merge_templates = db.relationship(
         'MailMergeTemplate',
         secondary=mail_merge_template_template_course,
@@ -263,6 +262,9 @@ class TemplateEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     template_course_id = db.Column(db.Integer, db.ForeignKey('template_course.id'), nullable=False)
+    sequence = db.Column(db.Integer, nullable=True, default=0)  # Add this line to store event order
+    default_location_id = db.Column(db.Integer, db.ForeignKey('location.id'), nullable=True)
+    default_location = db.relationship('Location', backref='template_events', foreign_keys=[default_location_id])
     template_agenda_items = db.relationship('TemplateAgendaItem', backref='template_event',
                                             order_by='TemplateAgendaItem.time.asc()')
     mail_merge_templates = db.relationship(
@@ -417,12 +419,11 @@ class Event(db.Model):
 
     @property
     def status(self):
-        if self.date and self.date < datetime.today().date():
+        if self.date and self.date < datetime.today().date() - timedelta(days=1):
             # If the event date is in the past, consider it archived
             return EventStatus.ARCHIVED
-
-        if any(item.lecturer is None for item in self.agenda_items) or not self.date:
-            # If any item is missing a lecturer or if the event does not have a date, consider the event unscheduled
+        if all(item.time is None for item in self.agenda_items) or not self.date:
+            # If all items are missing a time or if the event does not have a date, consider the event unscheduled
             return EventStatus.UNSCHEDULED  # Indicates that the event is missing a date or has items without lecturers
         elif any(item.status == AgendaItemStatus.UNSCHEDULED for item in self.agenda_items) and any(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] for item in self.agenda_items):
             # If any item is unscheduled and any item is tentative or confirmed, consider the event partially scheduled
@@ -430,7 +431,7 @@ class Event(db.Model):
         elif all(item.status == AgendaItemStatus.CONFIRMED for item in self.agenda_items):
             # If all agenda items are confirmed, consider the event fully scheduled
             return EventStatus.FULLY_SCHEDULED
-        elif all(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] for item in self.agenda_items):
+        elif all(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] or item.time for item in self.agenda_items):
             # If all agenda items are either confirmed or tentative, consider the event tentatively scheduled
             return EventStatus.TENTATIVELY_SCHEDULED
         return EventStatus.UNKNOWN
@@ -452,7 +453,7 @@ class Event(db.Model):
     def end_time(self):
         if not self.date or not self.agenda_items:
             return None
-        last_item = max(self.agenda_items, key=lambda item: item.time)
+        last_item = max([item for item in self.agenda_items if item.time], key=lambda item: item.time)
         if last_item.duration is None:
             return None
         end_time = datetime.combine(self.date, last_item.time) + last_item.duration + timedelta(minutes=15)
@@ -550,6 +551,10 @@ class MailMergeTemplate(db.Model):
     content = db.Column(db.Text, nullable=False)
     recipient_type = db.Column(db.String(50), nullable=False)  # 'lecturer' or 'school_contact'
 
+    apply_to_all_agenda_items = db.Column(db.Boolean, default=False)  # Whether to apply this template to all agenda items in the event
+    apply_to_all_events = db.Column(db.Boolean, default=False)  # Whether to apply this template to all events in the course
+    apply_to_all_courses = db.Column(db.Boolean, default=False)  # Whether to apply this template to all courses in the program
+
     # Remove these redundant relationships
     # template_course_id = db.Column(db.Integer, db.ForeignKey('template_course.id'), nullable=True)
     # template_event_id = db.Column(db.Integer, db.ForeignKey('template_event.id'), nullable=True)
@@ -630,11 +635,3 @@ class MailMergeTemplateSend(db.Model):
     course = db.relationship('Course', backref='sent_mails')
     event = db.relationship('Event', backref='sent_mails')
     agenda_item = db.relationship('AgendaItem', backref='sent_mails')
-
-
-
-
-
-
-
-
