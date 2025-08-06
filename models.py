@@ -419,12 +419,11 @@ class Event(db.Model):
 
     @property
     def status(self):
-        if self.date and self.date < datetime.today().date():
+        if self.date and self.date < datetime.today().date() - timedelta(days=1):
             # If the event date is in the past, consider it archived
             return EventStatus.ARCHIVED
-
-        if any(item.lecturer is None for item in self.agenda_items) or not self.date:
-            # If any item is missing a lecturer or if the event does not have a date, consider the event unscheduled
+        if all(item.time is None for item in self.agenda_items) or not self.date:
+            # If all items are missing a time or if the event does not have a date, consider the event unscheduled
             return EventStatus.UNSCHEDULED  # Indicates that the event is missing a date or has items without lecturers
         elif any(item.status == AgendaItemStatus.UNSCHEDULED for item in self.agenda_items) and any(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] for item in self.agenda_items):
             # If any item is unscheduled and any item is tentative or confirmed, consider the event partially scheduled
@@ -432,7 +431,7 @@ class Event(db.Model):
         elif all(item.status == AgendaItemStatus.CONFIRMED for item in self.agenda_items):
             # If all agenda items are confirmed, consider the event fully scheduled
             return EventStatus.FULLY_SCHEDULED
-        elif all(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] for item in self.agenda_items):
+        elif all(item.status in [AgendaItemStatus.CONFIRMED, AgendaItemStatus.TENTATIVE] or item.time for item in self.agenda_items):
             # If all agenda items are either confirmed or tentative, consider the event tentatively scheduled
             return EventStatus.TENTATIVELY_SCHEDULED
         return EventStatus.UNKNOWN
@@ -551,6 +550,10 @@ class MailMergeTemplate(db.Model):
     name = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
     recipient_type = db.Column(db.String(50), nullable=False)  # 'lecturer' or 'school_contact'
+
+    apply_to_all_agenda_items = db.Column(db.Boolean, default=False)  # Whether to apply this template to all agenda items in the event
+    apply_to_all_events = db.Column(db.Boolean, default=False)  # Whether to apply this template to all events in the course
+    apply_to_all_courses = db.Column(db.Boolean, default=False)  # Whether to apply this template to all courses in the program
 
     # Remove these redundant relationships
     # template_course_id = db.Column(db.Integer, db.ForeignKey('template_course.id'), nullable=True)

@@ -59,8 +59,13 @@
                         {% for entry in mail_merge_templates %}
                             <li>
                             {{ entry.template.name }}
+                            {% if entry.template.recipient_type == 'lecturer' %}
+                                <span class="badge bg-info" title="{% if entry.recipient_email %}{{ entry.recipient_email }}{% endif %}">Lecturer</span>
+                            {% elif entry.template.recipient_type == 'school_contact' %}
+                                <span class="badge bg-info" title="{% if entry.recipient_email %}{{ entry.recipient_email }}{% endif %}">School Contact</span>
+                            {% endif %}
                             {% if entry.status == 'sent' %}
-                                <span class="badge bg-secondary">Sent</span>
+                                <span class="badge bg-secondary" title="{% if entry.sent_date_time %}{{ entry.sent_date_time }}{% endif %}">Sent</span>
                             {% elif entry.status == 'sendable' %}
                                 <form method="post" action="{{ url_for('template_mgmt.send_mail', template_id=entry.template.id) }}" style="display:inline;">
                                     <input type="hidden" name="agenda_item_id" value="{{ item.id }}">
