@@ -343,24 +343,41 @@ def edit_mail_template(template_id):
         template_type = request.form.get('template_type')  # 'program', 'template_course', 'template_event', 'template_agenda_item'
 
         # Clear all associations
-        template.program_id = None
-        template.template_course_id = None
-        template.template_event_id = None
-        template.template_agenda_item_id = None
+        template.template_courses = []
+        template.template_events = []
+        template.template_agenda_items = []
+        template.apply_to_all_agenda_items = False
+        template.apply_to_all_events = False
+        template.apply_to_all_courses = False
 
         # Assign based on selected type
-        if template_type == 'program':
-            program_ids = request.form.getlist('program_ids')
-            template.programs = Program.query.filter(Program.id.in_(program_ids)).all()
-        elif template_type == 'template_course':
+        if template_type == 'template_course':
             template_course_ids = request.form.getlist('template_course_ids')
-            template.template_courses = TemplateCourse.query.filter(TemplateCourse.id.in_(template_course_ids)).all()
+            if 'all' in template_course_ids:
+                template.template_courses = TemplateCourse.query.all()
+                template.apply_to_all_courses = True
+            else:
+                template.template_courses = TemplateCourse.query.filter(
+                    TemplateCourse.id.in_(template_course_ids)).all()
+                template.apply_to_all_courses = False
         elif template_type == 'template_event':
             template_event_ids = request.form.getlist('template_event_ids')
-            template.template_events = TemplateEvent.query.filter(TemplateEvent.id.in_(template_event_ids)).all()
+            if 'all' in template_event_ids:
+                template.template_events = TemplateEvent.query.all()
+                template.apply_to_all_events = True
+            else:
+                template.template_events = TemplateEvent.query.filter(
+                    TemplateEvent.id.in_(template_event_ids)).all()
+                template.apply_to_all_events = False
         elif template_type == 'template_agenda_item':
             template_agenda_item_ids = request.form.getlist('template_agenda_item_ids')
-            template.template_agenda_items = TemplateAgendaItem.query.filter(TemplateAgendaItem.id.in_(template_agenda_item_ids)).all()
+            if 'all' in template_agenda_item_ids:
+                template.template_agenda_items = TemplateAgendaItem.query.all()
+                template.apply_to_all_agenda_items = True
+            else:
+                template.template_agenda_items = TemplateAgendaItem.query.filter(
+                    TemplateAgendaItem.id.in_(template_agenda_item_ids)).all()
+                template.apply_to_all_agenda_items = False
 
         db.session.commit()
         flash("Mail merge template updated successfully!", "success")

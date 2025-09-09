@@ -417,7 +417,7 @@ class Event(db.Model):
             return self.location.address if self.location and self.location.is_fixed else None
 
 
-    @property
+    @hybrid_property
     def status(self):
         if self.date and self.date < datetime.today().date() - timedelta(days=1):
             # If the event date is in the past, consider it archived
@@ -435,6 +435,14 @@ class Event(db.Model):
             # If all agenda items are either confirmed or tentative, consider the event tentatively scheduled
             return EventStatus.TENTATIVELY_SCHEDULED
         return EventStatus.UNKNOWN
+
+    @status.expression
+    def status(cls):
+        cutoff = datetime.today().date() - timedelta(days=1)
+        return case(
+            (cls.date < cutoff, EventStatus.ARCHIVED.value),
+            else_=EventStatus.UNKNOWN.value
+        )
 
     @property
     def start_time(self):

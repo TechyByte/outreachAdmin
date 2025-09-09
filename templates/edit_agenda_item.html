@@ -9,7 +9,9 @@
         <li class="breadcrumb-item active" aria-current="page">{{ item.title }}</li>
     </ol>
 </nav>
-<h2>Edit Agenda Item</h2>
+    <hr>
+<h2>Edit {{ item.status.value }} Agenda Item</h2>
+    <hr>
 <div class="row">
     <!-- Left: Edit Form -->
     <div class="col-md-4">
@@ -23,23 +25,22 @@
             <label>Lecturer:</label>
             {% include '_find_lecturer.html' %}
             <br>
-            <p>Status:
-                {{ item.status.name }}
-            </p><br>
+
             <button type="submit" class="btn btn-primary">Save</button>
         </form>
-        {% if item.status.name != 'CONFIRMED' %}
-        <form method="post" action="{{ url_for('event_mgmt.confirm_agenda_item', item_id=item.id) }}">
-            <input type="hidden" name="agenda_item_id" value="{{ item.id }}">
-            <button type="submit" class="btn btn-success btn-sm">Discard changes and force confirm</button>
-        </form>
-        {% endif %}
         {% if item.lecturer or item.status.name == 'CONFIRMED' %}
             <form method="post" action="{{ url_for('event_mgmt.reject_agenda_item', item_id=item.id) }}">
                 <input type="hidden" name="agenda_item_id" value="{{ item.id }}">
                 <button type="submit" class="btn btn-danger btn-sm">{% if item.lecturer %}Remove lecturer{% else %}Revert to unscheduled{% endif %}</button>
             </form>
         {% endif %}
+        {% if item.status.name != 'CONFIRMED' %}
+        <form method="post" action="{{ url_for('event_mgmt.confirm_agenda_item', item_id=item.id) }}">
+            <input type="hidden" name="agenda_item_id" value="{{ item.id }}">
+            <button type="submit" class="btn btn-warning btn-sm">Discard changes and force confirm</button>
+        </form>
+        {% endif %}
+
     </div>
     <!-- Middle: Notes -->
     <div class="col-md-4">
