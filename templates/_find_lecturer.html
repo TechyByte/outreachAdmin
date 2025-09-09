@@ -5,16 +5,12 @@
     <button
         type="button"
         id="find-lecturer-btn"
-        class="btn {% if selected_lecturer_id %}btn-success{% else %}btn-primary{% endif %} mb-3"
+        class="btn {% if selected_lecturer_id %}btn-info{% else %}btn-secondary{% endif %} mb-3"
         data-bs-toggle="modal"
         data-bs-target="#findLecturerModal"
     >
         {% if selected_lecturer_id %}
-            {% if item and item.lecturer %}
-                Find/Change Lecturer
-            {% else %}
-                Change Lecturer
-            {% endif %}
+            Change Lecturer
         {% else %}
             Find Lecturer
         {% endif %}
