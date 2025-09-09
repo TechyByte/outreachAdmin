@@ -1,14 +1,24 @@
 from datetime import time, datetime
 
-from flask import Flask, render_template, request
-from flask_login import LoginManager, login_required, current_user
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, login_required, current_user, login_user
+from flask_migrate import Migrate
 
 from datetime import datetime, timedelta
 
-from utils import check_permission
+from utils import has_permission
+from dotenv import load_dotenv
 import os
 
-from models import db, User, Event
+import logging as logger
+logger.basicConfig(level=logger.DEBUG)
+logging = logger.getLogger(__name__)
+
+import sass
+
+load_dotenv()  # Load environment variables from .env file
+
+from models import db, User, valid_user_roles
 from routes.auth import bp as auth_bp
 from routes.dashboard import bp as dashboard_bp
 from routes.enrolment import bp as enrolment_bp
@@ -17,22 +27,44 @@ from routes.programme_mgmt import bp as programme_mgmt_bp
 from routes.school_mgmt import bp as school_mgmt_bp
 from routes.template_mgmt import bp as template_mgmt_bp
 from routes.user_mgmt import bp as user_mgmt_bp
+from routes.config_mgmt import bp as config_mgmt_bp
+
+from utils.o365_interface import O365Interface
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "supersecretkey"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'defaultsecretkey')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['DEBUG'] = True
+app.config['VALID_USER_ROLES'] = valid_user_roles
+
+app.config['USE_O365'] = os.getenv('USE_O365', 'false').lower() == 'true'  # Enable O365 if flag is set
+
+if app.config['USE_O365']:
+    o365_interface = O365Interface()  # Initialize O365 interface
+
 
 db.init_app(app)  # Initialize db with the app
+
+migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'auth.login'
-
+app.jinja_env.globals['check_permission'] = has_permission
 
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
+
+
+import json
+
+@app.template_filter('escapejs')
+def escapejs_filter(value):
+    if value is None:
+        return ''
+    return json.dumps(value)[1:-1]  # Removes the surrounding quotes
 
 
 @app.template_filter('short_time')
@@ -49,9 +81,21 @@ def short_time_filter(value):
     return value
 
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# Compile SCSS to CSS using libsass
+@app.before_request
+def compile_scss():
+    if "PYTEST_CURRENT_TEST" not in os.environ:
+        app.before_request_funcs[None].remove(compile_scss)
+        scss_dir = os.path.join(app.root_path, 'static/scss')
+        css_dir = os.path.join(app.root_path, 'static/css')
+        os.makedirs(css_dir, exist_ok=True)
+        for scss_file in os.listdir(scss_dir):
+            if scss_file.endswith('.scss'):
+                scss_path = os.path.join(scss_dir, scss_file)
+                css_path = os.path.join(css_dir, scss_file.replace('.scss', '.css'))
+                css_content = sass.compile(filename=scss_path)  # Compile SCSS to CSS
+                with open(css_path, 'w') as css_file:
+                    css_file.write(css_content)
 
 
 app.register_blueprint(auth_bp)
@@ -62,6 +106,8 @@ app.register_blueprint(school_mgmt_bp)
 app.register_blueprint(programme_mgmt_bp)
 app.register_blueprint(event_mgmt_bp)
 app.register_blueprint(template_mgmt_bp)
+app.register_blueprint(config_mgmt_bp)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

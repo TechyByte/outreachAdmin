@@ -1,0 +1,48 @@
+// Import Bootstrap's functions and variables
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+
+
+// Define custom fonts
+$font-family-sans-serif: Arial, sans-serif;
+$font-family-serif:      Georgia, "Times New Roman", Times, serif;
+$font-family-monospace:  Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+$font-family-base:       $font-family-sans-serif;
+
+
+
+// Define custom brand colors
+$primary: #005EB8;
+$primary-contrast: #E8EDEE;
+
+$secondary: #768692;
+$secondary-contrast: #E8EDEE;
+
+$info: #41B6E6;
+$info-contrast: #00A9CE;
+
+$disabled: #E8EDEE;
+$disabled-contrast: #768692;
+
+$success: #78BE20;
+$success-contrast: #009639;
+
+$danger: #DA291C;
+$danger-contrast: #8A1538;
+
+$warning: #FAE100;
+$warning-contrast: #FFB81C;
+
+// Update Bootstrap's theme colors
+$theme-colors: (
+  "primary": $primary,
+  "secondary": $secondary,
+  "info": $info,
+  "disabled": $disabled,
+  "success": $success,
+  "danger": $danger,
+  "warning": $warning
+);
+
+// Import the rest of Bootstrap
+@import "bootstrap/scss/bootstrap";

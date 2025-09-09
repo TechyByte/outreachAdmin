@@ -1,57 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>School Management</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>Outreach Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom-bootstrap.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- include jquery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="/">Home</a>
+        <a title="Strategic Utility for Supporting Population Engagement, Navigation and Direction" class="navbar-brand" href="/">Home</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
+                {% if check_permission("view_school") %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('school_mgmt.manage_schools') }}">Schools</a>
                 </li>
+                {% endif %}
+                {% if check_permission("view_programs") %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('programme_mgmt.manage_programs') }}">
                         Programs
                     </a>
                 </li>
+                {% endif %}
+                {%  if check_permission("view_schedule") %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('enrolment.enroll') }}">
-                        Enroll
+                    <a class="nav-link" href="{{ url_for('dashboard.schedule_table') }}">
+                        Schedule
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('dashboard.lecturer_dashboard') }}">
-                        Lecturer Dashboard
+                    <a class="nav-link" href="{{ url_for('dashboard.schedule_calendar') }}">
+                        Calendar
                     </a>
                 </li>
+                {% endif %}
+                {% if check_permission("manage_email_templates") %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('dashboard.school_dashboard') }}">
-                        School Dashboard
+                    <a class="nav-link" href="{{ url_for('template_mgmt.manage_mail_templates') }}">
+                        Email Templates
                     </a>
                 </li>
+                {% endif %}
+{#                <li class="nav-item">#}
+{#                    <a class="nav-link" href="{{ url_for('dashboard.lecturer_dashboard') }}">#}
+{#                        Lecturer Dashboard#}
+{#                    </a>#}
+{#                </li>#}
+{#                <li class="nav-item">#}
+{#                    <a class="nav-link" href="{{ url_for('dashboard.school_dashboard') }}">#}
+{#                        School Dashboard#}
+{#                    </a>#}
+{#                </li>#}
+                {% if check_permission("user_list") %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('dashboard.admin_dashboard') }}">
-                        Admin Dashboard
+                    <a class="nav-link" href="{{ url_for('user_mgmt.user_list') }}">
+                        People
                     </a>
                 </li>
+                {% endif %}
+                {% if check_permission("manage_locations") %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('template_mgmt.manage_templates') }}">
-                        Manage Templates
+                    <a class="nav-link" href="{{ url_for('config_mgmt.location') }}">
+                        Locations
                     </a>
                 </li>
+                {% endif %}
+            </ul>
+            <ul class="navbar-nav ms-auto">
 
-
-                <li class="nav-item dropdown float-end">
-                    <a class="nav-link dropdown-toggle float-end" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <li class="nav-item dropdown ms-auto">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         {% if current_user.is_authenticated %}
                             <i class="bi-person-circle"></i>
                             {{ current_user.username }}
@@ -59,7 +85,7 @@
                             Account
                         {% endif %}
                     </a>
-                    <ul class="dropdown-menu float-end">
+                    <ul class="dropdown-menu dropdown-menu-end ms-auto">
                         {% if current_user.is_authenticated %}
                             <li>
                                 <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
@@ -86,16 +112,30 @@
         </div>
     </div>
 </nav>
-<div class="container mt-3">
-    <!-- Flash messages for login errors -->
+<div id="flash-container" class="flash-container">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
+                <div class="alert alert-{{ category }} flash-message" role="alert">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
+</div>
+<div class="container mt-3"> <!-- Changed from 'container' to 'container-fluid' -->
     {% block content %}{% endblock %}
 </div>
+<script type="application/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        const flashMessages = document.querySelectorAll('.flash-message');
+        flashMessages.forEach(message => {
+            setTimeout(() => {
+                message.remove();
+            }, 5000); // Remove after 5 seconds
+        });
+    });
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+</script>
+{% include('modal/find_lecturer.html') %}
 </body>
 </html>

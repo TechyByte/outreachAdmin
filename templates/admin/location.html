@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container mt-4">
+    <h1>Location Admin</h1>
+
+    <!-- Table to display all Locations -->
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for location in locations %}
+            <tr>
+                <td>{{ location.id }}</td>
+                <td>{{ location.name }}</td>
+                <!-- Address with edit/add link -->
+                <td>
+                    {% if location.address %}
+                        {{ location.address }}
+                        <a href="#" onclick="openAddressPopup({{ location.id }}, '{{ location.address|escapejs }}'); return false;" title="Edit Address">
+                            <span style="font-size:1.2em;">&#9998;</span>
+                        </a>
+                    {% else %}
+                        <a href="#" onclick="openAddressPopup({{ location.id }}, ''); return false;" title="Add Address">
+                            <span style="font-size:1.2em;">&#43;</span>
+                        </a>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('config_mgmt.delete_location', location_id=location.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this location?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Form to create a new Location -->
+    <h2>Add New Location</h2>
+    <form method="POST" action="{{ url_for('config_mgmt.location') }}">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address">
+        <br>
+        <button type="submit">Add Location</button>
+    </form>
+
+    <!-- Address Popup Modal -->
+    <div id="addressPopup" style="display:none; position:fixed; top:30%; left:50%; transform:translate(-50%,-30%); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000;">
+        <h3 id="popupTitle">Add/Edit Address</h3>
+        <form id="addressForm" method="POST" action="{{ url_for('config_mgmt.location') }}">
+            <input type="hidden" id="popupLocationId" name="location_id">
+            <label for="popupAddress">Address:</label>
+            <input type="text" id="popupAddress" name="address" required>
+            <br>
+            <button type="submit">Save</button>
+            <button type="button" onclick="closeAddressPopup()">Cancel</button>
+        </form>
+    </div>
+    <div id="popupOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:999;" onclick="closeAddressPopup()"></div>
+
+    <script>
+    function openAddressPopup(locationId, address) {
+        document.getElementById('popupLocationId').value = locationId;
+        document.getElementById('popupAddress').value = address || '';
+        document.getElementById('popupTitle').textContent = address ? 'Edit Address' : 'Add Address';
+        document.getElementById('addressPopup').style.display = 'block';
+        document.getElementById('popupOverlay').style.display = 'block';
+        document.getElementById('popupAddress').focus();
+    }
+    function closeAddressPopup() {
+        document.getElementById('addressPopup').style.display = 'none';
+        document.getElementById('popupOverlay').style.display = 'none';
+    }
+    </script>
+    </div>
+
+{% endblock %}

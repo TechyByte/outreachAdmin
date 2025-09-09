@@ -27,12 +27,27 @@ jobs:
           PUBLIC_IPV4: ${{ secrets.PUBLIC_IPV4 }}
           LOCAL_USERNAME: ${{ secrets.LOCAL_USERNAME }}
           ENV_NAME: ${{ vars.ENV_NAME }}
+          SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          SQLALCHEMY_DATABASE_URI: ${{ vars.SQLALCHEMY_DATABASE_URI }}
+          O365_CLIENT_ID: ${{ vars.O365_CLIENT_ID }}
+          O365_CLIENT_SECRET: ${{ secrets.O365_CLIENT_SECRET }}
+          O365_TENANT_ID: ${{ vars.O365_TENANT_ID }}
       run: |
         ssh $LOCAL_USERNAME@$PUBLIC_IPV4 << 'EOF'
-          cd /home/github/apps/outreachAdmin
-          git pull origin $ENV_NAME
+          cd ~/apps/outreachAdmin
+          git pull origin ${{ env.ENV_NAME }}
           if [ ! -d "venv" ]; then python3 -m venv venv; fi
           source venv/bin/activate
+          export SECRET_KEY=${{ env.SECRET_KEY }}
+          export SQLALCHEMY_DATABASE_URI=${{ env.SQLALCHEMY_DATABASE_URI }}
+          export O365_CLIENT_ID=${{ env.O365_CLIENT_ID }}
+          export O365_CLIENT_SECRET=${{ env.O365_CLIENT_SECRET }}
+          export O365_TENANT_ID=${{ env.O365_TENANT_ID }}
+          export FLASK_APP=app.py
           pip install -r requirements.txt
+          # Ensure migrations folder exists and is initialized
+          if [ -d "migrations" ]; then
+            flask db upgrade;
+          fi
           sudo /bin/systemctl restart outreach.service
         EOF

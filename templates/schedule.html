@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Schedule</h2>
+
+<!-- Filters -->
+<form method="get" id="filters-form">
+    <!-- Include the extracted school filter/search functionality -->
+    {% include '_search_schools.html' %}
+
+    <label for="lecturer">Lecturer:</label>
+    <select name="lecturer" id="lecturer" multiple>
+        {% for lecturer in lecturers %}
+            <option value="{{ lecturer.id }}">{{ lecturer.username }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="program">Program:</label>
+    <select name="program" id="program" multiple>
+        {% for program in programs %}
+            <option value="{{ program.id }}">{{ program.name }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="course">Course:</label>
+    <select name="course" id="course" multiple>
+        {% for course in courses %}
+            <option value="{{ course.id }}">{{ course.name }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="location">Location:</label>
+    <select name="location" id="location" multiple>
+        {% for location in locations %}
+            <option value="{{ location.id }}">{{ location.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Apply Filters</button>
+</form>
+
+<!-- Schedule Views -->
+<div id="schedule-container">
+    <ul class="nav nav-tabs" id="schedule-tabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="calendar-tab" data-toggle="tab" href="#calendar-view" role="tab" aria-controls="calendar-view" aria-selected="true">Calendar</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="table-tab" data-toggle="tab" href="#table-view" role="tab" aria-controls="table-view" aria-selected="false">Table</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <!-- Calendar View -->
+        <div class="tab-pane fade show active" id="calendar-view" role="tabpanel" aria-labelledby="calendar-tab">
+            <div id="calendar"></div>
+        </div>
+        <!-- Table View -->
+        <div class="tab-pane fade" id="table-view" role="tabpanel" aria-labelledby="table-tab">
+            <table class="table table-striped" id="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>School</th>
+                        <th>Course</th>
+                        <th>Program</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Location</th>
+                        <th>Agenda Items</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                        <tr>
+                            <td><a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}">{{ event.name }}</a></td>
+                            <td>{{ event.school.name if event.school else 'unknown' }}</td>
+                            <td>{{ event.course.name if event.course else 'unknown' }}</td>
+                            <td>{{ event.course.program.name if event.course.program.name else 'unknown' }}</td>
+                            <td>{{ event.status.value }}</td>
+                            <td>{{ event.date }}</td>
+                            <td>
+                                {% if event.start_time and event.end_time %}
+                                    {{ event.start_time.strftime('%H:%M') }} - {{ event.end_time.strftime('%H:%M') }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>{{ event.location.name if event.location else 'unknown' }}</td>
+                            <td>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Title</th>
+                                            <th>Lecturer</th>
+                                            <th>Duration</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in event.agenda_items %}
+                                            <tr>
+                                                <td>{{ item.time|short_time }}</td>
+                                                <td><a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" data-toggle="tooltip" data-placement="left" title="Description: {{ item.description }}">{{ item.title }}</a></td>
+                                                <td>{{ item.lecturer.username if item.lecturer else 'unknown' }}</td>
+                                                <td>{{ item.duration|short_time }}</td>
+                                                <td>{{ item.status.value }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/schedule.js') }}"></script>
+<!-- Ensure Bootstrap JS is included -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+{% endblock %}

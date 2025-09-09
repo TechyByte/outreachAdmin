@@ -1,8 +1,82 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="text-center mt-5">
-        <h1>Welcome to the School Management System</h1>
-        <p>Manage schools, programs, courses, and enrollments.</p>
-    </div>
+    {% if current_user.is_authenticated %}
+        <div class="container-fluid vh-100 d-flex flex-column">
+            <div class="row flex-grow-1">
+                <!-- Top Left: Sendable but unsent template emails -->
+                <div class="col-md-6 border p-3 overflow-auto">
+                    <h4>Sendable but Unsent Template Emails</h4>
+                    <hr>
+                    <ul>
+                        {% for email in sendable_unsent_emails %}
+                            <li>
+                                {{ email.name }} - {{ email.type }} - {{ email.school.name }}
+                                <form method="POST" action="{{ url_for('template_mgmt.send_mail', template_id=email.template.id) }}" class="d-inline">
+                                    <input type="hidden" name="recipient_email" value="{{ email.recipient_email }}">
+                                    <input type="hidden" name="program_id" value="{{ email.program_id }}">
+                                    <input type="hidden" name="course_id" value="{{ email.course_id }}">
+                                    <input type="hidden" name="event_id" value="{{ email.event_id }}">
+                                    <input type="hidden" name="agenda_item_id" value="{{ email.agenda_item_id }}">
+                                    <button type="submit" name="action" value="mailto" class="btn btn-sm btn-info">✉️</button>
+{#                                    <button type="submit" name="action" value="send" class="btn btn-sm btn-success">Send via SSO</button>#}
+                                </form>
+                            </li>
+                            <hr>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <!-- Top Right: Events not confirmed -->
+                <div class="col-md-6 border p-3 overflow-auto">
+                    <h4>Events Not Confirmed</h4>
+                    <hr>
+                    <ul>
+                        {% for event in unconfirmed_events %}
+                            <li>
+                                {{ event.school.name }} - {{ event.name }} - {{ event.date }}
+                                <a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}" class="btn btn-sm btn-primary"><span style="font-size:1.2em;">&#9998;</span></a>
+                                <!--<a href="{{ url_for('template_mgmt.comms_panel') }}" class="btn btn-sm btn-secondary">View Emails</a>-->
+                            </li>
+                            <hr>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="row flex-grow-1">
+                <!-- Bottom Left: Tentatively scheduled agenda items -->
+                <div class="col-md-6 border p-3 overflow-auto">
+                    <h4>Tentatively Scheduled Agenda Items</h4>
+                    <hr>
+                    <ul>
+                        {% for item in tentative_agenda_items %}
+                            <li>
+                                <a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" class="">{{ item.title }}</a> - {{ item.event.date }} {{ item.time|short_time }} - {{ item.lecturer.username }}
+                            </li>
+                            <hr>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <!-- Bottom Right: Unscheduled agenda items -->
+                <div class="col-md-6 border p-3 overflow-auto">
+                    <h4>Unscheduled Agenda Items</h4>
+                    <hr>
+                    <ul>
+                        {% for item in unscheduled_agenda_items %}
+                            <li>
+                                {{ item.event.school.name }} - {{ item.title }} - {{ item.event.location.name }}
+                                <a href="{{ url_for('event_mgmt.edit_agenda_item', item_id=item.id) }}" class="btn btn-sm btn-primary"><span style="font-size:1.2em;">&#9998;</span></a>
+                                <!--<a href="{{ url_for('template_mgmt.comms_panel') }}" class="btn btn-sm btn-secondary">View Emails</a>-->
+                            </li>
+                            <hr>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center mt-5">
+            <h1>Welcome to the School Management System</h1>
+            <p>Manage schools, programs, courses, and enrollments.</p>
+        </div>
+    {% endif %}
 {% endblock %}

@@ -2,19 +2,23 @@
 {% for event in course.events %}
     <li>
         <strong>
-            {%  if event.status == 'Confirmed' %}
+            {{ event.status.value }}
+
+            - {%  if event.date %}
                 {{ event.date }}
             {%  else %}
                 <i>Date to be confirmed</i>
             {%  endif %}
 
-            - {{ event.status }}
-
-            - {{ event.name }}</strong> ({%  if event.location %}
+            - {{ event.name }}</strong> ({%  if not event.location %}
                 <i>Location to be confirmed</i>
             {%  else %}
-                {{ event.location }}
+                {{ event.location.name }}
             {%  endif %})
+
+        {%  if event.location.address %}
+             - {{ event.location.address }}
+        {%  endif  %}
         <a href="{{ url_for('event_mgmt.edit_event', event_id=event.id) }}">✏️</a>
         {% include '_edit_agenda.html' with context %}
     </li>

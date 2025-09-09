@@ -1,8 +1,7 @@
-<ul>
+
     {% for item in event.agenda_items %}
-        <li>{{ item.time|short_time }} - {{ item.title }} ({{ item.duration|short_time }})
-            <a href="{{ url_for('event_mgmt.edit_agenda_item', event_id=event.id, item_id=item.id) }}">✏️</a>
-            <a href="{{ item|mailto_link }}">✉️</a>
-        </li>
+        <div style="height: {{ item.height }}px;background-color: {{ item.color }};padding:1px;margin:1px;position: relative;">
+            {{ item.time|short_time }} - {{ item.title }} ({{ item.duration|short_time }})
+                <a href="{{ url_for('event_mgmt.edit_agenda_item', event_id=event.id, item_id=item.id) }}">✏️</a>
+        </div>
     {% endfor %}
-</ul>

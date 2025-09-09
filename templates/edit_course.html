@@ -2,14 +2,18 @@
 {% block content %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url_for('enrolment.manage_enrollment') }}">Manage Enrollments</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('enrolment.enroll', school_id=school.id) }}">Manage Enrollments</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('school_mgmt.manage_school_program', school_id=school.id, program_id=program.id) }}">{{ school.name }} on {{ program.name }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ course.name }}</li>
         </ol>
     </nav>
+    <hr>
     <h2>Edit Course</h2>
+    <hr>
     <form method="post">
         <label>Name: <input type="text" name="name" value="{{ course.name }}"></label>
         <button type="submit">Save</button>
     </form>
     {% include  '_edit_course.html' with context %}
+    <a href="{{ url_for('event_mgmt.create_event', course_id=course.id) }}" class="btn btn-primary mb-3">Create Event</a>
 {% endblock %}

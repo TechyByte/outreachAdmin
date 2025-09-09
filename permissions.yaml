@@ -2,16 +2,107 @@ admin:
   view_schedule: true
   edit_course: true
   edit_event: true
+  add_agenda_item: true
   edit_agenda_item: true
+  view_event_note: true
+  add_event_note: true
+  archive_event_note: true
+  view_agenda_item_note: true
+  add_agenda_item_note: true
+  archive_agenda_item_note: true
+  enroll_school: true
+  unenroll_school: true
+  confirm_agenda_item: true
+  reject_agenda_item: true
+  create_event: true
+  user_list: true
+  manage_email_templates: true
+  view_school: true
+  edit_school: true
+  add_school: true
+  delete_school: true
+  view_programs: true
+  add_program: true
+  manage_event_templates: true
+  send_email: true
+  lecturer_dashboard: true
+  school_dashboard: true
+  manage_locations: true
+  create_user: true
+  edit_user: true
+  delete_user: true
+
+manager:
+  view_schedule: true
+  edit_course: true
+  edit_event: true
+  add_agenda_item: true
+  edit_agenda_item: true
+  view_event_note: true
+  add_event_note: true
+  archive_event_note: false
+  view_agenda_item_note: true
+  add_agenda_item_note: true
+  archive_agenda_item_note: true
+  enroll_school: true
+  unenroll_school: true
+  confirm_agenda_item: true
+  reject_agenda_item: true
+  create_event: true
+  manage_email_templates: true
+  view_school: true
+  edit_school: true
+  add_school: true
+  delete_school: false
+  view_programs: true
+  add_program: true
+  manage_event_templates: true
+  send_email: true
+  lecturer_dashboard: true
+  school_dashboard: true
+  manage_locations: true
+  create_user: true
+  edit_user: true
+  user_list: true
+  delete_user: true
+
 
 lecturer:
   view_schedule: true
   edit_course: false
   edit_event: false
+  add_agenda_item: false
   edit_agenda_item: true
+  view_event_note: true
+  add_event_note: true
+  archive_event_note: false
+  view_agenda_item_note: true
+  add_agenda_item_note: true
+  archive_agenda_item_note: false
+  enroll_school: false
+  unenroll_school: false
+  confirm_agenda_item: true
+  reject_agenda_item: true
+  create_event: false
+  lecturer_dashboard: true
+
 
 school_contact:
   view_schedule: true
   edit_course: false
   edit_event: false
+  add_agenda_item: false
   edit_agenda_item: false
+  view_event_note: true
+  add_event_note: false
+  archive_event_note: false
+  view_agenda_item_note: true
+  add_agenda_item_note: false
+  archive_agenda_item_note: false
+  enroll_school: false
+  unenroll_school: false
+  confirm_agenda_item: false
+  reject_agenda_item: false
+  create_event: false
+  school_dashboard: true
+

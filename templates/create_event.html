@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h2>Create Event</h2>
+    <h3>{{ course.program.name }} - {{ course.school.name }} - {{ course.name }}</h3>
+    <form method="post">
+        <div class="mb-3">
+            <label for="name" class="form-label">Event Name</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+            <label for="template_id" class="form-label">Template (Optional)</label>
+            <select class="form-select" id="template_id" name="template_id">
+                <option value="none">-- No Template --</option>
+                {% for template in templates %}
+                    <option value="{{ template.id }}">{{ template.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Event</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>Communications Panel</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>School</th>
+                    <th>Related Entity</th>
+                    <th>Template</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in templates_status %}
+                    <tr>
+                        <td>{{ item.type }}</td>
+                        <td>{{ item.school.name }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.template.name }}</td>
+                        <td>
+                            {% if item.sent %}
+                                <span class="badge bg-success">Sent</span>
+                            {% else %}
+                                <span class="badge bg-warning">Unsent</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not item.sent %}
+                                <form method="POST" action="{{ url_for('template_mgmt.send_mail', template_id=item.template.id) }}" class="d-inline">
+                                    <input type="hidden" name="program_id" value="{{ item.program_id }}">
+                                    <input type="hidden" name="course_id" value="{{ item.course_id }}">
+                                    <input type="hidden" name="event_id" value="{{ item.event_id }}">
+                                    <input type="hidden" name="agenda_item_id" value="{{ item.agenda_item_id }}">
+                                    <div class="mb-2">
+                                        <input type="email" name="recipient_email" class="form-control" placeholder="Recipient Email" required value="{{ item.recipient_email }}">
+                                    </div>
+                                    <button type="submit" name="action" value="mailto" class="btn btn-sm btn-info">Generate Mailto</button>
+                                    <button type="submit" name="action" value="send" class="btn btn-sm btn-success">Send via SSO</button>
+                                </form>
+                            {% else %}
+                                <button class="btn btn-sm btn-secondary" disabled>Already Sent</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

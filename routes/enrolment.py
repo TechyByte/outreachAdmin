@@ -4,6 +4,7 @@ from sqlalchemy.orm import selectinload
 
 from models import db, School, Program, Course, Event, AgendaItem, TemplateCourse, TemplateEvent, \
     TemplateAgendaItem, program_template_course
+from utils import check_permission
 
 bp = Blueprint('enrolment', __name__)
 
@@ -11,6 +12,9 @@ bp = Blueprint('enrolment', __name__)
 # AJAX endpoints
 
 @bp.route('/_get_programs/<int:school_id>')
+@login_required
+@check_permission('view_programs')
+@check_permission('view_school')
 def get_programs_for_school(school_id):
     school = School.query.get_or_404(school_id)
     enrolled_ids = {p.id for p in school.programs}
@@ -19,6 +23,8 @@ def get_programs_for_school(school_id):
 
 
 @bp.route('/_get_template_courses/<int:program_id>')
+@login_required
+@check_permission('view_programs')
 def get_template_courses(program_id):
     courses = TemplateCourse.query \
         .join(program_template_course) \
@@ -27,13 +33,16 @@ def get_template_courses(program_id):
 
 
 @bp.route('/enroll', methods=['GET', 'POST'])
+@check_permission('enroll_school')
 @login_required
-def enroll():
-    """Handles enrollment with template course."""
-    if request.method == 'POST':
-        school_id = request.form.get('school_id')
-        program_id = request.form.get('program_id')
-        selected_course_ids = request.form.getlist('course_ids')
+def enroll(school_id=None, program_id=None):
+    """Handles enrollment of School on Program."""
+    if request.method == 'POST' or (school_id and program_id):
+        if not school_id:
+            school_id = request.form.get('school_id')
+        if not program_id:
+            program_id = request.form.get('program_id')
+        selected_course_ids = request.form.getlist('course_ids') if request.method == 'POST' else []
 
         with current_app.app_context():
             school = School.query.get(school_id)
@@ -48,36 +57,57 @@ def enroll():
                 # Copy selected template courses
                 for template_course_id in selected_course_ids:
                     template_course = TemplateCourse.query.get(template_course_id)
-                    new_course = Course(name=template_course.name, program_id=program.id, school_id=school.id)
+                    new_course = Course(
+                        name=template_course.name,
+                        program_id=program.id,
+                        school_id=school.id,
+                        template_course_id=template_course.id  # Populate the template_course_id field
+                    )
                     db.session.add(new_course)
                     db.session.commit()
 
                     # Copy events
                     template_events = TemplateEvent.query.filter_by(template_course_id=template_course.id).all()
                     for template_event in template_events:
-                        new_event = Event(name=template_event.name, course_id=new_course.id, school_id=school.id)
+                        new_event = Event(
+                            name=template_event.name,
+                            course_id=new_course.id,
+                            school_id=school.id,
+                            template_event_id=template_event.id  # Populate the template_event_id field
+                        )
                         db.session.add(new_event)
                         db.session.commit()
 
                         # Copy agenda items
                         template_agendas = TemplateAgendaItem.query.filter_by(template_event_id=template_event.id).all()
                         for template_agenda in template_agendas:
-                            new_agenda = AgendaItem(title=template_agenda.title,
-                                                    event_id=new_event.id,
-                                                    lecturer_id=template_agenda.lecturer_id,
-                                                    time=template_agenda.time,
-                                                    duration=template_agenda.duration,
-                                                    description=template_agenda.description)
+                            new_agenda = AgendaItem(
+                                title=template_agenda.title,
+                                event_id=new_event.id,
+                                lecturer_id=template_agenda.lecturer_id,
+                                time=template_agenda.time,
+                                duration=template_agenda.duration,
+                                description=template_agenda.description,
+                                template_agenda_item_id=template_agenda.id
+                            )
                             db.session.add(new_agenda)
 
                 db.session.commit()
-
         flash('School enrolled successfully!', 'success')
-        return redirect(url_for('enrolment.manage_enrollment'))
+        return redirect(url_for('school_mgmt.manage_school_program', school_id=school_id, program_id=program_id))
+    else:
+        # GET method
+        if not school_id:
+            school_id = request.args.get('school_id')
+        if not program_id:
+            program_id = request.args.get('program_id')
 
     # GET method
     with current_app.app_context():
-        schools = School.query.options(selectinload(School.programs)).all()
+        if school_id:
+            schools = School.query.filter(School.id == school_id).all()
+        else:
+            schools = School.query.options(selectinload(School.programs)).all()
         programs = Program.query.all()
         template_courses = TemplateCourse.query.all()
 
@@ -90,13 +120,13 @@ def enroll():
 
 
 @bp.route('/unenroll', methods=['POST'])
+@check_permission('unenroll_school')
 @login_required
 def unenroll():
     """Handles school unenrollment and removes independent records."""
     school_id = request.form.get('school_id')
     program_id = request.form.get('program_id')
 
-    # TODO: check user is admin
 
     with current_app.app_context():
         school = School.query.get(school_id)
@@ -121,15 +151,5 @@ def unenroll():
 
             db.session.commit()
     flash('School unenrolled successfully.', 'info')
-    return redirect(url_for('enrolment.manage_enrollment'))
+    return redirect(url_for('enrolment.enroll', school_id=school_id))
 
-
-@bp.route('/manage-enrollment')
-@login_required
-def manage_enrollment():
-    """Displays schools and their enrolled programs."""
-    with current_app.app_context():
-        schools = db.session.query(School).options(selectinload(School.programs)).all()
-        programs = db.session.query(Program).options(selectinload(Program.courses)).all()
-
-    return render_template('enroll.html', schools=schools, programs=programs)

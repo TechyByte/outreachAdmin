@@ -1,0 +1,18 @@
+.flash-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050; /* Ensure it appears above other elements */
+    max-width: 300px;
+}
+
+.flash-message {
+    margin-bottom: 10px;
+    animation: fadeOut 5s forwards; /* Automatically fade out after 5 seconds */
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('enrolment.enroll', school_id=school.id) }}">Manage Enrollments</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ school.name }} on {{ program.name }}</li>
+        </ol>
+    </nav>
+    <div class="container mt-4">
+        <h2>Manage Program: {{ program.name }}</h2>
+        <h3>School: {{ school.name }}</h3>
+
+        <!-- Courses Section -->
+        <h4>Courses</h4>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Course Name</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                    <tr>
+                        <td>{{ course.name }}</td>
+                        <td style="color: {{ course.status.color }}">{{ course.status.value }}</td>
+                        <td>
+                            <a href="{{ url_for('event_mgmt.edit_course', course_id=course.id) }}" class="btn btn-sm btn-primary">Edit</a>
+                            <a href="{{ url_for('event_mgmt.create_event', course_id=course.id) }}" class="btn btn-sm btn-success">Create Event</a>
+                            <a class="btn btn-sm btn-info" href="#course{{ course.id }}" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="{{ course.id }}">
+                                View Events
+                            </a>
+                        </td>
+                    </tr>
+                    <tr class="collapse" id="course{{ course.id }}"><td colspan="100%"><div>{% include "_course_tree.html" with context %}</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+{#                {% for course in courses %}#}
+{#                    {% include "_course_tree.html" with context %}#}
+{#                {% endfor %}#}
+    </div>
+{% endblock %}
+

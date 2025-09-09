@@ -1,0 +1,73 @@
+<!-- Modal -->
+<div class="modal fade" id="findLecturerModal" tabindex="-1" aria-labelledby="findLecturerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="findLecturerModalLabel">Search Lecturers</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="lecturer-search-form">
+                    <div class="mb-3">
+                        <label for="lecturer_search" class="form-label">Search:</label>
+                        <input type="text" class="form-control" id="lecturer_search" name="search"
+                               placeholder="Enter at least 3 letters to search">
+                    </div>
+                </form>
+
+                <hr>
+
+                <h5>Matching Lecturers</h5>
+                <div id="matching-lecturers">
+                    <p class="text-muted">Enter at least 3 letters to see matching lecturers.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="apply-lecturer-filter" data-bs-dismiss="modal">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('lecturer_search').addEventListener('input', async (e) => {
+        const query = e.target.value.trim();
+        const matchingLecturersDiv = document.getElementById('matching-lecturers');
+
+        if (query.length < 3) {
+            matchingLecturersDiv.innerHTML = '<p class="text-muted">Enter at least 3 letters to see matching lecturers.</p>';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/lecturers/search?query=${encodeURIComponent(query)}`);
+            const lecturers = await response.json();
+
+            if (lecturers.length === 0) {
+                matchingLecturersDiv.innerHTML = '<p class="text-muted">No matching lecturers found.</p>';
+            } else {
+                matchingLecturersDiv.innerHTML = lecturers.map(lecturer => `
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" id="lecturer_${lecturer.id}" name="selected_lecturer" value="${lecturer.id}">
+                        <label class="form-check-label" for="lecturer_${lecturer.id}">
+                            ${lecturer.display_name || lecturer.username}
+                        </label>
+                    </div>
+                `).join('');
+            }
+        } catch (error) {
+            matchingLecturersDiv.innerHTML = '<p class="text-danger">Error fetching lecturers. Please try again later.</p>';
+        }
+    });
+
+    document.getElementById('apply-lecturer-filter').addEventListener('click', () => {
+        const selectedLecturer = document.querySelector('input[name="selected_lecturer"]:checked');
+        if (selectedLecturer) {
+            document.getElementById('selected_lecturers_input').value = selectedLecturer.value;
+
+            // Dispatch a custom event with the lecturer's info
+            const lecturerLabel = selectedLecturer.nextElementSibling.innerText;
+            const event = new CustomEvent('lecturer-selected', { detail: { id: selectedLecturer.value, name: lecturerLabel } });
+            window.dispatchEvent(event);
+        }
+    });
+</script>

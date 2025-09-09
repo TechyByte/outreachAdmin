@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2 class="text-center">People</h2>
+{#        <p class="text-center">Manage users and their roles.</p>#}
+
+        <!-- Display Users -->
+        <table class="table table-bordered mt-3">
+            <thead class="table-dark">
+            <tr>
+                <th>Username</th>
+                <th>Display Name</th>
+                <th>Default Role</th>
+                <th>Configured Role</th>
+                <th>Computed Role</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.display_name }}</td>
+                    <td>{{ user.default_role }}</td>
+                    <td>
+{#                        <form method="POST" action="{{ url_for('user_mgmt.change_user_type') }}">#}
+{#                            <input type="hidden" name="user_id" value="{{ user.id }}">#}
+{#                            <select name="new_role" class="form-select d-inline w-auto">#}
+{#                                <option value=None {% if not user.configured_role %}selected{% endif %}>None</option>#}
+{#                                {% for role in valid_user_roles %}#}
+{#                                    <option value="{{ role }}" {% if user.configured_role == role %}selected{% endif %}>{{ role }}</option>#}
+{#                                {% endfor %}#}
+{#                            </select>#}
+{#                            <button type="submit" class="btn btn-primary btn-sm">Update</button>#}
+{#                        </form>#}
+                        {{ user.configured_role }}
+                    </td>
+                    <td>{{ user.role }}</td>
+                    <td>
+                        {% if user.role != 'admin' or current_user.role == 'admin' or user.username == current_user.username %}
+                            <button type="button" class="btn btn-warning btn-sm edit-user-btn" data-bs-toggle="modal" data-bs-target="#editUserModal" data-user='{"id": "{{ user.id }}", "username": "{{ user.username }}", "display_name": "{{ user.display_name|e }}", "specialty": "{{ user.specialty|e }}", "email": "{{ user.email|e }}", "configured_role": "{{ user.configured_role|e }}"}'>Edit</button>
+                        {% endif %}
+                        {% if (user.role != 'admin' or current_user.role == 'admin') and user.username != current_user.username %}
+                            <form method="POST" action="{{ url_for('user_mgmt.delete_user') }}" style="display:inline;">
+                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Create New User Modal Trigger -->
+        <button type="button" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            Create New User
+        </button>
+
+        <!-- Create New User Modal -->
+        <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createUserModalLabel">Create New User</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" action="{{ url_for('user_mgmt.create_user') }}" id="create-user-form">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="display_name" class="form-label">Display Name</label>
+                                <input type="text" class="form-control" id="display_name" name="display_name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="specialty" class="form-label">Specialty</label>
+                                <input type="text" class="form-control" id="specialty" name="specialty">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="configured_role" class="form-label">Configured Role</label>
+                                <select class="form-select" id="configured_role" name="configured_role">
+                                    <option value="">None</option>
+                                    {% for role in valid_user_roles %}
+                                        {% if role != "admin" or current_user.role == "admin" %}
+                                            <option value="{{ role }}">{{ role }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-success">Create User</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit User Modal -->
+        <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" action="{{ url_for('user_mgmt.edit_user') }}" id="edit-user-form">
+                            <input type="hidden" id="edit_user_id" name="user_id">
+                            <div class="mb-3">
+                                <label for="edit_username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="edit_username" name="username" required readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_display_name" class="form-label">Display Name</label>
+                                <input type="text" class="form-control" id="edit_display_name" name="display_name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_specialty" class="form-label">Specialty</label>
+                                <input type="text" class="form-control" id="edit_specialty" name="specialty">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="edit_email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_configured_role" class="form-label">Configured Role</label>
+                                <select class="form-select" id="edit_configured_role" name="configured_role">
+                                    <option value="">None</option>
+                                    {% for role in valid_user_roles %}
+                                        {% if role != "admin" or current_user.role == "admin" %}
+                                            <option value="{{ role }}">{{ role }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.edit-user-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const user = JSON.parse(this.getAttribute('data-user'));
+                    document.getElementById('edit_user_id').value = user.id;
+                    document.getElementById('edit_username').value = user.username;
+                    document.getElementById('edit_display_name').value = user.display_name || '';
+                    document.getElementById('edit_specialty').value = user.specialty || '';
+                    document.getElementById('edit_email').value = user.email || '';
+                    document.getElementById('edit_configured_role').value = user.configured_role || '';
+                });
+            });
+        });
+        </script>
+    </div>
+{% endblock %}

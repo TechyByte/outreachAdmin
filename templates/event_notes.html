@@ -1,0 +1,24 @@
+<div>
+    <h3>Event Notes</h3>
+    <ul>
+        {% for note in notes %}
+            <li>
+                <strong>{{ note.datetime.strftime('%Y-%m-%d %H:%M:%S') }}</strong> by <strong>{{ note.user.username }}</strong>: {{ note.content }} -
+                {% if can_archive_note %}
+                    <form method="post" action="{{ url_for('event_mgmt.archive_event_note', note_id=note.id) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-danger" title="Archive Note">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </form>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if can_add_note %}
+        <form method="post" action="{{ url_for('event_mgmt.event_notes', event_id=event.id) }}">
+            <textarea name="content" rows="3" placeholder="Add a new note..." required></textarea><br>
+            <button type="submit" class="btn btn-primary">Add Note</button>
+        </form>
+    {% endif %}
+</div>

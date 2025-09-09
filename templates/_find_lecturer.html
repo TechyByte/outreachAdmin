@@ -1,0 +1,49 @@
+{% set selected_lecturer_id = item.lecturer.id if item and item.lecturer else request.args.get('lecturer', '') %}
+{% set selected_lecturer_name = (item.lecturer.display_name or item.lecturer.username) if item and item.lecturer else '' %}
+
+    <div class="mb-2">
+    <button
+        type="button"
+        id="find-lecturer-btn"
+        class="btn {% if selected_lecturer_id %}btn-info{% else %}btn-secondary{% endif %} mb-3"
+        data-bs-toggle="modal"
+        data-bs-target="#findLecturerModal"
+    >
+        {% if selected_lecturer_id %}
+            Change Lecturer
+        {% else %}
+            Find Lecturer
+        {% endif %}
+    </button>
+    <span id="selected-lecturer-display" class="ms-2 align-middle">
+        {% if selected_lecturer_name %}
+            <span class="badge bg-success">Selected Lecturer: {{ selected_lecturer_name }}</span>
+        {% endif %}
+    </span>
+</div>
+
+<input type="hidden" name="lecturer_id" id="selected_lecturers_input" value="{{ selected_lecturer_id }}">
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const lecturerInput = document.getElementById('selected_lecturers_input');
+    const lecturerDisplay = document.getElementById('selected-lecturer-display');
+    const findLecturerBtn = document.getElementById('find-lecturer-btn');
+    window.addEventListener('lecturer-selected', function(e) {
+        if (lecturerInput) {
+            lecturerInput.value = e.detail.id;
+        }
+        if (lecturerDisplay) {
+            {% if item is defined %}
+            lecturerDisplay.innerHTML = '<span class="badge bg-success">Will assign ' + e.detail.name + ' on save</span>';
+            {% else %}
+            lecturerDisplay.innerHTML = '<span class="badge bg-success">Selected Lecturer: ' + e.detail.name + '</span>';
+            {% endif %}
+        }
+        if (findLecturerBtn) {
+            findLecturerBtn.classList.remove('btn-primary');
+            findLecturerBtn.classList.add('btn-success');
+        }
+    });
+});
+</script>
