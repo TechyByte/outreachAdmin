@@ -64,13 +64,19 @@
                             {% if template.programs %}
                                 <div><b>Programs:</b> {{ template.programs|map(attribute='name')|join(', ') }}</div>
                             {% endif %}
-                            {% if template.template_courses %}
+                            {% if template.apply_to_all_courses %}
+                                <div><b>All Courses</b></div>
+                            {% elif template.template_courses %}
                                 <div><b>Template Courses:</b> {{ template.template_courses|map(attribute='name')|join(', ') }}</div>
                             {% endif %}
-                            {% if template.template_events %}
+                            {% if template.apply_to_all_events %}
+                                <div><b>All Events</b></div>
+                            {% elif template.template_events %}
                                 <div><b>Template Events:</b> {{ template.template_events|map(attribute='name')|join(', ') }}</div>
                             {% endif %}
-                            {% if template.template_agenda_items %}
+                            {% if template.apply_to_all_agenda_items %}
+                                <div><b>All Agenda Items</b></div>
+                            {% elif template.template_agenda_items %}
                                 <div><b>Template Agenda Items:</b> {{ template.template_agenda_items|map(attribute='title')|join(', ') }}</div>
                             {% endif %}
                             {% if template.sendable_statuses %}

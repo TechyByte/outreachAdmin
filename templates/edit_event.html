@@ -8,7 +8,9 @@
             <li class="breadcrumb-item active" aria-current="page">{{ event.name }}</li>
         </ol>
     </nav>
+    <hr>
     <h2>Edit {{ event.status.value }} Event</h2>
+    <hr>
     <div class="row">
         <!-- Left: Event Info/Edit Form -->
         <div class="col-md-4">
@@ -26,6 +28,7 @@
                 <label>Date: <input type="date" name="date" value="{{ event.date }}"></label><br>
                 <button type="submit">Save</button>
             </form>
+        <hr>
             <a href="{{ url_for('event_mgmt.create_agenda_item', event_id=event.id) }}" class="btn btn-primary">Add Agenda Item</a>
             {% include '_edit_agenda.html' with context %}
         </div>

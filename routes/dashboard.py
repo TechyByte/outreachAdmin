@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload
 
 from models import db, User, School, AgendaItem, Event, Course, Program, Location, MailMergeTemplateSend, \
-    AgendaItemStatus
+    AgendaItemStatus, TemplateCourse, EventStatus
 from utils import check_permission
 
 bp = Blueprint('dashboard', __name__)
@@ -136,7 +136,7 @@ def schedule_table():
     course_ids = request.args.getlist('course')
     location_ids = request.args.getlist('location')
 
-    events_query = Event.query.join(Course).join(School).join(Location, isouter=True)
+    events_query = Event.query.join(Course).join(School).join(Location, isouter=True).filter(Event.status != EventStatus.ARCHIVED.value)
 
     if school_ids:
         events_query = events_query.filter(Event.school_id.in_(school_ids))
@@ -155,7 +155,12 @@ def schedule_table():
     schools = School.query.all()
     lecturers = User.query.filter(User.role.in_(['lecturer', 'admin'])).all()
     programs = Program.query.all()
-    courses = Course.query.distinct(Course.name).all()
+    courses = (
+        db.session.query(TemplateCourse)
+        .join(Course)
+        .distinct(TemplateCourse.id)
+        .all()
+    )
     locations = Location.query.all()
 
     return render_template(
@@ -177,7 +182,12 @@ def schedule_calendar():
     schools = School.query.all()
     lecturers = User.query.filter(User.role.in_(['lecturer', 'admin'])).all()
     programs = Program.query.all()
-    courses = Course.query.distinct(Course.name).all()
+    courses = (
+        db.session.query(TemplateCourse)
+        .join(Course, TemplateCourse.id == Course.template_course_id)
+        .distinct(TemplateCourse.id)
+        .all()
+    )
     locations = Location.query.all()
     return render_template(
         'schedule_calendar.html',
@@ -204,7 +214,7 @@ def schedule_events():
     future = today + timedelta(days=n_days)
 
     # Base query
-    events_query = Event.query.join(Course).join(School)
+    events_query = Event.query.join(Course).join(School).filter(Event.status != EventStatus.ARCHIVED.value)
 
     # Apply filters
     if school_ids:
@@ -214,7 +224,7 @@ def schedule_events():
     if program_ids:
         events_query = events_query.filter(Course.program_id.in_(program_ids))
     if course_ids:
-        events_query = events_query.filter(Event.course_id.in_(course_ids))
+        events_query = events_query.filter(Course.template_course_id.in_(course_ids))
     if location_ids:
         events_query = events_query.filter(Event.location_id.in_(location_ids))
 
